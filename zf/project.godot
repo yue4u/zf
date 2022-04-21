@@ -6,10 +6,17 @@
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
-config_version=5
+config_version=4
 
 [application]
 
 config/name="zf"
 config/icon="res://icon.png"
-config/features=PackedStringArray("4.0", "Vulkan Clustered")
+
+[physics]
+
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+environment/default_environment="res://default_env.tres"

@@ -1,6 +1,10 @@
-[gd_resource type="Theme" load_steps=6 format=2]
+[gd_resource type="Theme" load_steps=8 format=2]
 
 [ext_resource path="res://assets/3rd/JetBrains_Mono/static/JetBrainsMono-Regular.ttf" type="DynamicFontData" id=1]
+
+[sub_resource type="StyleBoxEmpty" id=5]
+
+[sub_resource type="StyleBoxEmpty" id=6]
 
 [sub_resource type="DynamicFont" id=4]
 size = 36
@@ -22,6 +26,8 @@ font_data = ExtResource( 1 )
 
 [resource]
 default_font = SubResource( 1 )
+ItemList/styles/bg = SubResource( 5 )
+ItemList/styles/bg_focus = SubResource( 6 )
 LineEdit/colors/selection_color = Color( 0, 0.905882, 1, 1 )
 LineEdit/constants/minimum_spaces = 12
 LineEdit/fonts/font = SubResource( 4 )

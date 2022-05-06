@@ -17,13 +17,8 @@ impl CommandHistory {
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command history ready");
 
-        let line_edit = unsafe {
-            owner
-                .get_node("../CommandPalette/LineEdit")?
-                .assume_safe()
-                .cast::<LineEdit>()?
-        };
-        line_edit
+        unsafe { owner.get_node("../CommandPalette/LineEdit")?.assume_safe() }
+            .cast::<LineEdit>()?
             .connect(
                 "text_entered",
                 owner,

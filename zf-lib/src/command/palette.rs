@@ -13,8 +13,8 @@ impl CommandPalette {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("line_edit ready");
-        let line_edit = owner.cast::<LineEdit>()?;
-        line_edit
+        owner
+            .cast::<LineEdit>()?
             .connect(
                 "text_entered",
                 owner,

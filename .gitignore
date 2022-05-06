@@ -1,11 +1,6 @@
-*/target
-target
-*.rlib
-**/Cargo.lock
+# Editor
 .vscode
 .idea
-
-**/.import/*
 
 # Godot-specific ignores
 .import/
@@ -19,5 +14,14 @@ export_presets.cfg
 .mono/
 data_*/
 
+# Rust
+*/target
+target
+*.rlib
+**/Cargo.lock
+
+# Project
 tmp
 external
+
+zf/assets/3rd

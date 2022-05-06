@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://assets/3rd/SpaceHDR/Crab Nebula/hdr.png" type="Texture" id=1]
+
+[sub_resource type="PanoramaSky" id=1]
+panorama = ExtResource( 1 )
+
+[sub_resource type="Environment" id=2]
+background_mode = 2
+background_sky = SubResource( 1 )
+tonemap_mode = 2
+tonemap_exposure = 1.5
+
+[node name="Spatial" type="Spatial"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 2 )

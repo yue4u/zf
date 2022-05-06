@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://assets/3rd/SpaceHDR/Crab Nebula/hdr.png" type="Texture" id=1]
 [ext_resource path="res://assets/self-made/t-dummy.tscn" type="PackedScene" id=2]
 [ext_resource path="res://assets/self-made/code_theme.tres" type="Theme" id=3]
+[ext_resource path="res://scripts/env.gdns" type="Script" id=4]
 
 [sub_resource type="PanoramaSky" id=1]
 panorama = ExtResource( 1 )
@@ -18,18 +19,21 @@ tonemap_exposure = 1.5
 
 [node name="Spatial" type="Spatial"]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource( 2 )
+[node name="Game" type="Node" parent="."]
 
-[node name="Camera" type="Camera" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Game"]
+environment = SubResource( 2 )
+script = ExtResource( 4 )
+
+[node name="Camera" type="Camera" parent="Game"]
 transform = Transform( -4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -15.3119, 6.8104, 0 )
 current = true
 
-[node name="t-dummy" parent="." instance=ExtResource( 2 )]
+[node name="t-dummy" parent="Game" instance=ExtResource( 2 )]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="."]
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="UI"]
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
@@ -40,15 +44,17 @@ margin_right = 100.0
 margin_bottom = -50.0
 theme = ExtResource( 3 )
 
-[node name="Label" type="Label" parent="CanvasLayer/HBoxContainer"]
+[node name="Label" type="Label" parent="UI/HBoxContainer"]
 margin_top = 8.0
-margin_right = 32.0
+margin_right = 14.0
 margin_bottom = 41.0
-text = "> "
+text = ">"
+align = 3
+valign = 3
 
-[node name="LineEdit" type="LineEdit" parent="CanvasLayer/HBoxContainer"]
-margin_left = 36.0
-margin_right = 300.0
+[node name="LineEdit" type="LineEdit" parent="UI/HBoxContainer"]
+margin_left = 18.0
+margin_right = 282.0
 margin_bottom = 50.0
 text = "game start"
-placeholder_text = "_"
+placeholder_text = "dummy"

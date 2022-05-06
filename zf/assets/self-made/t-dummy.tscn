@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://assets/self-made/t-dummy.tres" type="Material" id=1]
+[ext_resource path="res://assets/3rd/spaceships/t-dummy.gltf" type="PackedScene" id=2]
+
+[node name="t-dummy" instance=ExtResource( 2 )]
+
+[node name="Cube_0" parent="Sketchfab_model/Root/Cube001" index="0"]
+material/0 = ExtResource( 1 )

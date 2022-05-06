@@ -11,7 +11,7 @@ config_version=4
 [application]
 
 config/name="zf"
-run/main_scene="res://scene/test.tscn"
+run/main_scene="res://scene/space.tscn"
 config/icon="res://icon.png"
 
 [physics]

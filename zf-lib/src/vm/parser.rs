@@ -31,16 +31,20 @@ impl TryFrom<String> for Command {
     type Error = InvalidCommand;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let args = value.split(' ');
-        let ns = args.into_iter().collect::<Vec<&str>>();
-        match &ns[..] {
-            &["game" | "g", act] => match act {
+        let args = value
+            .split(' ')
+            .take_while(|&arg| arg != "|")
+            .into_iter()
+            .collect::<Vec<&str>>();
+
+        match args[..] {
+            ["game" | "g", act] => match act {
                 "start" => Some(Command::Game(GameCommand::Start)),
                 "stop" => Some(Command::Game(GameCommand::Stop)),
                 _ => None,
             },
-            &["mission" | "m", ..] => match &ns[1..] {
-                ["summary"] | [] => Some(Command::Mission(MissionCommand::Summary)),
+            ["mission" | "m", ..] => match args[1..] {
+                ["summary" | "s"] | [] => Some(Command::Mission(MissionCommand::Summary)),
                 _ => None,
             },
             _ => Some(Command::Unkonwn(value)),

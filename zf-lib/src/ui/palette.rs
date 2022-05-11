@@ -14,7 +14,7 @@ impl CommandPalette {
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("line_edit ready");
         let line_edit = owner.cast::<LineEdit>()?;
-
+        line_edit.set_cursor_position(line_edit.text().len() as i64);
         line_edit
             .connect(
                 "text_entered",

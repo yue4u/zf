@@ -53,6 +53,7 @@ margin_left = 30.0
 margin_top = 30.0
 margin_right = -30.0
 margin_bottom = -30.0
+theme = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": true
 }
@@ -62,7 +63,7 @@ margin_right = 964.0
 margin_bottom = 540.0
 
 [node name="CommandResult" type="RichTextLabel" parent="UI/MarginContainer/Control"]
-margin_right = 200.0
+anchor_right = 0.5
 margin_bottom = 200.0
 script = ExtResource( 2 )
 
@@ -71,7 +72,6 @@ anchor_left = 1.0
 anchor_right = 1.0
 margin_left = -200.0
 margin_bottom = 200.0
-theme = ExtResource( 3 )
 script = ExtResource( 6 )
 
 [node name="CommandPalette" type="HBoxContainer" parent="UI/MarginContainer/Control"]
@@ -82,11 +82,10 @@ anchor_bottom = 1.0
 margin_left = -482.0
 margin_top = -40.0
 margin_right = 482.0
-theme = ExtResource( 3 )
 
 [node name="Label" type="Label" parent="UI/MarginContainer/Control/CommandPalette"]
 margin_right = 14.0
-margin_bottom = 48.0
+margin_bottom = 40.0
 size_flags_vertical = 5
 text = ">"
 align = 1
@@ -95,7 +94,7 @@ valign = 1
 [node name="LineEdit" type="LineEdit" parent="UI/MarginContainer/Control/CommandPalette"]
 margin_left = 18.0
 margin_right = 964.0
-margin_bottom = 48.0
+margin_bottom = 40.0
 size_flags_horizontal = 3
 text = "game start"
 align = 3

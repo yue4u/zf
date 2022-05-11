@@ -1,5 +1,10 @@
 # Commands
 
+## Design rules: 
+
+- no quoating
+  - allows input string -> vec of args
+
 ## mission
 
 ---

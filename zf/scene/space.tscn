@@ -65,7 +65,7 @@ align = 1
 valign = 1
 
 [node name="LineEdit" type="LineEdit" parent="UI/CommandPalette"]
-margin_left = 18.0
+margin_left = 30.0
 margin_right = 400.0
 margin_bottom = 50.0
 size_flags_horizontal = 3

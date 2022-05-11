@@ -13,8 +13,9 @@ impl CommandPalette {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("line_edit ready");
-        owner
-            .cast::<LineEdit>()?
+        let line_edit = owner.cast::<LineEdit>()?;
+
+        line_edit
             .connect(
                 "text_entered",
                 owner,
@@ -23,6 +24,8 @@ impl CommandPalette {
                 0,
             )
             .expect("failed to connect line edit");
+        line_edit.grab_focus();
+
         Some(())
     }
 

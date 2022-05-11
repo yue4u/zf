@@ -28,6 +28,7 @@ font_data = ExtResource( 1 )
 default_font = SubResource( 1 )
 ItemList/styles/bg = SubResource( 5 )
 ItemList/styles/bg_focus = SubResource( 6 )
+LineEdit/colors/cursor_color = Color( 0, 0.905882, 1, 1 )
 LineEdit/colors/selection_color = Color( 0, 0.905882, 1, 1 )
 LineEdit/constants/minimum_spaces = 12
 LineEdit/fonts/font = SubResource( 4 )

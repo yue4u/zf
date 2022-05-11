@@ -50,26 +50,29 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-margin_left = -100.0
+margin_left = -200.0
 margin_top = -100.0
-margin_right = 100.0
+margin_right = 200.0
 margin_bottom = -50.0
 theme = ExtResource( 3 )
 
 [node name="Label" type="Label" parent="UI/CommandPalette"]
-margin_top = 8.0
 margin_right = 14.0
-margin_bottom = 41.0
+margin_bottom = 50.0
+size_flags_vertical = 5
 text = ">"
-align = 3
-valign = 3
+align = 1
+valign = 1
 
 [node name="LineEdit" type="LineEdit" parent="UI/CommandPalette"]
 margin_left = 18.0
-margin_right = 282.0
+margin_right = 400.0
 margin_bottom = 50.0
+size_flags_horizontal = 3
 text = "game start"
+align = 3
 placeholder_text = "_"
+caret_blink = true
 script = ExtResource( 5 )
 
 [node name="CommandHistory" type="ItemList" parent="UI"]

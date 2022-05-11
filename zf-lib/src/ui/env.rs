@@ -2,7 +2,7 @@ use gdnative::{api::WorldEnvironment, prelude::*};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub(crate) struct Env;
+pub struct Env;
 
 #[methods]
 impl Env {

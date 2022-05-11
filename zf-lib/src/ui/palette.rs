@@ -2,7 +2,7 @@ use gdnative::{api::LineEdit, prelude::*};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub(crate) struct CommandPalette;
+pub struct CommandPalette;
 
 #[methods]
 impl CommandPalette {

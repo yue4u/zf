@@ -5,7 +5,7 @@ use gdnative::{
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub(crate) struct CommandHistory;
+pub struct CommandHistory;
 
 #[methods]
 impl CommandHistory {

@@ -2,7 +2,7 @@ use gdnative::prelude::*;
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub(crate) struct Hello;
+pub struct Hello;
 
 #[methods]
 impl Hello {

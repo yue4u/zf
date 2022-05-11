@@ -6,7 +6,7 @@ pub struct Hello;
 
 #[methods]
 impl Hello {
-    pub(crate) fn new(_owner: &Node) -> Self {
+    fn new(_owner: &Node) -> Self {
         Hello
     }
 

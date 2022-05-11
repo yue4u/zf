@@ -1,4 +1,4 @@
-use crate::vm::Parser;
+use crate::vm;
 use gdnative::{
     api::{LineEdit, RichTextLabel},
     prelude::*,
@@ -33,11 +33,8 @@ impl CommandResult {
 
     #[export]
     fn on_text_entered(&mut self, owner: &Node, text: String) -> Option<()> {
-        godot_print!("on set text {text}");
-        let result = Parser::parse(text);
-        owner
-            .cast::<RichTextLabel>()?
-            .set_text(format!("{:?}", result));
+        let result = vm::exec(text);
+        owner.cast::<RichTextLabel>()?.set_bbcode(result);
         Some(())
     }
 }

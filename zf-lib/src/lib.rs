@@ -1,5 +1,7 @@
 mod ui;
 mod vm;
+mod common;
+mod entities;
 
 use gdnative::prelude::*;
 

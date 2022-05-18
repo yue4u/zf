@@ -6,6 +6,8 @@ pub enum Command {
     Help,
     Game(GameCommand),
     Mission(MissionCommand),
+    Engine(EngineCommand),
+    Autopilot(AutopilotCommand),
     Unkonwn(String),
 }
 
@@ -19,6 +21,13 @@ mission, m
     summary, s    Show mission summary
     target, t     Get mission targets info
     position, p   Get mission targets's positions
+engine, e
+    start         Start engine
+    stop          Stop engine
+    thruster, t    Set engine thruster at <percentage>
+autopilot, a
+    target, t     autopilot to <target>
+    orbit, o      autopilot use <orbit>
 "#;
 
 #[derive(Debug)]
@@ -57,6 +66,31 @@ impl TryFrom<String> for Command {
                 ["position" | "p"] => Some(Command::Mission(MissionCommand::Position)),
                 _ => None,
             },
+            ["engine" | "e", ..] => match args[1..] {
+                ["start"] => Some(Command::Engine(EngineCommand::Start)),
+                ["stop"] => Some(Command::Engine(EngineCommand::Stop)),
+                ["thruster" | "t", t] => Some(Command::Engine(EngineCommand::Thruster(
+                    t.parse::<i8>()
+                        .map(|n| {
+                            if -100 <= n && n <= 100 {
+                                Ok(n)
+                            } else {
+                                Err(InvalidCommand)
+                            }
+                        })
+                        .or(Err(InvalidCommand))??,
+                ))),
+                _ => None,
+            },
+            ["autopilot" | "a", ..] => match args[1..] {
+                ["target" | "t", t] => {
+                    Some(Command::Autopilot(AutopilotCommand::Tartget(t.to_owned())))
+                }
+                ["orbit" | "o", o] => {
+                    Some(Command::Autopilot(AutopilotCommand::Orbit(o.to_owned())))
+                }
+                _ => None,
+            },
             _ => Some(Command::Unkonwn(value)),
         }
         .ok_or(InvalidCommand)
@@ -85,4 +119,17 @@ impl Execute for MissionCommand {
         };
         Ok(ret)
     }
+}
+
+#[derive(Debug)]
+pub enum EngineCommand {
+    Start,
+    Stop,
+    Thruster(i8),
+}
+
+#[derive(Debug)]
+pub enum AutopilotCommand {
+    Tartget(String),
+    Orbit(String),
 }

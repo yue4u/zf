@@ -2,6 +2,7 @@ mod ui;
 mod vm;
 mod common;
 mod entities;
+mod units;
 
 use gdnative::prelude::*;
 

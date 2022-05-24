@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://assets/3rd/SpaceHDR/Crab Nebula/hdr.png" type="Texture" id=1]
 [ext_resource path="res://scripts/CommandResult.gdns" type="Script" id=2]
@@ -7,6 +7,8 @@
 [ext_resource path="res://scripts/CommandPalette.gdns" type="Script" id=5]
 [ext_resource path="res://scripts/CommandHistory.gdns" type="Script" id=6]
 [ext_resource path="res://assets/3rd/mjolnir/scene.gltf" type="PackedScene" id=7]
+[ext_resource path="res://assets/3rd/gangut_space_hub/scene.gltf" type="PackedScene" id=8]
+[ext_resource path="res://assets/3rd/mjolnir/player.gdns" type="Script" id=9]
 
 [sub_resource type="PanoramaSky" id=1]
 panorama = ExtResource( 1 )
@@ -24,6 +26,12 @@ glow_hdr_threshold = 0.45
 glow_hdr_scale = 1.5
 glow_high_quality = true
 
+[sub_resource type="Curve3D" id=3]
+_data = {
+"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, 3.29846, 0.491943, -0.543671, 0, 0, 0, 0, 0, 0, 541.419, -429.471, 698.091, 0, 0, 0, 0, 0, 0, 1274.98, -437.033, 757.669, 0, 0, 0, 0, 0, 0, 1729.78, -330.12, 538.869, 0, 0, 0, 0, 0, 0, 1835.42, 29.3022, 149.751, 0, 0, 0, 0, 0, 0, 1630.41, 259.225, -251.037, 0, 0, 0, 0, 0, 0, 1159.53, 445.61, -521.659, 0, 0, 0, 0, 0, 0, 527.611, 286.517, -490.037, 0, 0, 0, 0, 0, 0, 106.173, 217.509, -357.548, 0, 0, 0, 0, 0, 0, -27.2338, 15.7045, -95.1217, 0, 0, 0, 0, 0, 0, 3.29846, 0.491943, -0.543671 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 )
+}
+
 [node name="Scene" type="Node"]
 
 [node name="Game" type="Node" parent="."]
@@ -40,9 +48,22 @@ script = ExtResource( 4 )
 [node name="Camera" type="Camera" parent="Game"]
 transform = Transform( -4.37114e-08, 0.34202, -0.939693, 0, 0.939693, 0.34202, 1, 1.49502e-08, -4.10753e-08, -60, 40, 0 )
 current = true
+far = 1000.0
 
-[node name="t-mjolnir" parent="Game" instance=ExtResource( 7 )]
+[node name="t-gangut_space_hub" parent="Game" instance=ExtResource( 8 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 900, 0, 0 )
+
+[node name="Path" type="Path" parent="Game"]
+curve = SubResource( 3 )
+
+[node name="PathFollow" type="PathFollow" parent="Game/Path"]
+transform = Transform( 0.974432, -0.0400594, 0.221085, 0.0552885, 0.996473, -0.0631289, -0.217777, 0.0737385, 0.973209, 3.29846, 0.491943, -0.543671 )
+
+[node name="t-mjolnir" parent="Game/Path/PathFollow" instance=ExtResource( 7 )]
 transform = Transform( -4.37114e-07, 0, -10, 0, 10, 0, 10, 0, -4.37114e-07, 0, 0, 0 )
+script = ExtResource( 9 )
+
+[node name="Tween" type="Tween" parent="Game/Path/PathFollow/t-mjolnir"]
 
 [node name="UI" type="CanvasLayer" parent="."]
 

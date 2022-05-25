@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://assets/3rd/SpaceHDR/Crab Nebula/hdr.png" type="Texture" id=1]
 [ext_resource path="res://scripts/CommandResult.gdns" type="Script" id=2]
@@ -32,9 +32,18 @@ glow_high_quality = true
 
 [sub_resource type="Curve3D" id=3]
 _data = {
-"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, 3.29846, 0.491943, -0.543671, -386.472, -83.7216, -241.965, 386.472, 83.7216, 241.965, 519.996, -198.657, 410.229, -214.832, -7.70972, 120.807, 214.832, 7.70972, -120.807, 1363.28, -163.77, 379.417, 45.7496, -122.548, 134.22, -45.7496, 122.548, -134.22, 1871.35, 49.5703, 131.883, 326.086, 11.1027, 193.84, -326.086, -11.1027, -193.84, 1230.65, 211.027, -303.277, 171.421, 116.314, -12.1331, -171.421, -116.314, 12.1331, 204.711, 159.283, -313.367, 0, 0, 0, 0, 0, 0, 3.29846, 0.491943, -0.543671 ),
-"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0 )
+"points": PoolVector3Array( 2.62867, 10.47, -23.9988, -2.62867, -10.47, 23.9988, -0.257652, -12.8017, 28.2155, -386.472, -83.7216, -241.965, 386.472, 83.7216, 241.965, 519.996, -198.657, 410.229, -214.832, -7.70972, 120.807, 214.832, 7.70972, -120.807, 1363.28, -163.77, 379.417, 45.7496, -122.548, 134.22, -45.7496, 122.548, -134.22, 1871.35, 49.5703, 131.883, 326.086, 11.1027, 193.84, -326.086, -11.1027, -193.84, 1230.65, 211.027, -303.277, 171.421, 116.314, -12.1331, -171.421, -116.314, 12.1331, 204.711, 159.283, -313.367, 1.06449, 1.22916, -6.35085, -1.06449, -1.22916, 6.35085, 3.20841, 0.307525, -0.627677, 0, 0, 0, 0, 0, 0, -0.257652, -12.8017, 28.2155 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0 )
 }
+
+[sub_resource type="SpatialMaterial" id=4]
+flags_transparent = true
+albedo_color = Color( 0, 0.827451, 1, 0.196078 )
+emission_enabled = true
+emission = Color( 1, 1, 1, 1 )
+emission_energy = 1.0
+emission_operator = 0
+emission_on_uv2 = false
 
 [node name="Scene" type="Node"]
 
@@ -57,7 +66,7 @@ script = ExtResource( 10 )
 curve = SubResource( 3 )
 
 [node name="PathFollow" type="PathFollow" parent="Game/Path"]
-transform = Transform( 0.952911, 0.2269, 0.201195, 0, 0.663455, -0.748213, -0.303255, 0.712983, 0.632209, 3.29846, 0.491943, -0.543671 )
+transform = Transform( 0.789692, 0.488036, 0.371764, 1.49012e-08, 0.60597, -0.795484, -0.613506, 0.628189, 0.478526, 3.29846, 0.491943, -0.543671 )
 rotation_mode = 4
 
 [node name="t-mjolnir" parent="Game/Path/PathFollow" instance=ExtResource( 7 )]
@@ -67,7 +76,21 @@ script = ExtResource( 9 )
 [node name="Camera" type="Camera" parent="Game/Path/PathFollow/t-mjolnir"]
 transform = Transform( 0.0999998, -6.18929e-08, 1.6531e-08, 3.63798e-11, 0.0999999, -6.51926e-09, -2.32831e-10, 1.16415e-10, 0.1, 0, 3, 10 )
 current = true
-far = 1000.0
+far = 2000.0
+
+[node name="CSGPolygon" type="CSGPolygon" parent="Game/Path"]
+material_override = SubResource( 4 )
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 1.0
+path_simplify_angle = 0.0
+path_rotation = 2
+path_local = true
+path_continuous_u = true
+path_u_distance = 1.0
+path_joined = true
+smooth_faces = true
 
 [node name="UI" type="CanvasLayer" parent="."]
 

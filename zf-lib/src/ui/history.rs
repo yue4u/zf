@@ -1,7 +1,6 @@
-use gdnative::{
-    api::{ItemList, LineEdit},
-    prelude::*,
-};
+use gdnative::{api::ItemList, prelude::*};
+
+use crate::ui::CommandPalette;
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -16,25 +15,11 @@ impl CommandHistory {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command history ready");
-        unsafe {
-            owner
-                .get_node("../../CommandPalette/LineEdit")?
-                .assume_safe()
-        }
-        .cast::<LineEdit>()?
-        .connect(
-            "text_entered",
-            owner,
-            "on_text_entered",
-            VariantArray::new_shared(),
-            0,
-        )
-        .expect("failed to connect line edit");
-        Some(())
+        CommandPalette::connect_on_cmd_entered(owner)
     }
 
     #[export]
-    fn on_text_entered(&mut self, owner: &Node, text: String) -> Option<()> {
+    fn on_cmd_entered(&mut self, owner: &Node, text: String) -> Option<()> {
         godot_print!("add item {text}");
         owner
             .cast::<ItemList>()?

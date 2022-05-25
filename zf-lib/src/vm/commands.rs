@@ -1,7 +1,9 @@
+use gdnative::derive::{FromVariant, ToVariant};
+
 use crate::entities::Mission;
 use crate::vm::{Execute, ExecuteResult};
 
-#[derive(Debug)]
+#[derive(Debug, FromVariant, ToVariant)]
 pub enum Command {
     Help,
     Game(GameCommand),
@@ -97,13 +99,13 @@ impl TryFrom<String> for Command {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, FromVariant, ToVariant)]
 pub enum GameCommand {
     Start,
     Stop,
 }
 
-#[derive(Debug)]
+#[derive(Debug, FromVariant, ToVariant)]
 pub enum MissionCommand {
     Summary,
     Tartget,
@@ -121,14 +123,14 @@ impl Execute for MissionCommand {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, FromVariant, ToVariant)]
 pub enum EngineCommand {
     Start,
     Stop,
     Thruster(i8),
 }
 
-#[derive(Debug)]
+#[derive(Debug, FromVariant, ToVariant)]
 pub enum AutopilotCommand {
     Tartget(String),
     Orbit(String),

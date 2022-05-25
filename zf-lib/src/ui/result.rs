@@ -1,8 +1,8 @@
-use crate::vm;
-use gdnative::{
-    api::{LineEdit, RichTextLabel},
-    prelude::*,
+use crate::{
+    ui::CommandPalette,
+    vm::{self, Command},
 };
+use gdnative::{api::RichTextLabel, prelude::*};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -17,23 +17,12 @@ impl CommandResult {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command result ready");
-
-        unsafe { owner.get_node("../CommandPalette/LineEdit")?.assume_safe() }
-            .cast::<LineEdit>()?
-            .connect(
-                "text_entered",
-                owner,
-                "on_text_entered",
-                VariantArray::new_shared(),
-                0,
-            )
-            .expect("failed to connect line edit");
-        Some(())
+        CommandPalette::connect_on_cmd_parsed(owner)
     }
 
     #[export]
-    fn on_text_entered(&mut self, owner: &Node, text: String) -> Option<()> {
-        let result = vm::exec(text);
+    fn on_cmd_parsed(&mut self, owner: &Node, command: Command) -> Option<()> {
+        let result = vm::exec(command);
         owner.cast::<RichTextLabel>()?.set_bbcode(result);
         Some(())
     }

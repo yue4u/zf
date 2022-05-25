@@ -1,26 +1,10 @@
 use gdnative::{api::RichTextLabel, prelude::*};
 
-use crate::common::{Position, Rotation, Vector3DisplayShort};
+use crate::units::Player;
 
 #[derive(NativeClass, Default)]
 #[inherit(RichTextLabel)]
-pub struct PlayerStatusDisplay {
-    position: Position,
-    rotation: Rotation,
-    engine: EngineStatus,
-}
-
-#[derive(Debug)]
-pub enum EngineStatus {
-    On(u8),
-    Off,
-}
-
-impl Default for EngineStatus {
-    fn default() -> Self {
-        EngineStatus::Off
-    }
-}
+pub struct PlayerStatusDisplay;
 
 #[methods]
 impl PlayerStatusDisplay {
@@ -40,33 +24,10 @@ impl PlayerStatusDisplay {
     }
 
     fn sync(&mut self, owner: &RichTextLabel) -> Option<()> {
-        let player = unsafe {
-            owner
-                .get_node("/root/Scene/Game/Path/PathFollow/t-mjolnir")?
-                .assume_safe()
-        }
-        .cast::<Spatial>()?;
-
-        self.position = player.translation();
-        self.rotation = player.rotation_degrees();
-
-        owner.set_bbcode(self.display());
-
-        Some(())
-    }
-
-    fn display(&self) -> String {
-        format!(
-            r#"[b]Status[/b]
-position: {}
-rotation: {}
-
-[b]Engine[/b]
-engine: {:?}
-"#,
-            self.position.display(),
-            self.rotation.display(),
-            self.engine
-        )
+        unsafe { owner.get_node_as_instance::<Player>(Player::path())? }
+            .map(|p, _| {
+                owner.set_bbcode(p.display());
+            })
+            .ok()
     }
 }

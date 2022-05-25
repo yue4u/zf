@@ -16,17 +16,20 @@ impl CommandHistory {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command history ready");
-
-        unsafe { owner.get_node("../CommandPalette/LineEdit")?.assume_safe() }
-            .cast::<LineEdit>()?
-            .connect(
-                "text_entered",
-                owner,
-                "on_text_entered",
-                VariantArray::new_shared(),
-                0,
-            )
-            .expect("failed to connect line edit");
+        unsafe {
+            owner
+                .get_node("../../CommandPalette/LineEdit")?
+                .assume_safe()
+        }
+        .cast::<LineEdit>()?
+        .connect(
+            "text_entered",
+            owner,
+            "on_text_entered",
+            VariantArray::new_shared(),
+            0,
+        )
+        .expect("failed to connect line edit");
         Some(())
     }
 

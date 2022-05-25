@@ -12,19 +12,9 @@ impl Player {
     }
 
     #[export]
-    fn _ready(&self, owner: &Node) -> Option<()> {
+    fn _process(&self, owner: &Node, delta: f64) -> Option<()> {
         let follow = unsafe { owner.get_parent()?.assume_safe() }.cast::<PathFollow>()?;
-        let tween = unsafe { owner.get_node("./Tween")?.assume_safe() }.cast::<Tween>()?;
-        tween.interpolate_property(
-            follow,
-            "unit_offect",
-            0,
-            1,
-            5000.,
-            Tween::TRANS_LINEAR,
-            0,
-            0.,
-        );
+        follow.set_unit_offset((1. - follow.unit_offset() - 1. / 30. * delta).fract());
         Some(())
     }
 }

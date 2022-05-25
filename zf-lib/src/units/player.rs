@@ -7,6 +7,7 @@ pub struct Player;
 #[methods]
 impl Player {
     fn new(_owner: &Node) -> Self {
+        godot_print!("prepare Player");
         Player
     }
 

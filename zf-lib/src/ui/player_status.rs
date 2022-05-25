@@ -1,6 +1,6 @@
 use gdnative::{api::RichTextLabel, prelude::*};
 
-use crate::common::{Position, Rotation};
+use crate::common::{Position, Rotation, Vector3DisplayShort};
 
 #[derive(NativeClass, Default)]
 #[inherit(RichTextLabel)]
@@ -58,13 +58,15 @@ impl PlayerStatusDisplay {
     fn display(&self) -> String {
         format!(
             r#"[b]Status[/b]
-position: {:?}
-rotation: {:?}
+position: {}
+rotation: {}
 
 [b]Engine[/b]
 engine: {:?}
 "#,
-            self.position, self.rotation, self.engine
+            self.position.display(),
+            self.rotation.display(),
+            self.engine
         )
     }
 }

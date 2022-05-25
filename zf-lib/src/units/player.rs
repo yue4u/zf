@@ -14,7 +14,7 @@ impl Player {
     #[export]
     fn _process(&self, owner: &Node, delta: f64) -> Option<()> {
         let follow = unsafe { owner.get_parent()?.assume_safe() }.cast::<PathFollow>()?;
-        follow.set_unit_offset((1. - follow.unit_offset() - 1. / 30. * delta).fract());
+        follow.set_unit_offset((follow.unit_offset() + 1. / 30. * delta).fract());
         Some(())
     }
 }

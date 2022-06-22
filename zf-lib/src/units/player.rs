@@ -69,7 +69,6 @@ impl Player {
         self.rotation = transform.basis.to_euler();
 
         (self.speed > 0.01).then_some(())?;
-        godot_dbg!("{}", self.speed);
 
         let follow = unsafe { owner.get_parent()?.assume_safe() }.cast::<PathFollow>()?;
         follow.set_unit_offset((follow.unit_offset() + self.speed * delta).fract());

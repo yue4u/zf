@@ -13,6 +13,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<ui::CommandHistory>();
     handle.add_class::<ui::CommandResult>();
     handle.add_class::<ui::PlayerStatusDisplay>();
+    handle.add_class::<ui::Radar>();
     handle.add_class::<units::GangutSpaceHub>();
     handle.add_class::<units::Player>();
 }

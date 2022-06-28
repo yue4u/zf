@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=2]
+[gd_scene load_steps=26 format=2]
 
 [ext_resource path="res://assets/3rd/SpaceHDR/Crab Nebula/hdr.png" type="Texture" id=1]
 [ext_resource path="res://scripts/CommandResult.gdns" type="Script" id=2]
@@ -61,6 +61,9 @@ shader_param/corner_radius = 120.0
 [sub_resource type="ShaderMaterial" id=8]
 shader = ExtResource( 16 )
 
+[sub_resource type="BoxShape" id=10]
+extents = Vector3( 50, 50, 50 )
+
 [node name="Scene" type="Node"]
 
 [node name="Game" type="Node" parent="."]
@@ -82,7 +85,7 @@ script = ExtResource( 10 )
 curve = SubResource( 3 )
 
 [node name="PathFollow" type="PathFollow" parent="Game/Path"]
-transform = Transform( 0.996521, 0.0249542, 0.079538, 1.86265e-09, 0.954143, -0.299349, -0.0833612, 0.298309, 0.950817, -0.257652, -12.8017, 28.2155 )
+transform = Transform( 0.996521, 0.0249548, 0.079539, 0, 0.954142, -0.299352, -0.0833624, 0.298312, 0.950816, -0.257652, -12.8017, 28.2155 )
 rotation_mode = 4
 
 [node name="t-mjolnir" parent="Game/Path/PathFollow" instance=ExtResource( 7 )]
@@ -95,7 +98,7 @@ current = true
 far = 2000.0
 
 [node name="RadarArea" type="Area" parent="Game/Path/PathFollow/t-mjolnir"]
-transform = Transform( 1, 0, 0, 1.86265e-09, 1, 0, 0, -8.9407e-08, 1, 0, 0, 0 )
+transform = Transform( 1, -1.86265e-09, -1.66534e-16, 1.86265e-09, 1, 8.9407e-08, 0, -8.9407e-08, 1, 0, 0, 0 )
 
 [node name="CollisionShape" type="CollisionShape" parent="Game/Path/PathFollow/t-mjolnir/RadarArea"]
 shape = SubResource( 9 )
@@ -230,3 +233,9 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 232.85, -115.683, 386.604 )
 
 [node name="t-dummy2" parent="EnemyCluster" instance=ExtResource( 12 )]
 transform = Transform( 0.918571, 0, 0.395257, 0, 1, 0, -0.395257, 0, 0.918571, 9.73321, -53.8456, 259.526 )
+
+[node name="Area" type="KinematicBody" parent="EnemyCluster"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 144.224, -86.1124, 311.84 )
+
+[node name="CollisionShape" type="CollisionShape" parent="EnemyCluster/Area"]
+shape = SubResource( 10 )

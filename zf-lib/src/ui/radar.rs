@@ -1,15 +1,17 @@
 use gdnative::{api::Area, prelude::*};
 
-use crate::units;
+use crate::units::player::Player;
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub struct Radar;
+pub struct Radar {
+    detected: Vec<Ref<Area>>,
+}
 
 #[methods]
 impl Radar {
     fn new(_owner: &Node) -> Self {
-        Radar
+        Radar { detected: vec![] }
     }
 
     #[export]
@@ -17,7 +19,7 @@ impl Radar {
         godot_print!("Radar ready");
         let player_radar = unsafe {
             owner
-                .get_node(&format!("{}/{}", units::Player::path(), "RadarArea"))?
+                .get_node(&format!("{}/{}", Player::path(), "RadarArea"))?
                 .assume_safe()
         }
         .cast::<Area>()?;
@@ -48,12 +50,26 @@ impl Radar {
     }
 
     #[export]
-    fn on_detected(&mut self, _owner: &Node) {
-        godot_print!("on_detected")
+    fn _process(&mut self, owner: &Node, _delta: f64) -> Option<()> {
+        let player = unsafe { owner.get_node(Player::path())?.assume_safe() }.cast::<Spatial>()?;
+
+        self.detected.iter().for_each(|area| {
+            let vec = unsafe { area.assume_safe() }.global_transform().origin
+                - player.global_transform().origin;
+            godot_print!("{:?}", vec);
+        });
+
+        Some(())
     }
 
     #[export]
-    fn on_lost(&mut self, _owner: &Node) {
+    fn on_detected(&mut self, _owner: &Node, area: Ref<Area>) -> Option<()> {
+        self.detected.push(area);
+        Some(())
+    }
+
+    #[export]
+    fn on_lost(&mut self, _owner: &Node, _area: Ref<Area>) {
         godot_print!("on_lost")
     }
 }

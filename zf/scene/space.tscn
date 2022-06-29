@@ -218,6 +218,7 @@ texture = ExtResource( 14 )
 expand = true
 
 [node name="pawn" type="TextureRect" parent="UI/MarginContainer/Control/Radar"]
+visible = false
 material = SubResource( 8 )
 margin_left = 155.0
 margin_top = 43.0

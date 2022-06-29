@@ -1,17 +1,19 @@
+use std::collections::HashMap;
+
 use gdnative::{api::Area, prelude::*};
 
 use crate::units::player::Player;
 
-#[derive(NativeClass)]
+#[derive(NativeClass, Default)]
 #[inherit(Node)]
 pub struct Radar {
-    detected: Vec<Ref<Area>>,
+    detected: HashMap<GodotString, Ref<Area>>,
 }
 
 #[methods]
 impl Radar {
     fn new(_owner: &Node) -> Self {
-        Radar { detected: vec![] }
+        Default::default()
     }
 
     #[export]
@@ -53,10 +55,10 @@ impl Radar {
     fn _process(&mut self, owner: &Node, _delta: f64) -> Option<()> {
         let player = unsafe { owner.get_node(Player::path())?.assume_safe() }.cast::<Spatial>()?;
 
-        self.detected.iter().for_each(|area| {
+        self.detected.iter().for_each(|(id, area)| {
             let vec = unsafe { area.assume_safe() }.global_transform().origin
                 - player.global_transform().origin;
-            godot_print!("{:?}", vec);
+            godot_print!("{}: {:?}", id, vec);
         });
 
         Some(())
@@ -64,7 +66,9 @@ impl Radar {
 
     #[export]
     fn on_detected(&mut self, _owner: &Node, area: Ref<Area>) -> Option<()> {
-        self.detected.push(area);
+        let id = unsafe { area.assume_safe().get_parent()?.assume_safe() }.name();
+        godot_print!("{}", id);
+        self.detected.entry(id).or_insert(area);
         Some(())
     }
 

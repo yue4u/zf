@@ -100,10 +100,9 @@ fn render_marker(
         let vec = (unsafe { area.assume_safe() }.global_transform().origin
             - player.global_transform().origin)
             / 5.; // scale
-        let rel = Vector2::new(vec.x + 100., vec.y + 100.);
+        let rel = Vector2::new(vec.z + 50., -vec.x + 50.);
 
         ret.set_position(rel, false);
-        godot_print!("{} || {:?} || {:?}", id, ret, rel);
     }
     Some(())
 }

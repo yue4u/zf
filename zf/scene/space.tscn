@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=2]
+[gd_scene load_steps=25 format=2]
 
 [ext_resource path="res://assets/3rd/SpaceHDR/Crab Nebula/hdr.png" type="Texture" id=1]
 [ext_resource path="res://scripts/CommandResult.gdns" type="Script" id=2]
@@ -43,7 +43,7 @@ _data = {
 }
 
 [sub_resource type="SphereShape" id=9]
-radius = 20.0
+radius = 50.0
 
 [sub_resource type="SpatialMaterial" id=4]
 flags_transparent = true
@@ -60,9 +60,6 @@ shader_param/corner_radius = 120.0
 
 [sub_resource type="ShaderMaterial" id=8]
 shader = ExtResource( 16 )
-
-[sub_resource type="BoxShape" id=10]
-extents = Vector3( 50, 50, 50 )
 
 [node name="Scene" type="Node"]
 
@@ -232,11 +229,14 @@ expand = true
 [node name="t-dummy3" parent="EnemyCluster" instance=ExtResource( 12 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 232.85, -115.683, 386.604 )
 
+[node name="t-dummy4" parent="EnemyCluster" instance=ExtResource( 12 )]
+transform = Transform( -0.133156, 0, 0.991095, -0.381416, -0.922982, -0.0512442, 0.914763, -0.384843, 0.122901, 1537.95, 169.063, -253.345 )
+
+[node name="t-dummy6" parent="EnemyCluster" instance=ExtResource( 12 )]
+transform = Transform( -0.133156, 0, 0.991095, -0.381416, -0.922982, -0.0512442, 0.914763, -0.384843, 0.122901, 1388.29, -81.7464, 480.798 )
+
+[node name="t-dummy5" parent="EnemyCluster" instance=ExtResource( 12 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 362.201, 262.592, -334.042 )
+
 [node name="t-dummy2" parent="EnemyCluster" instance=ExtResource( 12 )]
 transform = Transform( 0.918571, 0, 0.395257, 0, 1, 0, -0.395257, 0, 0.918571, 9.73321, -53.8456, 259.526 )
-
-[node name="Area" type="KinematicBody" parent="EnemyCluster"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 144.224, -86.1124, 311.84 )
-
-[node name="CollisionShape" type="CollisionShape" parent="EnemyCluster/Area"]
-shape = SubResource( 10 )

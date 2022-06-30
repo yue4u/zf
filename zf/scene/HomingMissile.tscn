@@ -3,6 +3,8 @@
 [ext_resource path="res://scripts/HomingMissile.gdns" type="Script" id=1]
 
 [sub_resource type="CapsuleMesh" id=1]
+radius = 9.723
+mid_height = 0.001
 
 [node name="HomingMissile" type="Spatial"]
 script = ExtResource( 1 )

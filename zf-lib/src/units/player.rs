@@ -59,8 +59,9 @@ impl Player {
                 godot_print!("fire: {:?}", fire);
                 let missile =
                     common::instance_as::<Spatial>("res://scene/HomingMissile.tscn").unwrap();
-                let global = owner.global_transform();
-                missile.set_global_transform(global);
+                // let global = owner.global_transform();
+                // missile.set_global_transform(global);
+                missile.set_scale(Vector3::new(0.05, 0.05, 0.05));
                 unsafe { owner.get_node("Projectiles").unwrap().assume_safe() }
                     .add_child(missile, true);
             }

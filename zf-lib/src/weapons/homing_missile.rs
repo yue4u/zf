@@ -1,3 +1,4 @@
+use gdnative::api::*;
 use gdnative::prelude::*;
 
 #[derive(NativeClass)]
@@ -13,12 +14,7 @@ impl HomingMissile {
 
     #[export]
     fn _process(&self, owner: &Spatial, delta: f64) -> Option<()> {
-        // let mut transform = owner.global_transform();
-        // transform
-        //     .basis
-        //     .set_b(transform.basis.b() * (1.0 + delta as f32));
-        // owner.set_global_transform(transform);
-
+        owner.translate(Vector3::new(0.0, 0.0, (-delta as f32) * 500.0));
         Some(())
     }
 }

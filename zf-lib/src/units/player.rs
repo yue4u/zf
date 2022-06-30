@@ -1,13 +1,13 @@
 use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
-    common::{Position, Rotation, Vector3DisplayShort},
+    common::{self, Position, Rotation, Vector3DisplayShort},
     ui::CommandPalette,
     vm::{Command, EngineCommand},
 };
 
 #[derive(NativeClass, Default)]
-#[inherit(Node)]
+#[inherit(Spatial)]
 pub struct Player {
     speed: f64,
     position: Position,
@@ -31,7 +31,7 @@ const MAX_SPEED: f64 = 1. / 30.;
 
 #[methods]
 impl Player {
-    fn new(_owner: &Node) -> Self {
+    fn new(_owner: &Spatial) -> Self {
         godot_print!("prepare Player");
         Player::default()
     }
@@ -41,18 +41,29 @@ impl Player {
     }
 
     #[export]
-    fn _ready(&mut self, owner: TRef<Node>) -> Option<()> {
-        CommandPalette::connect_on_cmd_parsed(owner)
+    fn _ready(&mut self, owner: TRef<Spatial>) -> Option<()> {
+        // FIXME: this is a hack to get it to work.
+        let node = unsafe { owner.get_node_as::<Node>(".")? };
+        CommandPalette::connect_on_cmd_parsed(node)
     }
 
     #[export]
-    fn on_cmd_parsed(&mut self, _owner: &Node, command: Command) {
+    fn on_cmd_parsed(&mut self, owner: &Spatial, command: Command) {
         match command {
             Command::Engine(EngineCommand::Stop) => self.engine = EngineStatus::Off,
             Command::Engine(EngineCommand::Thruster(percent)) => {
                 self.engine = EngineStatus::On(percent)
             }
             Command::Engine(EngineCommand::Start) => self.engine = EngineStatus::On(100),
+            Command::Fire(fire) => {
+                godot_print!("fire: {:?}", fire);
+                let missile =
+                    common::instance_as::<Spatial>("res://scene/HomingMissile.tscn").unwrap();
+                let global = owner.global_transform();
+                missile.set_global_transform(global);
+                unsafe { owner.get_node("Projectiles").unwrap().assume_safe() }
+                    .add_child(missile, true);
+            }
             _ => {}
         }
 
@@ -63,7 +74,7 @@ impl Player {
     }
 
     #[export]
-    fn _process(&mut self, owner: &Node, delta: f64) -> Option<()> {
+    fn _process(&mut self, owner: &Spatial, delta: f64) -> Option<()> {
         let transform = owner.cast::<Spatial>()?.global_transform();
         self.position = transform.origin;
         self.rotation = transform.basis.to_euler();

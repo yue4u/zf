@@ -13,11 +13,11 @@ impl HomingMissile {
 
     #[export]
     fn _process(&self, owner: &Spatial, delta: f64) -> Option<()> {
-        let mut transform = owner.global_transform();
-        transform
-            .basis
-            .set_c(transform.basis.c() * (1.0 + delta as f32));
-        owner.set_global_transform(transform);
+        // let mut transform = owner.global_transform();
+        // transform
+        //     .basis
+        //     .set_b(transform.basis.b() * (1.0 + delta as f32));
+        // owner.set_global_transform(transform);
 
         Some(())
     }

@@ -11,6 +11,7 @@ pub enum Command {
     Engine(EngineCommand),
     Autopilot(AutopilotCommand),
     Unkonwn(String),
+    Fire(FireCommand),
 }
 
 const HELP: &'static str = r#"ZF
@@ -93,6 +94,13 @@ impl TryFrom<String> for Command {
                 }
                 _ => None,
             },
+            ["fire" | "f", ..] => match args[1..] {
+                ["hm", ..] => Some(Command::Fire(FireCommand {
+                    weapon: Weapon::HomingMissile,
+                    target: args.get(2).map(|&t| t.to_owned()),
+                })),
+                _ => None,
+            },
             _ => Some(Command::Unkonwn(value)),
         }
         .ok_or(InvalidCommand)
@@ -134,4 +142,15 @@ pub enum EngineCommand {
 pub enum AutopilotCommand {
     Tartget(String),
     Orbit(String),
+}
+
+#[derive(Debug, FromVariant, ToVariant)]
+pub enum Weapon {
+    HomingMissile,
+}
+
+#[derive(Debug, FromVariant, ToVariant)]
+pub struct FireCommand {
+    pub weapon: Weapon,
+    pub target: Option<String>,
 }

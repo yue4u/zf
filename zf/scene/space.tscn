@@ -100,6 +100,8 @@ transform = Transform( 1, -1.86265e-09, -1.66534e-16, 1.86265e-09, 1, 8.9407e-08
 [node name="CollisionShape" type="CollisionShape" parent="Game/Path/PathFollow/t-mjolnir/RadarArea"]
 shape = SubResource( 9 )
 
+[node name="Projectiles" type="Spatial" parent="Game/Path/PathFollow/t-mjolnir"]
+
 [node name="CSGPolygon" type="CSGPolygon" parent="Game/Path"]
 material_override = SubResource( 4 )
 mode = 2

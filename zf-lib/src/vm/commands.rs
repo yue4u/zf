@@ -27,9 +27,9 @@ mission, m
     target, t     Get mission targets info
     position, p   Get mission targets's positions
 engine, e
-    start         Start engine
-    stop          Stop engine
-    thruster, t    Set engine thruster at <percentage>
+    on            Start engine
+    off           Stop engine
+    thruster, t   Set engine thruster at <percentage>
 autopilot, a
     target, t     autopilot to <target>
     orbit, o      autopilot use <orbit>
@@ -72,8 +72,8 @@ impl TryFrom<String> for Command {
                 _ => None,
             },
             ["engine" | "e", ..] => match args[1..] {
-                ["start"] => Some(Engine(EngineCommand::Start)),
-                ["stop"] => Some(Engine(EngineCommand::Stop)),
+                ["on"] => Some(Engine(EngineCommand::On)),
+                ["off"] => Some(Engine(EngineCommand::Off)),
                 ["thruster" | "t", t] => Some(Engine(EngineCommand::Thruster(
                     t.parse::<i8>()
                         .map(|n| {
@@ -131,8 +131,8 @@ impl Execute for MissionCommand {
 
 #[derive(Debug, FromVariant, ToVariant)]
 pub enum EngineCommand {
-    Start,
-    Stop,
+    On,
+    Off,
     Thruster(i8),
 }
 

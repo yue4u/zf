@@ -50,11 +50,14 @@ impl Player {
     #[export]
     fn on_cmd_parsed(&mut self, owner: &Spatial, command: Command) {
         match command {
-            Command::Engine(EngineCommand::Stop) => self.engine = EngineStatus::Off,
+            Command::Engine(EngineCommand::Off) => self.engine = EngineStatus::Off,
             Command::Engine(EngineCommand::Thruster(percent)) => {
-                self.engine = EngineStatus::On(percent)
+                if let EngineStatus::On(_) = self.engine {
+                    self.engine = EngineStatus::On(percent)
+                }
+                // TODO: throw error if engine is off
             }
-            Command::Engine(EngineCommand::Start) => self.engine = EngineStatus::On(100),
+            Command::Engine(EngineCommand::On) => self.engine = EngineStatus::On(0),
             Command::Fire(fire) => {
                 godot_print!("fire: {:?}", fire);
                 let missile =

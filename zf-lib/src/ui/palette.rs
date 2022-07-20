@@ -1,11 +1,19 @@
 use gdnative::{api::LineEdit, prelude::*};
 
-use crate::vm;
+use crate::vm::{self, Command};
 
 #[derive(NativeClass)]
 #[inherit(LineEdit)]
 #[register_with(Self::register_signals)]
-pub struct CommandPalette;
+pub struct CommandPalette {
+    pub index: u32,
+}
+
+#[derive(FromVariant, ToVariant)]
+pub struct CommandInput {
+    pub cmd: Command,
+    pub index: u32,
+}
 
 pub trait HandleCommandEntered {
     fn on_cmd_entered(&mut self, owner: &LineEdit, text: String) -> Option<()>;
@@ -14,7 +22,7 @@ pub trait HandleCommandEntered {
 #[methods]
 impl CommandPalette {
     fn new(_owner: &LineEdit) -> Self {
-        CommandPalette
+        CommandPalette { index: 0 }
     }
 
     #[export]
@@ -41,7 +49,12 @@ impl CommandPalette {
         owner.cast::<LineEdit>()?.clear();
 
         if let Ok(command) = vm::Parser::parse(text) {
-            owner.emit_signal("on_cmd_parsed", &[Variant::new(command)]);
+            let command_input = CommandInput {
+                cmd: command,
+                index: self.index,
+            };
+            self.index += 1;
+            owner.emit_signal("on_cmd_parsed", &[Variant::new(command_input)]);
         }
 
         Some(())
@@ -56,8 +69,7 @@ impl CommandPalette {
     }
 
     pub fn connect_on_cmd_entered(target: TRef<Node>) -> Option<()> {
-        unsafe { target.get_node(CommandPalette::path())?.assume_safe() }
-            .cast::<LineEdit>()?
+        find_line_edit(target)?
             .connect(
                 "text_entered",
                 target,
@@ -70,8 +82,7 @@ impl CommandPalette {
     }
 
     pub fn connect_on_cmd_parsed(target: TRef<Node>) -> Option<()> {
-        unsafe { target.get_node(CommandPalette::path())?.assume_safe() }
-            .cast::<LineEdit>()?
+        find_line_edit(target)?
             .connect(
                 "on_cmd_parsed",
                 target,
@@ -82,4 +93,21 @@ impl CommandPalette {
             .expect("failed to connect line edit on_cmd_parsed");
         Some(())
     }
+
+    pub fn connect_on_cmd_result(target: TRef<Node>) -> Option<()> {
+        find_line_edit(target)?
+            .connect(
+                "on_cmd_parsed",
+                target,
+                "on_cmd_parsed",
+                VariantArray::new_shared(),
+                0,
+            )
+            .expect("failed to connect line edit on_cmd_parsed");
+        Some(())
+    }
+}
+
+fn find_line_edit(target: TRef<Node>) -> Option<TRef<LineEdit>> {
+    unsafe { target.get_node(CommandPalette::path())?.assume_safe() }.cast::<LineEdit>()
 }

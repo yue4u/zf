@@ -5,7 +5,9 @@ use gdnative::{
     prelude::*,
 };
 
-use crate::units::player::Player;
+use crate::{ui::CommandPalette, units::player::Player, vm::Command};
+
+use super::CommandInput;
 
 #[derive(NativeClass, Default)]
 #[inherit(Node)]
@@ -21,7 +23,7 @@ impl Radar {
 
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
-        godot_print!("Radar ready");
+        CommandPalette::connect_on_cmd_parsed(owner);
         let player_radar = unsafe {
             owner
                 .get_node(&format!("{}/{}", Player::path(), "RadarArea"))?
@@ -52,6 +54,16 @@ impl Radar {
             .expect("failed to connect area_exited");
 
         Some(())
+    }
+
+    #[export]
+    fn on_cmd_parsed(&mut self, _owner: &Node, input: CommandInput) {
+        match input.cmd {
+            Command::Radar(_) => {
+                godot_dbg!(&self.detected);
+            }
+            _ => {}
+        }
     }
 
     #[export]

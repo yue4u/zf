@@ -2,7 +2,7 @@ use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
-    ui::CommandPalette,
+    ui::{CommandInput, CommandPalette},
     vm::{Command, EngineCommand},
 };
 
@@ -48,8 +48,8 @@ impl Player {
     }
 
     #[export]
-    fn on_cmd_parsed(&mut self, owner: &Spatial, command: Command) {
-        match command {
+    fn on_cmd_parsed(&mut self, owner: &Spatial, input: CommandInput) {
+        match input.cmd {
             Command::Engine(EngineCommand::Off) => self.engine = EngineStatus::Off,
             Command::Engine(EngineCommand::Thruster(percent)) => {
                 if let EngineStatus::On(_) = self.engine {

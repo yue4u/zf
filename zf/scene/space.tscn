@@ -48,12 +48,8 @@ radius = 50.0
 
 [sub_resource type="SpatialMaterial" id=4]
 flags_transparent = true
-albedo_color = Color( 0, 0.827451, 1, 0.196078 )
-emission_enabled = true
-emission = Color( 1, 1, 1, 1 )
-emission_energy = 1.0
-emission_operator = 0
-emission_on_uv2 = false
+flags_unshaded = true
+albedo_color = Color( 0.321569, 0.972549, 1, 0.101961 )
 
 [sub_resource type="ShaderMaterial" id=6]
 shader = ExtResource( 13 )
@@ -67,7 +63,7 @@ shader = ExtResource( 16 )
 [node name="Game" type="Node" parent="."]
 
 [node name="DirectionalLight" type="DirectionalLight" parent="Game"]
-transform = Transform( -0.0218671, 0.56476, 0.824965, -0.910019, -0.352935, 0.217493, 0.413991, -0.745978, 0.52166, 0, 86.2598, 0 )
+transform = Transform( -0.0218671, 0.56476, 0.824965, -0.910018, -0.352935, 0.217493, 0.413991, -0.745978, 0.52166, 0, 86.2598, 0 )
 light_energy = 5.0
 shadow_enabled = true
 
@@ -106,6 +102,7 @@ shape = SubResource( 9 )
 [node name="CSGPolygon" type="CSGPolygon" parent="Game/Path"]
 material_override = SubResource( 4 )
 snap = 0.0001
+polygon = PoolVector2Array( -5, 0, 5, 0, 0, 0 )
 mode = 2
 path_node = NodePath("..")
 path_interval_type = 0

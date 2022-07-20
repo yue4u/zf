@@ -12,6 +12,8 @@ pub enum Command {
     Autopilot(AutopilotCommand),
     Unkonwn(String),
     Fire(FireCommand),
+    Radar(RadarCommand),
+    Invalid,
 }
 
 use Command::*;
@@ -58,23 +60,23 @@ impl TryFrom<String> for Command {
             .into_iter()
             .collect::<Vec<&str>>();
 
-        match args[..] {
-            ["help" | "h"] => Some(Help),
+        let cmd = match args[..] {
+            ["help" | "h"] => Help,
             ["game" | "g", act] => match act {
-                "start" => Some(Game(GameCommand::Start)),
-                "stop" => Some(Game(GameCommand::Stop)),
-                _ => None,
+                "start" => Game(GameCommand::Start),
+                "stop" => Game(GameCommand::Stop),
+                _ => Invalid,
             },
             ["mission" | "m", ..] => match args[1..] {
-                ["summary" | "s"] | [] => Some(Mission(MissionCommand::Summary)),
-                ["target" | "t"] => Some(Mission(MissionCommand::Tartget)),
-                ["position" | "p"] => Some(Mission(MissionCommand::Position)),
-                _ => None,
+                ["summary" | "s"] | [] => Mission(MissionCommand::Summary),
+                ["target" | "t"] => Mission(MissionCommand::Tartget),
+                ["position" | "p"] => Mission(MissionCommand::Position),
+                _ => Invalid,
             },
             ["engine" | "e", ..] => match args[1..] {
-                ["on"] => Some(Engine(EngineCommand::On)),
-                ["off"] => Some(Engine(EngineCommand::Off)),
-                ["thruster" | "t", t] => Some(Engine(EngineCommand::Thruster(
+                ["on"] => Engine(EngineCommand::On),
+                ["off"] => Engine(EngineCommand::Off),
+                ["thruster" | "t", t] => Engine(EngineCommand::Thruster(
                     t.parse::<i8>()
                         .map(|n| {
                             if -100 <= n && n <= 100 {
@@ -84,24 +86,28 @@ impl TryFrom<String> for Command {
                             }
                         })
                         .or(Err(InvalidCommand))??,
-                ))),
-                _ => None,
+                )),
+                _ => Invalid,
             },
             ["autopilot" | "a", ..] => match args[1..] {
-                ["target" | "t", t] => Some(Autopilot(AutopilotCommand::Tartget(t.to_owned()))),
-                ["orbit" | "o", o] => Some(Autopilot(AutopilotCommand::Orbit(o.to_owned()))),
-                _ => None,
+                ["target" | "t", t] => Autopilot(AutopilotCommand::Tartget(t.to_owned())),
+                ["orbit" | "o", o] => Autopilot(AutopilotCommand::Orbit(o.to_owned())),
+                _ => Invalid,
             },
+            ["radar"] => Radar(RadarCommand {}),
             ["fire" | "f", ..] => match args[1..] {
-                ["hm", ..] => Some(Fire(FireCommand {
+                ["hm", ..] => Fire(FireCommand {
                     weapon: Weapon::HomingMissile,
                     target: args.get(2).map(|&t| t.to_owned()),
-                })),
-                _ => None,
+                }),
+                _ => Invalid,
             },
-            _ => Some(Unkonwn(value)),
+            _ => Unkonwn(value),
+        };
+        match cmd {
+            Invalid => Err(InvalidCommand),
+            _ => Ok(cmd),
         }
-        .ok_or(InvalidCommand)
     }
 }
 
@@ -151,4 +157,9 @@ pub enum Weapon {
 pub struct FireCommand {
     pub weapon: Weapon,
     pub target: Option<String>,
+}
+
+#[derive(Debug, FromVariant, ToVariant)]
+pub struct RadarCommand {
+    // TODO: options
 }

@@ -15,6 +15,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<ui::CommandResult>();
     handle.add_class::<ui::PlayerStatusDisplay>();
     handle.add_class::<ui::Radar>();
+    handle.add_class::<ui::PerfLabel>();
     handle.add_class::<units::GangutSpaceHub>();
     handle.add_class::<units::Player>();
     handle.add_class::<weapons::HomingMissile>();

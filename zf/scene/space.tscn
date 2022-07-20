@@ -173,7 +173,7 @@ margin_top = -40.0
 margin_right = 482.0
 
 [node name="Label" type="Label" parent="UI/MarginContainer/Control/CommandPalette"]
-margin_right = 14.0
+margin_right = 8.0
 margin_bottom = 40.0
 size_flags_vertical = 5
 text = ">"
@@ -181,7 +181,7 @@ align = 1
 valign = 1
 
 [node name="LineEdit" type="LineEdit" parent="UI/MarginContainer/Control/CommandPalette"]
-margin_left = 18.0
+margin_left = 12.0
 margin_right = 964.0
 margin_bottom = 40.0
 size_flags_horizontal = 3

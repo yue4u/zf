@@ -9,7 +9,7 @@ pub struct CommandPalette {
     pub index: u32,
 }
 
-#[derive(FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant)]
 pub struct CommandInput {
     pub cmd: Command,
     pub index: u32,
@@ -48,13 +48,16 @@ impl CommandPalette {
         godot_print!("on_text_entered: {text}!");
         owner.cast::<LineEdit>()?.clear();
 
-        if let Ok(command) = vm::Parser::parse(text) {
-            let command_input = CommandInput {
-                cmd: command,
-                index: self.index,
-            };
-            self.index += 1;
-            owner.emit_signal("on_cmd_parsed", &[Variant::new(command_input)]);
+        if let Ok(command_run) = vm::Parser::parse(text) {
+            for command in command_run.cmds {
+                let command_input = CommandInput {
+                    cmd: command,
+                    index: self.index,
+                };
+                godot_print!("command: {:?}!", &command_input);
+                self.index += 1;
+                owner.emit_signal("on_cmd_parsed", &[Variant::new(command_input)]);
+            }
         }
 
         Some(())
@@ -82,19 +85,6 @@ impl CommandPalette {
     }
 
     pub fn connect_on_cmd_parsed(target: TRef<Node>) -> Option<()> {
-        find_line_edit(target)?
-            .connect(
-                "on_cmd_parsed",
-                target,
-                "on_cmd_parsed",
-                VariantArray::new_shared(),
-                0,
-            )
-            .expect("failed to connect line edit on_cmd_parsed");
-        Some(())
-    }
-
-    pub fn connect_on_cmd_result(target: TRef<Node>) -> Option<()> {
         find_line_edit(target)?
             .connect(
                 "on_cmd_parsed",

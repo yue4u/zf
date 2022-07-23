@@ -3,6 +3,19 @@ use gdnative::derive::{FromVariant, ToVariant};
 use crate::entities::Mission;
 use crate::vm::{Execute, ExecuteResult};
 
+#[derive(FromVariant, ToVariant)]
+pub enum CommandRunState {
+    Done,
+    Failed,
+    Running,
+}
+
+#[derive(FromVariant, ToVariant)]
+pub struct CommandRun {
+    pub cmds: Vec<Command>,
+    pub state: CommandRunState,
+}
+
 #[derive(Debug, FromVariant, ToVariant)]
 pub enum Command {
     Help,
@@ -50,10 +63,10 @@ impl Execute for Command {
     }
 }
 
-impl TryFrom<String> for Command {
+impl TryFrom<&str> for Command {
     type Error = InvalidCommand;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
         let args = value
             .split(' ')
             .take_while(|&arg| arg != "|")
@@ -102,7 +115,7 @@ impl TryFrom<String> for Command {
                 }),
                 _ => Invalid,
             },
-            _ => Unkonwn(value),
+            _ => Unkonwn(value.to_owned()),
         };
         match cmd {
             Invalid => Err(InvalidCommand),

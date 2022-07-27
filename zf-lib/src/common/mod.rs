@@ -23,3 +23,15 @@ pub fn instance_as<T: GodotObject<Memory = ManuallyManaged> + SubClass<Node>>(
     let instance = unsafe { instance.assume_unique() };
     instance.cast::<T>()
 }
+
+pub trait HasPath {
+    fn path() -> &'static str;
+}
+
+pub fn find_ref<'a, S, R>(target: TRef<Node>) -> Option<TRef<'a, R>>
+where
+    S: HasPath,
+    R: SubClass<Node>,
+{
+    unsafe { target.get_node(S::path())?.assume_safe() }.cast::<R>()
+}

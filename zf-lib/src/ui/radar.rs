@@ -5,9 +5,11 @@ use gdnative::{
     prelude::*,
 };
 
-use crate::{ui::CommandPalette, units::player::Player, vm::Command};
-
-use super::CommandInput;
+use crate::{
+    units::player::Player,
+    vm::Command,
+    vm_connector::{self, CommandInput},
+};
 
 #[derive(NativeClass, Default)]
 #[inherit(Node)]
@@ -23,7 +25,7 @@ impl Radar {
 
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
-        CommandPalette::connect_on_cmd_parsed(owner);
+        vm_connector::connect_on_cmd_parsed(owner);
         let player_radar = unsafe {
             owner
                 .get_node(&format!("{}/{}", Player::path(), "RadarArea"))?

@@ -3,6 +3,7 @@ mod entities;
 mod ui;
 mod units;
 mod vm;
+mod vm_connector;
 mod weapons;
 
 use gdnative::prelude::*;
@@ -19,6 +20,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<units::GangutSpaceHub>();
     handle.add_class::<units::Player>();
     handle.add_class::<weapons::HomingMissile>();
+    handle.add_class::<vm_connector::VMHost>();
 }
 
 godot_init!(init);

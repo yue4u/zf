@@ -2,8 +2,8 @@ use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
-    ui::{CommandInput, CommandPalette},
     vm::{Command, EngineCommand},
+    vm_connector::{self, CommandInput},
 };
 
 #[derive(NativeClass, Default)]
@@ -44,7 +44,7 @@ impl Player {
     fn _ready(&mut self, owner: TRef<Spatial>) -> Option<()> {
         // FIXME: this is a hack to get it to work.
         let node = unsafe { owner.get_node_as::<Node>(".")? };
-        CommandPalette::connect_on_cmd_parsed(node)
+        vm_connector::connect_on_cmd_parsed(node)
     }
 
     #[export]

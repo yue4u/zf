@@ -1,19 +1,10 @@
 use gdnative::{api::LineEdit, prelude::*};
 
-use crate::vm::{self, Command};
+use crate::common::HasPath;
 
 #[derive(NativeClass)]
 #[inherit(LineEdit)]
-#[register_with(Self::register_signals)]
-pub struct CommandPalette {
-    pub index: u32,
-}
-
-#[derive(Debug, FromVariant, ToVariant)]
-pub struct CommandInput {
-    pub cmd: Command,
-    pub index: u32,
-}
+pub struct CommandPalette;
 
 pub trait HandleCommandEntered {
     fn on_cmd_entered(&mut self, owner: &LineEdit, text: String) -> Option<()>;
@@ -22,7 +13,7 @@ pub trait HandleCommandEntered {
 #[methods]
 impl CommandPalette {
     fn new(_owner: &LineEdit) -> Self {
-        CommandPalette { index: 0 }
+        Self
     }
 
     #[export]
@@ -44,60 +35,14 @@ impl CommandPalette {
     }
 
     #[export]
-    fn on_text_entered(&mut self, owner: &LineEdit, text: String) -> Option<()> {
-        godot_print!("on_text_entered: {text}!");
-        owner.cast::<LineEdit>()?.clear();
-
-        if let Ok(command_run) = vm::Parser::parse(text) {
-            for command in command_run.cmds {
-                let command_input = CommandInput {
-                    cmd: command,
-                    index: self.index,
-                };
-                godot_print!("command: {:?}!", &command_input);
-                self.index += 1;
-                owner.emit_signal("on_cmd_parsed", &[Variant::new(command_input)]);
-            }
-        }
-
-        Some(())
-    }
-
-    pub fn path() -> &'static str {
-        "/root/Scene/UI/MarginContainer/Control/CommandPalette/LineEdit"
-    }
-
-    fn register_signals(builder: &ClassBuilder<Self>) {
-        builder.signal("on_cmd_parsed").done();
-    }
-
-    pub fn connect_on_cmd_entered(target: TRef<Node>) -> Option<()> {
-        find_line_edit(target)?
-            .connect(
-                "text_entered",
-                target,
-                "on_cmd_entered",
-                VariantArray::new_shared(),
-                0,
-            )
-            .expect("failed to connect line edit");
-        Some(())
-    }
-
-    pub fn connect_on_cmd_parsed(target: TRef<Node>) -> Option<()> {
-        find_line_edit(target)?
-            .connect(
-                "on_cmd_parsed",
-                target,
-                "on_cmd_parsed",
-                VariantArray::new_shared(),
-                0,
-            )
-            .expect("failed to connect line edit on_cmd_parsed");
+    fn on_text_entered(&mut self, owner: &LineEdit, _text: String) -> Option<()> {
+        owner.clear();
         Some(())
     }
 }
 
-fn find_line_edit(target: TRef<Node>) -> Option<TRef<LineEdit>> {
-    unsafe { target.get_node(CommandPalette::path())?.assume_safe() }.cast::<LineEdit>()
+impl HasPath for CommandPalette {
+    fn path() -> &'static str {
+        "/root/Scene/UI/MarginContainer/Control/CommandPalette/LineEdit"
+    }
 }

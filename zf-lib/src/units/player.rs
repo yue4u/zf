@@ -1,7 +1,7 @@
 use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
-    common::{self, Position, Rotation, Vector3DisplayShort},
+    common::{self, HasPath, Position, Rotation, Vector3DisplayShort},
     vm::{Command, EngineCommand},
     vm_connector::{self, CommandInput},
 };
@@ -29,15 +29,17 @@ impl Default for EngineStatus {
 
 const MAX_SPEED: f64 = 1. / 30.;
 
+impl HasPath for Player {
+    fn path() -> &'static str {
+        "/root/Scene/Game/Path/PathFollow/t-mjolnir"
+    }
+}
+
 #[methods]
 impl Player {
     fn new(_owner: &Spatial) -> Self {
         godot_print!("prepare Player");
         Player::default()
-    }
-
-    pub fn path() -> &'static str {
-        "/root/Scene/Game/Path/PathFollow/t-mjolnir"
     }
 
     #[export]
@@ -60,8 +62,7 @@ impl Player {
             Command::Engine(EngineCommand::On) => self.engine = EngineStatus::On(0),
             Command::Fire(fire) => {
                 godot_print!("fire: {:?}", fire);
-                let missile =
-                    common::instance_as::<Spatial>("res://scene/HomingMissile.tscn").unwrap();
+                let missile = common::load_as::<Spatial>("res://scene/HomingMissile.tscn").unwrap();
                 // let global = owner.global_transform();
                 // missile.set_global_transform(global);
                 missile.set_scale(Vector3::new(0.05, 0.05, 0.05));

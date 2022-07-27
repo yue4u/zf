@@ -6,9 +6,10 @@ use gdnative::{
 };
 
 use crate::{
+    common::HasPath,
     units::player::Player,
     vm::Command,
-    vm_connector::{self, CommandInput},
+    vm_connector::{self, CommandInput, CommandResult},
 };
 
 #[derive(NativeClass, Default)]
@@ -59,10 +60,13 @@ impl Radar {
     }
 
     #[export]
-    fn on_cmd_parsed(&mut self, _owner: &Node, input: CommandInput) {
+    fn on_cmd_parsed(&mut self, owner: &Node, input: CommandInput) {
         match input.cmd {
             Command::Radar(_) => {
                 godot_dbg!(&self.detected);
+                let res: CommandResult = Ok("test".to_owned());
+                godot_print!("before send result");
+                vm_connector::send_result(owner, res);
             }
             _ => {}
         }

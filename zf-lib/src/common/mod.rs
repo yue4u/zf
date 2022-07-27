@@ -14,7 +14,7 @@ impl Vector3DisplayShort for Vector3 {
     }
 }
 
-pub fn instance_as<T: GodotObject<Memory = ManuallyManaged> + SubClass<Node>>(
+pub fn load_as<T: GodotObject<Memory = ManuallyManaged> + SubClass<Node>>(
     path: &str,
 ) -> Option<Ref<T, Unique>> {
     let res = ResourceLoader::godot_singleton().load(path, "PackedScene", false)?;

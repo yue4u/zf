@@ -1,31 +1,36 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 use super::CommandInput;
-use super::CommandResult;
+use super::CommandResultOfId;
 use crate::common::find_ref;
 use crate::common::HasPath;
 use crate::ui::CommandPalette;
-use crate::vm::Parser;
+use crate::vm::{CommandRun, CommandRunState, Parser};
 use gdnative::prelude::*;
 
-#[derive(NativeClass, Debug)]
+#[derive(NativeClass, Debug, Default)]
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
 pub struct VMHost {
-    pub index: RefCell<u32>,
+    run_id: RefCell<u32>,
+    cmd_id: RefCell<u32>,
+    run_buffer: RefCell<Vec<CommandRun>>,
+    result_buffer: RefCell<ResultBuffer>,
 }
+
+type ResultBuffer = HashMap<u32, CommandResultOfId>;
 
 #[methods]
 impl VMHost {
     pub(crate) fn new(_owner: &Node) -> Self {
-        VMHost {
-            index: RefCell::new(0),
-        }
+        VMHost::default()
     }
 
     pub(crate) fn register_signals(builder: &ClassBuilder<Self>) {
         builder.signal("on_cmd_entered").done();
         builder.signal("on_cmd_parsed").done();
+        builder.signal("on_cmd_result").done();
     }
 
     #[export]
@@ -45,28 +50,64 @@ impl VMHost {
     }
 
     #[export]
+    fn _process(&self, owner: &Node, _delta: f64) {
+        for run in self.run_buffer.borrow_mut().iter_mut() {
+            process_cmd(owner, &mut self.result_buffer.borrow_mut(), run);
+        }
+    }
+
+    #[export]
     pub(crate) fn on_cmd_entered(&self, owner: &Node, text: String) -> Option<()> {
         godot_print!("on_cmd_entered: {text}!");
         owner.emit_signal("on_cmd_entered", &[Variant::new(text.clone())]);
 
-        if let Ok(command_run) = Parser::parse(text) {
-            for command in command_run.cmds {
-                let index = self.index.replace_with(|&mut i| i + 1);
-                let command_input = CommandInput {
-                    cmd: command,
-                    index,
-                };
-                godot_print!("command: {:?}!", &command_input);
-                owner.emit_signal("on_cmd_parsed", &[Variant::new(command_input)]);
-            }
-        }
+        let cmds = Parser::parse(text).ok()?;
+        let id = self.run_id.replace_with(|&mut i| i + 1);
+        let run = CommandRun {
+            id,
+            active_id: 0,
+            cmds: cmds
+                .into_iter()
+                .map(|cmd| CommandInput {
+                    cmd,
+                    id: self.cmd_id.replace_with(|&mut i| i + 1),
+                })
+                .collect(),
+            state: CommandRunState::Running,
+        };
+        let first = run.cmds.first()?;
+        owner.emit_signal("on_cmd_parsed", &[Variant::new(first)]);
+        self.run_buffer.borrow_mut().push(run);
         Some(())
     }
 
-    pub fn receive_command_result(&self, result: CommandResult) -> Option<()> {
+    pub fn receive_command_result(&self, result: CommandResultOfId) -> Option<()> {
         godot_print!("receive_command_result: {:?}!", result);
+        self.result_buffer.borrow_mut().insert(result.id, result);
         Some(())
     }
+}
+
+fn process_cmd(owner: &Node, result_buffer: &mut ResultBuffer, run: &mut CommandRun) -> Option<()> {
+    let done: Vec<&CommandInput> = run
+        .cmds
+        .iter()
+        .take_while(|&cmd| {
+            if let Some(result) = result_buffer.remove(&cmd.id) {
+                godot_print!("on_cmd_result: {:?}", result);
+                owner.emit_signal("on_cmd_result", &[Variant::new(result)]);
+                run.active_id += 1;
+                return true;
+            }
+            false
+        })
+        .collect();
+
+    if done.len() > 0 {
+        let cmd = run.cmds.first()?.clone();
+        owner.emit_signal("on_cmd_parsed", &[Variant::new(cmd)]);
+    }
+    Some(())
 }
 
 impl HasPath for VMHost {

@@ -2,21 +2,30 @@ use gdnative::derive::{FromVariant, ToVariant};
 
 use crate::entities::Mission;
 use crate::vm::{Execute, ExecuteResult};
+use crate::vm_connector::CommandInput;
 
-#[derive(FromVariant, ToVariant)]
+#[derive(FromVariant, ToVariant, Clone, Debug)]
 pub enum CommandRunState {
     Done,
     Failed,
     Running,
 }
 
-#[derive(FromVariant, ToVariant)]
+impl Default for CommandRunState {
+    fn default() -> Self {
+        CommandRunState::Running
+    }
+}
+
+#[derive(FromVariant, ToVariant, Clone, Default, Debug)]
 pub struct CommandRun {
-    pub cmds: Vec<Command>,
+    pub id: u32,
+    pub active_id: usize,
+    pub cmds: Vec<CommandInput>,
     pub state: CommandRunState,
 }
 
-#[derive(Debug, FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum Command {
     Help,
     Game(GameCommand),
@@ -124,13 +133,13 @@ impl TryFrom<&str> for Command {
     }
 }
 
-#[derive(Debug, FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum GameCommand {
     Start,
     Stop,
 }
 
-#[derive(Debug, FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum MissionCommand {
     Summary,
     Tartget,
@@ -148,31 +157,31 @@ impl Execute for MissionCommand {
     }
 }
 
-#[derive(Debug, FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum EngineCommand {
     On,
     Off,
     Thruster(i8),
 }
 
-#[derive(Debug, FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum AutopilotCommand {
     Tartget(String),
     Orbit(String),
 }
 
-#[derive(Debug, FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum Weapon {
     HomingMissile,
 }
 
-#[derive(Debug, FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct FireCommand {
     pub weapon: Weapon,
     pub target: Option<String>,
 }
 
-#[derive(Debug, FromVariant, ToVariant)]
+#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct RadarCommand {
     // TODO: options
 }

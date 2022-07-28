@@ -9,7 +9,7 @@ use crate::{
     common::HasPath,
     units::player::Player,
     vm::Command,
-    vm_connector::{self, CommandInput, CommandResult},
+    vm_connector::{self, CommandInput, CommandResultOfId},
 };
 
 #[derive(NativeClass, Default)]
@@ -64,7 +64,10 @@ impl Radar {
         match input.cmd {
             Command::Radar(_) => {
                 godot_dbg!(&self.detected);
-                let res: CommandResult = Ok("test".to_owned());
+                let res = CommandResultOfId {
+                    id: input.id,
+                    result: Ok("test".to_owned()),
+                };
                 godot_print!("before send result");
                 vm_connector::send_result(owner, res);
             }

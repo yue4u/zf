@@ -1,4 +1,18 @@
+#[rustfmt::skip]
+pub mod path;
+
 use gdnative::{api::*, prelude::*};
+
+#[macro_export]
+macro_rules! bind_path {
+    ( $x:ty, $p1:ident::$p2:ident ) => {
+        impl HasPath for $x {
+            fn path() -> &'static str {
+                crate::common::path::$p1::$p2
+            }
+        }
+    };
+}
 
 pub type Id = u32;
 pub type Position = Vector3;

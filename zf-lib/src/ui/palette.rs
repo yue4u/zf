@@ -1,6 +1,6 @@
 use gdnative::{api::LineEdit, prelude::*};
 
-use crate::common::HasPath;
+use crate::{bind_path, common::HasPath};
 
 #[derive(NativeClass)]
 #[inherit(LineEdit)]
@@ -41,8 +41,4 @@ impl CommandPalette {
     }
 }
 
-impl HasPath for CommandPalette {
-    fn path() -> &'static str {
-        "/root/Scene/UI/MarginContainer/Control/CommandPalette/LineEdit"
-    }
-}
+bind_path!(CommandPalette, space::LINEEDIT);

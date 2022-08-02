@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 use super::CommandInput;
 use super::CommandResultOfId;
+use crate::bind_path;
 use crate::common::find_ref;
 use crate::common::HasPath;
 use crate::ui::CommandPalette;
@@ -110,8 +111,4 @@ fn process_cmd(owner: &Node, result_buffer: &mut ResultBuffer, run: &mut Command
     Some(())
 }
 
-impl HasPath for VMHost {
-    fn path() -> &'static str {
-        "/root/Scene/Managers/VMHost"
-    }
-}
+bind_path!(VMHost, space::VMHOST);

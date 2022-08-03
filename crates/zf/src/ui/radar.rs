@@ -6,7 +6,7 @@ use gdnative::{
 };
 
 use crate::{
-    common::HasPath,
+    path::HasPath,
     units::player::Player,
     vm::Command,
     vm_connector::{self, CommandInput, CommandResultOfId},

@@ -3,10 +3,7 @@ mod vm_host;
 use gdnative::prelude::*;
 pub use vm_host::VMHost;
 
-use crate::{
-    common::{find_ref, HasPath},
-    vm::Command,
-};
+use crate::{common::find_ref, path::HasPath, vm::Command};
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct CommandInput {

@@ -1,7 +1,5 @@
 use gdnative::{api::LineEdit, prelude::*};
 
-use crate::{bind_path, common::HasPath};
-
 #[derive(NativeClass)]
 #[inherit(LineEdit)]
 pub struct CommandPalette;
@@ -40,5 +38,3 @@ impl CommandPalette {
         Some(())
     }
 }
-
-bind_path!(CommandPalette, space::LINE_EDIT);

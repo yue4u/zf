@@ -1,18 +1,5 @@
-#[rustfmt::skip]
-pub mod path;
-
+use crate::path::HasPath;
 use gdnative::{api::*, prelude::*};
-
-#[macro_export]
-macro_rules! bind_path {
-    ( $x:ty, $p1:ident::$p2:ident ) => {
-        impl HasPath for $x {
-            fn path() -> &'static str {
-                crate::common::path::$p1::$p2
-            }
-        }
-    };
-}
 
 pub type Id = u32;
 pub type Position = Vector3;
@@ -36,10 +23,6 @@ pub fn load_as<T: GodotObject<Memory = ManuallyManaged> + SubClass<Node>>(
     let instance = scene.instance(PackedScene::GEN_EDIT_STATE_INSTANCE)?;
     let instance = unsafe { instance.assume_unique() };
     instance.cast::<T>()
-}
-
-pub trait HasPath {
-    fn path() -> &'static str;
 }
 
 pub fn find_ref<'a, S, R>(target: TRef<Node>) -> Option<TRef<'a, R>>

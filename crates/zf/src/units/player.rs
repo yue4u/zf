@@ -1,8 +1,7 @@
 use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
-    bind_path,
-    common::{self, HasPath, Position, Rotation, Vector3DisplayShort},
+    common::{self, Position, Rotation, Vector3DisplayShort},
     vm::{Command, EngineCommand},
     vm_connector::{self, CommandInput},
 };
@@ -29,8 +28,6 @@ impl Default for EngineStatus {
 }
 
 const MAX_SPEED: f64 = 1. / 30.;
-
-bind_path!(Player, space::T_MJOLNIR);
 
 #[methods]
 impl Player {

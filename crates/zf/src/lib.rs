@@ -1,11 +1,11 @@
 mod common;
 mod entities;
+mod path;
 mod ui;
 mod units;
 mod vm;
 mod vm_connector;
 mod weapons;
-
 use gdnative::prelude::*;
 
 fn init(handle: InitHandle) {

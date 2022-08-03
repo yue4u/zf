@@ -1,7 +1,4 @@
-use crate::{
-    vm,
-    vm_connector::{self, CommandInput, CommandResultOfId},
-};
+use crate::vm_connector::{self, CommandResultOfId};
 use gdnative::{api::RichTextLabel, prelude::*};
 
 #[derive(NativeClass)]

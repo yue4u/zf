@@ -1,14 +1,12 @@
-use std::cell::RefCell;
-use std::collections::HashMap;
-
-use super::CommandInput;
-use super::CommandResultOfId;
-use crate::bind_path;
-use crate::common::find_ref;
-use crate::common::HasPath;
-use crate::ui::CommandPalette;
-use crate::vm::{CommandRun, CommandRunState, Parser};
 use gdnative::prelude::*;
+use std::{cell::RefCell, collections::HashMap};
+
+use crate::{
+    common::find_ref,
+    ui::CommandPalette,
+    vm::{CommandRun, CommandRunState, Parser},
+    vm_connector::{CommandInput, CommandResultOfId},
+};
 
 #[derive(NativeClass, Debug, Default)]
 #[inherit(Node)]
@@ -110,5 +108,3 @@ fn process_cmd(owner: &Node, result_buffer: &mut ResultBuffer, run: &mut Command
     }
     Some(())
 }
-
-bind_path!(VMHost, space::VMHOST);

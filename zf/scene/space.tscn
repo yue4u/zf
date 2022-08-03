@@ -18,8 +18,8 @@
 [ext_resource path="res://shaders/radar_tint.shader" type="Shader" id=16]
 [ext_resource path="res://scripts/Radar.gdns" type="Script" id=17]
 [ext_resource path="res://scripts/PerfLabel.gdns" type="Script" id=18]
-[ext_resource path="res://scripts/VMManger.gdns" type="Script" id=19]
-[ext_resource path="res://scripts/SysManger.gdns" type="Script" id=20]
+[ext_resource path="res://scripts/VMManager.gdns" type="Script" id=19]
+[ext_resource path="res://scripts/SysManager.gdns" type="Script" id=20]
 
 [sub_resource type="PanoramaSky" id=1]
 panorama = ExtResource( 1 )

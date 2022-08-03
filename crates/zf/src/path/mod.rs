@@ -1,4 +1,4 @@
-use crate::managers::VMManger;
+use crate::managers::VMManager;
 use crate::ui::CommandPalette;
 use crate::units::Player;
 
@@ -27,6 +27,6 @@ macro_rules! bind_path {
 
 bind_path!(
     Player => space::T_MJOLNIR,
-    VMManger => space::VM,
+    VMManager => space::VM,
     CommandPalette => space::LINE_EDIT
 );

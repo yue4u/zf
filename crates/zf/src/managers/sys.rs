@@ -7,12 +7,12 @@ use crate::{
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub struct SysManger;
+pub struct SysManager;
 
 #[methods]
-impl SysManger {
+impl SysManager {
     fn new(_owner: TRef<Node>) -> Self {
-        SysManger
+        SysManager
     }
 
     #[export]

@@ -1,5 +1,5 @@
 mod sys;
 pub mod vm;
 
-pub use sys::SysManger;
-pub use vm::VMManger;
+pub use sys::SysManager;
+pub use vm::VMManager;

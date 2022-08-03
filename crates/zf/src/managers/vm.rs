@@ -10,7 +10,7 @@ use crate::{
 #[derive(NativeClass, Debug, Default)]
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
-pub struct VMManger {
+pub struct VMManager {
     run_id: RefCell<u32>,
     cmd_id: RefCell<u32>,
     run_buffer: RefCell<Vec<CommandRun>>,
@@ -20,9 +20,9 @@ pub struct VMManger {
 type ResultBuffer = HashMap<u32, CommandResult>;
 
 #[methods]
-impl VMManger {
+impl VMManager {
     pub(crate) fn new(_owner: &Node) -> Self {
-        VMManger::default()
+        VMManager::default()
     }
 
     pub(crate) fn register_signals(builder: &ClassBuilder<Self>) {

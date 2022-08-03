@@ -3,6 +3,6 @@
 [ext_resource path="res://bin/libzf.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-resource_name = "SysManger"
-class_name = "SysManger"
+resource_name = "VMManger"
+class_name = "VMManager"
 library = ExtResource( 1 )

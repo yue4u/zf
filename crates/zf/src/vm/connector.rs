@@ -1,6 +1,6 @@
 use gdnative::prelude::*;
 
-use crate::{common::find_ref, managers::VMManger, path::HasPath, vm::Command};
+use crate::{common::find_ref, managers::VMManager, path::HasPath, vm::Command};
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct CommandInput {
@@ -15,7 +15,7 @@ pub struct CommandResult {
 }
 
 pub fn connect_on_cmd_parsed(target: TRef<Node>) -> Option<()> {
-    find_ref::<VMManger, Node>(target)?
+    find_ref::<VMManager, Node>(target)?
         .connect(
             "on_cmd_parsed",
             target,
@@ -28,7 +28,7 @@ pub fn connect_on_cmd_parsed(target: TRef<Node>) -> Option<()> {
 }
 
 pub fn connect_on_cmd_entered(target: TRef<Node>) -> Option<()> {
-    find_ref::<VMManger, Node>(target)?
+    find_ref::<VMManager, Node>(target)?
         .connect(
             "on_cmd_entered",
             target,
@@ -41,7 +41,7 @@ pub fn connect_on_cmd_entered(target: TRef<Node>) -> Option<()> {
 }
 
 pub fn connect_on_cmd_result(target: TRef<Node>) -> Option<()> {
-    find_ref::<VMManger, Node>(target)?
+    find_ref::<VMManager, Node>(target)?
         .connect(
             "on_cmd_result",
             target,
@@ -63,7 +63,7 @@ where
 {
     fn send_result(&self, result: CommandResult) -> Option<()> {
         godot_print!("before send result");
-        let vm = unsafe { self.get_node_as_instance::<VMManger>(VMManger::path())? };
+        let vm = unsafe { self.get_node_as_instance::<VMManager>(VMManager::path())? };
         let r = vm.map(|host, _| {
             (*host).receive_command_result(result);
         });

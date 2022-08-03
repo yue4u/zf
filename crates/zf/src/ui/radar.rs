@@ -8,7 +8,7 @@ use gdnative::{
 use crate::{
     path::HasPath,
     units::player::Player,
-    vm::{self, Command, CommandExecutor, CommandInput},
+    vm::{Command, CommandExecutor, CommandInput, VMConnecter, VMSignal},
 };
 
 #[derive(NativeClass, Default)]
@@ -25,7 +25,8 @@ impl Radar {
 
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
-        vm::connect_on_cmd_parsed(owner);
+        owner.connect_vm_signal(VMSignal::OnCmdParsed);
+
         let player_radar = unsafe {
             owner
                 .get_node(&format!("{}/{}", Player::path(), "RadarArea"))?
@@ -65,7 +66,7 @@ impl Radar {
         }
         let msg = Ok(format!("{:?}", &self.detected));
         let res = input.into_result(msg);
-        owner.send_result(res);
+        owner.send_vm_result(res);
     }
 
     #[export]

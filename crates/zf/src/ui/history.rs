@@ -1,6 +1,6 @@
 use gdnative::{api::ItemList, prelude::*};
 
-use crate::vm;
+use crate::vm::{self, VMConnecter, VMSignal};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -15,7 +15,8 @@ impl CommandHistory {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command history ready");
-        vm::connect_on_cmd_entered(owner)
+        owner.connect_vm_signal(VMSignal::OnCmdEntered);
+        Some(())
     }
 
     #[export]

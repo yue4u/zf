@@ -1,4 +1,4 @@
-use crate::vm::{self, CommandResult};
+use crate::vm::{CommandResult, VMConnecter, VMSignal};
 use gdnative::{api::RichTextLabel, prelude::*};
 
 #[derive(NativeClass)]
@@ -14,7 +14,8 @@ impl CommandResultDisplay {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command result ready");
-        vm::connect_on_cmd_result(owner)
+        owner.connect_vm_signal(VMSignal::OnCmdResult);
+        Some(())
     }
 
     #[export]

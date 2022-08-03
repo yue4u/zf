@@ -23,60 +23,57 @@ pub struct CommandResult {
     pub result: Result<String, String>,
 }
 
-pub fn connect_on_cmd_parsed(target: TRef<Node>) -> Option<()> {
-    find_ref::<VMManager, Node>(target)?
-        .connect(
-            "on_cmd_parsed",
-            target,
-            "on_cmd_parsed",
-            VariantArray::new_shared(),
-            0,
-        )
-        .expect("failed to connect line edit on_cmd_parsed");
-    Some(())
-}
-
-pub fn connect_on_cmd_entered(target: TRef<Node>) -> Option<()> {
-    find_ref::<VMManager, Node>(target)?
-        .connect(
-            "on_cmd_entered",
-            target,
-            "on_cmd_entered",
-            VariantArray::new_shared(),
-            0,
-        )
-        .expect("failed to connect line edit");
-    Some(())
-}
-
-pub fn connect_on_cmd_result(target: TRef<Node>) -> Option<()> {
-    find_ref::<VMManager, Node>(target)?
-        .connect(
-            "on_cmd_result",
-            target,
-            "on_cmd_result",
-            VariantArray::new_shared(),
-            0,
-        )
-        .expect("failed to connect line edit");
-    Some(())
-}
-
 pub trait CommandExecutor {
-    fn send_result(&self, result: CommandResult) -> Option<()>;
+    fn send_vm_result(&self, result: CommandResult) -> Option<()>;
 }
 
 impl<T> CommandExecutor for T
 where
     T: NodeResolveExt<&'static str>,
 {
-    fn send_result(&self, result: CommandResult) -> Option<()> {
+    fn send_vm_result(&self, result: CommandResult) -> Option<()> {
         godot_print!("before send result");
         let vm = unsafe { self.get_node_as_instance::<VMManager>(VMManager::path())? };
         let r = vm.map(|host, _| {
             (*host).receive_command_result(result);
         });
         godot_print!("{:?}", r);
+        Some(())
+    }
+}
+
+pub enum VMSignal {
+    OnCmdEntered,
+    OnCmdParsed,
+    OnCmdResult,
+}
+
+impl VMSignal {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            VMSignal::OnCmdEntered => "on_cmd_entered",
+            VMSignal::OnCmdParsed => "on_cmd_parsed",
+            VMSignal::OnCmdResult => "on_cmd_result",
+        }
+    }
+}
+
+pub trait VMConnecter {
+    fn connect_vm_signal(self, signal: VMSignal) -> Option<()>;
+}
+
+impl<'a> VMConnecter for TRef<'a, Node> {
+    fn connect_vm_signal(self, signal: VMSignal) -> Option<()> {
+        let signal = signal.as_str();
+        find_ref::<VMManager, Node>(self)?
+            .connect(
+                signal, // fmt
+                self,
+                signal,
+                VariantArray::new_shared(),
+                0,
+            )
+            .expect(&format!("failed to connect line edit {signal}"));
         Some(())
     }
 }

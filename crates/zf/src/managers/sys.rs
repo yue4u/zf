@@ -2,7 +2,7 @@ use gdnative::prelude::*;
 
 use crate::{
     entities::Mission,
-    vm::{self, Command, CommandExecutor, CommandInput, MissionCommand},
+    vm::{Command, CommandExecutor, CommandInput, MissionCommand, VMConnecter, VMSignal},
 };
 
 #[derive(NativeClass)]
@@ -17,7 +17,7 @@ impl SysManager {
 
     #[export]
     fn _ready(&self, owner: TRef<Node>) {
-        vm::connect_on_cmd_parsed(owner);
+        owner.connect_vm_signal(VMSignal::OnCmdParsed);
     }
 
     #[export]
@@ -32,7 +32,7 @@ impl SysManager {
             _ => return,
         };
         let res = input.into_result(Ok(res));
-        owner.send_result(res);
+        owner.send_vm_result(res);
     }
 }
 

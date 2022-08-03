@@ -60,7 +60,7 @@ impl Radar {
 
     #[export]
     fn on_cmd_parsed(&mut self, owner: &Node, input: CommandInput) {
-        if matches!(input.cmd, Command::Radar(_)) {
+        if !matches!(input.cmd, Command::Radar(_)) {
             return;
         }
 

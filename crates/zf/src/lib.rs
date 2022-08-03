@@ -21,6 +21,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<units::Player>();
     handle.add_class::<weapons::HomingMissile>();
     handle.add_class::<managers::VMManger>();
+    handle.add_class::<managers::SysManger>();
 }
 
 godot_init!(init);

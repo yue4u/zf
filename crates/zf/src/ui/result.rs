@@ -19,7 +19,10 @@ impl CommandResultDisplay {
 
     #[export]
     fn on_cmd_result(&mut self, owner: &Node, result: CommandResult) -> Option<()> {
-        let result = format!("{:?}", result);
+        let result = match result.result {
+            Ok(result) => result,
+            Err(_) => format!("{:?}", result),
+        };
         owner.cast::<RichTextLabel>()?.set_bbcode(result);
         Some(())
     }

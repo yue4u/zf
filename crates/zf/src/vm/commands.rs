@@ -38,25 +38,6 @@ pub enum Command {
 
 use Command::*;
 
-const HELP: &'static str = r#"ZF
-
-help, h           Show this help
-game, g
-    start         Start game
-    stop          Stop game
-mission, m
-    summary, s    Show mission summary
-    target, t     Get mission targets info
-    position, p   Get mission targets's positions
-engine, e
-    on            Start engine
-    off           Stop engine
-    thruster, t   Set engine thruster at <percentage>
-autopilot, a
-    target, t     autopilot to <target>
-    orbit, o      autopilot use <orbit>
-"#;
-
 #[derive(Debug)]
 pub struct InvalidCommand;
 

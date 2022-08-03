@@ -2,7 +2,7 @@ use gdnative::prelude::*;
 
 use crate::{
     entities::Mission,
-    vm::{self, Command, CommandExecutor, CommandInput, CommandResult, MissionCommand},
+    vm::{self, Command, CommandExecutor, CommandInput, MissionCommand},
 };
 
 #[derive(NativeClass)]
@@ -22,8 +22,7 @@ impl SysManager {
 
     #[export]
     fn on_cmd_parsed(&mut self, owner: &Node, input: CommandInput) {
-        godot_print!("???");
-        let res = match input.cmd {
+        let res = match &input.cmd {
             Command::Help => HELP.to_owned(),
             Command::Mission(m) => match m {
                 MissionCommand::Summary => Mission::dummy().summary(),
@@ -32,12 +31,7 @@ impl SysManager {
             },
             _ => return,
         };
-
-        let res = CommandResult {
-            id: input.id,
-            result: Ok(res),
-        };
-
+        let res = input.into_result(Ok(res));
         owner.send_result(res);
     }
 }

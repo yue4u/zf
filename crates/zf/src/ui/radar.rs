@@ -8,7 +8,7 @@ use gdnative::{
 use crate::{
     path::HasPath,
     units::player::Player,
-    vm::{self, Command, CommandExecutor, CommandInput, CommandResult},
+    vm::{self, Command, CommandExecutor, CommandInput},
 };
 
 #[derive(NativeClass, Default)]
@@ -63,12 +63,8 @@ impl Radar {
         if !matches!(input.cmd, Command::Radar(_)) {
             return;
         }
-
-        let res = CommandResult {
-            id: input.id,
-            result: Ok(format!("{:?}", &self.detected)),
-        };
-
+        let msg = Ok(format!("{:?}", &self.detected));
+        let res = input.into_result(msg);
         owner.send_result(res);
     }
 

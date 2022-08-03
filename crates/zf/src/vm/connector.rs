@@ -8,6 +8,15 @@ pub struct CommandInput {
     pub id: u32,
 }
 
+impl CommandInput {
+    pub fn into_result(self, result: Result<String, String>) -> CommandResult {
+        CommandResult {
+            id: self.id,
+            result,
+        }
+    }
+}
+
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct CommandResult {
     pub id: u32,

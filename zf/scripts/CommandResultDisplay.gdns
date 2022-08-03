@@ -3,6 +3,6 @@
 [ext_resource path="res://bin/libzf.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-resource_name = "VMHost"
-class_name = "VMHost"
+resource_name = "CommandResultDisplay"
+class_name = "CommandResultDisplay"
 library = ExtResource( 1 )

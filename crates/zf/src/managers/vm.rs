@@ -4,26 +4,25 @@ use std::{cell::RefCell, collections::HashMap};
 use crate::{
     common::find_ref,
     ui::CommandPalette,
-    vm::{CommandRun, CommandRunState, Parser},
-    vm_connector::{CommandInput, CommandResultOfId},
+    vm::{CommandInput, CommandResult, CommandRun, CommandRunState, Parser},
 };
 
 #[derive(NativeClass, Debug, Default)]
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
-pub struct VMHost {
+pub struct VMManger {
     run_id: RefCell<u32>,
     cmd_id: RefCell<u32>,
     run_buffer: RefCell<Vec<CommandRun>>,
     result_buffer: RefCell<ResultBuffer>,
 }
 
-type ResultBuffer = HashMap<u32, CommandResultOfId>;
+type ResultBuffer = HashMap<u32, CommandResult>;
 
 #[methods]
-impl VMHost {
+impl VMManger {
     pub(crate) fn new(_owner: &Node) -> Self {
-        VMHost::default()
+        VMManger::default()
     }
 
     pub(crate) fn register_signals(builder: &ClassBuilder<Self>) {
@@ -80,7 +79,7 @@ impl VMHost {
         Some(())
     }
 
-    pub fn receive_command_result(&self, result: CommandResultOfId) -> Option<()> {
+    pub fn receive_command_result(&self, result: CommandResult) -> Option<()> {
         godot_print!("receive_command_result: {:?}!", result);
         self.result_buffer.borrow_mut().insert(result.id, result);
         Some(())

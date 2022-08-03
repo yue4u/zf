@@ -44,7 +44,7 @@ pub mod space {{
 }}
 "#
     );
-    fs::write("./zf/src/common/path.rs", out.trim_start()).unwrap();
+    fs::write("./zf/src/path/path.rs", out.trim_start()).unwrap();
 }
 
 fn const_case(text: String) -> String {

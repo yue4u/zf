@@ -1,24 +1,24 @@
-use crate::vm_connector::{self, CommandResultOfId};
+use crate::vm::{self, CommandResult};
 use gdnative::{api::RichTextLabel, prelude::*};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub struct CommandResult;
+pub struct CommandResultDisplay;
 
 #[methods]
-impl CommandResult {
+impl CommandResultDisplay {
     fn new(_owner: &Node) -> Self {
-        CommandResult
+        CommandResultDisplay
     }
 
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command result ready");
-        vm_connector::connect_on_cmd_result(owner)
+        vm::connect_on_cmd_result(owner)
     }
 
     #[export]
-    fn on_cmd_result(&mut self, owner: &Node, result: CommandResultOfId) -> Option<()> {
+    fn on_cmd_result(&mut self, owner: &Node, result: CommandResult) -> Option<()> {
         let result = format!("{:?}", result);
         owner.cast::<RichTextLabel>()?.set_bbcode(result);
         Some(())

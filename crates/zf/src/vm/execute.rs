@@ -1,17 +1,5 @@
-use crate::vm::Command;
+use gdnative::prelude::*;
 
-pub trait Execute {
-    fn exec(&self) -> ExecuteResult;
-}
-
-pub type ExecuteResult = Result<String, ()>;
-
-pub fn exec(cmd: Command) -> String {
-    let mut text = None;
-
-    if let Ok(result) = cmd.exec() {
-        text = Some(result)
-    }
-
-    text.unwrap_or(format!("{:?}", cmd))
+pub trait Executor {
+    fn exec(&self, owner: &Node);
 }

@@ -1,6 +1,6 @@
+use crate::managers::VMManger;
 use crate::ui::CommandPalette;
 use crate::units::Player;
-use crate::vm_connector::VMHost;
 
 pub mod path;
 
@@ -26,7 +26,7 @@ macro_rules! bind_path {
 }
 
 bind_path!(
-    VMHost => space::VMHOST,
     Player => space::T_MJOLNIR,
+    VMManger => space::VM,
     CommandPalette => space::LINE_EDIT
 );

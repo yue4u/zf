@@ -8,8 +8,7 @@ use gdnative::{
 use crate::{
     path::HasPath,
     units::player::Player,
-    vm::Command,
-    vm_connector::{self, CommandInput, CommandResultOfId},
+    vm::{self, Command, CommandExecutor, CommandInput, CommandResult},
 };
 
 #[derive(NativeClass, Default)]
@@ -26,7 +25,7 @@ impl Radar {
 
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
-        vm_connector::connect_on_cmd_parsed(owner);
+        vm::connect_on_cmd_parsed(owner);
         let player_radar = unsafe {
             owner
                 .get_node(&format!("{}/{}", Player::path(), "RadarArea"))?
@@ -61,18 +60,16 @@ impl Radar {
 
     #[export]
     fn on_cmd_parsed(&mut self, owner: &Node, input: CommandInput) {
-        match input.cmd {
-            Command::Radar(_) => {
-                godot_dbg!(&self.detected);
-                let res = CommandResultOfId {
-                    id: input.id,
-                    result: Ok("test".to_owned()),
-                };
-                godot_print!("before send result");
-                vm_connector::send_result(owner, res);
-            }
-            _ => {}
+        if matches!(input.cmd, Command::Radar(_)) {
+            return;
         }
+
+        let res = CommandResult {
+            id: input.id,
+            result: Ok(format!("{:?}", &self.detected)),
+        };
+
+        owner.send_result(res);
     }
 
     #[export]

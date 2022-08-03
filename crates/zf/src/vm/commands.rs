@@ -1,10 +1,6 @@
 use gdnative::derive::{FromVariant, ToVariant};
 
-use crate::{
-    entities::Mission,
-    vm::{Execute, ExecuteResult},
-    vm_connector::CommandInput,
-};
+use crate::vm::CommandInput;
 
 #[derive(FromVariant, ToVariant, Clone, Debug)]
 pub enum CommandRunState {
@@ -63,16 +59,6 @@ autopilot, a
 
 #[derive(Debug)]
 pub struct InvalidCommand;
-
-impl Execute for Command {
-    fn exec(&self) -> ExecuteResult {
-        Ok(match self {
-            Command::Help => HELP.to_owned(),
-            Command::Mission(m) => m.exec()?,
-            _ => format!("{:?}", self),
-        })
-    }
-}
 
 impl TryFrom<&str> for Command {
     type Error = InvalidCommand;
@@ -146,17 +132,6 @@ pub enum MissionCommand {
     Summary,
     Tartget,
     Position,
-}
-
-impl Execute for MissionCommand {
-    fn exec(&self) -> ExecuteResult {
-        let ret = match self {
-            MissionCommand::Summary => Mission::dummy().summary(),
-            MissionCommand::Tartget => Mission::dummy().targets().join("\n"),
-            MissionCommand::Position => format!("{:?}", Mission::dummy().positions()),
-        };
-        Ok(ret)
-    }
 }
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]

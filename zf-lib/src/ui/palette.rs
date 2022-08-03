@@ -41,4 +41,4 @@ impl CommandPalette {
     }
 }
 
-bind_path!(CommandPalette, space::LINEEDIT);
+bind_path!(CommandPalette, space::LINE_EDIT);

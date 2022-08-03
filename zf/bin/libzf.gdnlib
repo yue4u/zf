@@ -1,6 +1,6 @@
 [entry]
 
-X11.64="res://../zf-lib/target/release/libzf_lib.so"
+X11.64="res://../crates/target/release/libzf.so"
 
 [dependencies]
 

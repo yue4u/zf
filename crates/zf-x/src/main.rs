@@ -1,7 +1,7 @@
 use std::fs;
 
 pub fn main() {
-    let theme = include_str!("../../zf/scene/space.tscn");
+    let theme = include_str!("../../../zf/scene/space.tscn");
     let out = theme
         .lines()
         .filter_map(|line| {
@@ -44,7 +44,7 @@ pub mod space {{
 }}
 "#
     );
-    fs::write("./src/common/path.rs", out.trim_start()).unwrap();
+    fs::write("./zf/src/common/path.rs", out.trim_start()).unwrap();
 }
 
 fn const_case(text: String) -> String {

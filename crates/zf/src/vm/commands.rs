@@ -1,8 +1,10 @@
 use gdnative::derive::{FromVariant, ToVariant};
 
-use crate::entities::Mission;
-use crate::vm::{Execute, ExecuteResult};
-use crate::vm_connector::CommandInput;
+use crate::{
+    entities::Mission,
+    vm::{Execute, ExecuteResult},
+    vm_connector::CommandInput,
+};
 
 #[derive(FromVariant, ToVariant, Clone, Debug)]
 pub enum CommandRunState {

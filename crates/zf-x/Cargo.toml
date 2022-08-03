@@ -1,17 +1,8 @@
 [package]
-name = "zf-lib"
+name = "zf-x"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[lib]
-crate-type = ["cdylib"]
-path = "src/lib.rs"
-
-[[bin]]
-name = "zf-extract"
-path = "src/extract.rs"
-
 [dependencies]
-gdnative = "0.10"

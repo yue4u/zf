@@ -2,7 +2,7 @@ use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
-    vm::{self, Command, CommandInput, EngineCommand, VMConnecter, VMSignal},
+    vm::{Command, CommandExecutor, CommandInput, EngineCommand, VMConnecter, VMSignal},
 };
 
 #[derive(NativeClass, Default)]
@@ -45,11 +45,11 @@ impl Player {
 
     #[export]
     fn on_cmd_parsed(&mut self, owner: &Spatial, input: CommandInput) {
-        match input.cmd {
+        match &input.cmd {
             Command::Engine(EngineCommand::Off) => self.engine = EngineStatus::Off,
             Command::Engine(EngineCommand::Thruster(percent)) => {
                 if let EngineStatus::On(_) = self.engine {
-                    self.engine = EngineStatus::On(percent)
+                    self.engine = EngineStatus::On(*percent)
                 }
                 // TODO: throw error if engine is off
             }
@@ -57,8 +57,6 @@ impl Player {
             Command::Fire(fire) => {
                 godot_print!("fire: {:?}", fire);
                 let missile = common::load_as::<Spatial>("res://scene/HomingMissile.tscn").unwrap();
-                // let global = owner.global_transform();
-                // missile.set_global_transform(global);
                 missile.set_scale(Vector3::new(0.05, 0.05, 0.05));
                 unsafe { owner.get_node("Projectiles").unwrap().assume_safe() }
                     .add_child(missile, true);
@@ -70,6 +68,8 @@ impl Player {
             EngineStatus::On(percent) => self.speed = MAX_SPEED * percent as f64 / 100.,
             EngineStatus::Off => self.speed = 0.,
         }
+        let res = input.into_result(Ok("ok".to_string()));
+        owner.send_vm_result(res);
     }
 
     #[export]

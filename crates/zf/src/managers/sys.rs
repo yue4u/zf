@@ -51,6 +51,7 @@ engine, e
     off           Stop engine
     thruster, t   Set engine thruster at <percentage>
 autopilot, a
-    target, t     autopilot to <target>
-    orbit, o      autopilot use <orbit>
+    target, t     Autopilot to <target>
+    orbit, o      Autopilot use <orbit>
+radar             Show radar info
 "#;

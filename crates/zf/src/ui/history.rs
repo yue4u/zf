@@ -1,6 +1,6 @@
 use gdnative::{api::ItemList, prelude::*};
 
-use crate::vm::{self, VMConnecter, VMSignal};
+use crate::vm::{VMConnecter, VMSignal};
 
 #[derive(NativeClass)]
 #[inherit(Node)]

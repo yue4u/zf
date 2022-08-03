@@ -87,10 +87,12 @@ impl VMManager {
 }
 
 fn process_cmd(owner: &Node, result_buffer: &mut ResultBuffer, run: &mut CommandRun) -> Option<()> {
-    let done: Vec<&CommandInput> = run
+    let waiting = run.cmds.len();
+    run.cmds = run
         .cmds
-        .iter()
-        .take_while(|&cmd| {
+        .clone()
+        .into_iter()
+        .skip_while(|cmd| {
             if let Some(result) = result_buffer.remove(&cmd.id) {
                 godot_print!("on_cmd_result: {:?}", result);
                 owner.emit_signal("on_cmd_result", &[Variant::new(result)]);
@@ -101,8 +103,9 @@ fn process_cmd(owner: &Node, result_buffer: &mut ResultBuffer, run: &mut Command
         })
         .collect();
 
-    if done.len() > 0 {
-        let cmd = run.cmds.first()?.clone();
+    if run.cmds.len() < waiting {
+        godot_print!("remain run.cmds: {:?}", run.cmds);
+        let cmd = run.cmds.first()?;
         owner.emit_signal("on_cmd_parsed", &[Variant::new(cmd)]);
     }
     Some(())

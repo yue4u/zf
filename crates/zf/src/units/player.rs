@@ -61,7 +61,7 @@ impl Player {
                 unsafe { owner.get_node("Projectiles").unwrap().assume_safe() }
                     .add_child(missile, true);
             }
-            _ => {}
+            _ => return,
         }
 
         match self.engine {

@@ -1,6 +1,6 @@
 use gdnative::prelude::*;
 
-use crate::{common::find_ref, managers::VMManager, path::HasPath, vm::Command};
+use crate::{common::find_ref, managers::VMManager, vm::Command};
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct CommandInput {
@@ -23,25 +23,13 @@ pub struct CommandResult {
     pub result: Result<String, String>,
 }
 
-pub trait CommandExecutor {
-    fn send_vm_result(&self, result: CommandResult) -> Option<()>;
-}
-
-impl<T> CommandExecutor for T
-where
-    T: NodeResolveExt<&'static str>,
-{
-    fn send_vm_result(&self, result: CommandResult) -> Option<()> {
-        godot_print!("before send result");
-        let vm = unsafe { self.get_node_as_instance::<VMManager>(VMManager::path())? };
-        let r = vm.map(|host, _| {
-            (*host).receive_command_result(result);
-        });
-        godot_print!("{:?}", r);
-        Some(())
+impl CommandResult {
+    pub fn as_var(&self) -> [Variant; 1] {
+        [Variant::new(self)]
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum VMSignal {
     OnCmdEntered,
     OnCmdParsed,
@@ -58,22 +46,49 @@ impl VMSignal {
     }
 }
 
+impl Into<GodotString> for VMSignal {
+    fn into(self) -> GodotString {
+        self.as_str().into()
+    }
+}
+
+impl Into<GodotString> for &VMSignal {
+    fn into(self) -> GodotString {
+        self.as_str().into()
+    }
+}
+
 pub trait VMConnecter {
     fn connect_vm_signal(self, signal: VMSignal) -> Option<()>;
 }
 
 impl<'a> VMConnecter for TRef<'a, Node> {
     fn connect_vm_signal(self, signal: VMSignal) -> Option<()> {
-        let signal = signal.as_str();
-        find_ref::<VMManager, Node>(self)?
+        let vm_manager = find_ref::<VMManager, Node>(self)?;
+        vm_manager
             .connect(
-                signal, // fmt
+                &signal, // fmt
                 self,
-                signal,
+                &signal,
                 VariantArray::new_shared(),
                 0,
             )
-            .expect(&format!("failed to connect line edit {signal}"));
+            .expect(&format!("failed to connect vm {}", signal.as_str()));
+
+        if VMSignal::OnCmdParsed == signal {
+            self.connect(
+                VMSignal::OnCmdResult,
+                vm_manager,
+                VMSignal::OnCmdResult,
+                VariantArray::new_shared(),
+                0,
+            )
+            .expect(&format!("failed to connect vm back {}", signal.as_str()));
+        };
         Some(())
     }
+}
+
+pub fn register_vm_signal<T: NativeClass>(builder: &ClassBuilder<T>) {
+    builder.signal(VMSignal::OnCmdResult.as_str()).done();
 }

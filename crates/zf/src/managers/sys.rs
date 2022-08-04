@@ -2,11 +2,12 @@ use gdnative::prelude::*;
 
 use crate::{
     entities::Mission,
-    vm::{Command, CommandExecutor, CommandInput, MissionCommand, VMConnecter, VMSignal},
+    vm::{register_vm_signal, Command, CommandInput, MissionCommand, VMConnecter, VMSignal},
 };
 
 #[derive(NativeClass)]
 #[inherit(Node)]
+#[register_with(register_vm_signal)]
 pub struct SysManager;
 
 #[methods]
@@ -21,7 +22,7 @@ impl SysManager {
     }
 
     #[export]
-    fn on_cmd_parsed(&mut self, owner: &Node, input: CommandInput) {
+    fn on_cmd_parsed(&self, owner: &Node, input: CommandInput) {
         let res = match &input.cmd {
             Command::Help => HELP.to_owned(),
             Command::Mission(m) => match m {
@@ -32,7 +33,7 @@ impl SysManager {
             _ => return,
         };
         let res = input.into_result(Ok(res));
-        owner.send_vm_result(res);
+        owner.emit_signal(VMSignal::OnCmdResult, &res.as_var());
     }
 }
 

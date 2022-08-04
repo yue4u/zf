@@ -8,11 +8,12 @@ use gdnative::{
 use crate::{
     path::HasPath,
     units::player::Player,
-    vm::{Command, CommandExecutor, CommandInput, VMConnecter, VMSignal},
+    vm::{register_vm_signal, Command, CommandInput, VMConnecter, VMSignal},
 };
 
 #[derive(NativeClass, Default)]
 #[inherit(Node)]
+#[register_with(register_vm_signal)]
 pub struct Radar {
     detected: HashMap<GodotString, Ref<Area>>,
 }
@@ -60,13 +61,13 @@ impl Radar {
     }
 
     #[export]
-    fn on_cmd_parsed(&mut self, owner: &Node, input: CommandInput) {
+    fn on_cmd_parsed(&self, owner: &Node, input: CommandInput) {
         if !matches!(input.cmd, Command::Radar(_)) {
             return;
         }
         let msg = Ok(format!("{:?}", &self.detected));
         let res = input.into_result(msg);
-        owner.send_vm_result(res);
+        owner.emit_signal(VMSignal::OnCmdResult, &res.as_var());
     }
 
     #[export]

@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, cell::RefCell};
+use std::cell::RefCell;
 
 use gdnative::{api::PathFollow, prelude::*};
 
@@ -72,11 +72,9 @@ impl Player {
             EngineStatus::Off => 0.,
         };
         drop(current_status);
-        godot_dbg!("???");
 
         self.engine.replace(next_status);
         self.speed.replace(speed);
-        godot_dbg!("!!!");
 
         let res = input.into_result(Ok("ok".to_string()));
         owner.emit_signal(VMSignal::OnCmdResult, &res.as_var());

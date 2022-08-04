@@ -35,8 +35,6 @@ impl Radar {
         }
         .cast::<Area>()?;
 
-        godot_dbg!(player_radar);
-
         player_radar
             .connect(
                 "area_entered",

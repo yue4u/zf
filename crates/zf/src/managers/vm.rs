@@ -95,7 +95,6 @@ fn process_cmd(
     result_buffer: &mut RefMut<ResultBuffer>,
     run: &mut CommandRun,
 ) -> Option<()> {
-    godot_dbg!(&run.cmds);
     let waiting = run.cmds.len();
     run.cmds = run
         .cmds

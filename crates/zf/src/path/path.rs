@@ -36,4 +36,5 @@ pub mod space {
     pub const T_DUMMY_2: &str = "/root/Scene/EnemyCluster/t-dummy2";
     pub const MANAGERS: &str = "/root/Scene/Managers";
     pub const VM: &str = "/root/Scene/Managers/VM";
+    pub const SYS: &str = "/root/Scene/Managers/Sys";
 }

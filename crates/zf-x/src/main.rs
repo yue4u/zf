@@ -48,7 +48,7 @@ pub mod space {{
 }
 
 fn const_case(text: String) -> String {
-    #[derive(PartialEq, Clone, Copy)]
+    #[derive(PartialEq, Clone, Copy, Debug)]
     enum Case {
         Lower,
         Upper,
@@ -59,8 +59,7 @@ fn const_case(text: String) -> String {
 
     use Case::*;
     let mut last: Option<Case> = None;
-    let text = text
-        .chars()
+    text.chars()
         .map(|c| {
             let ty = match c {
                 'a'..='z' => Lower,
@@ -69,21 +68,15 @@ fn const_case(text: String) -> String {
                 '-' | '_' => UnderScore,
                 _ => Other,
             };
-            let c = match ty {
+            let last_ty = last.replace(ty);
+            match ty {
                 Lower => c.to_uppercase().to_string(),
-                upper_or_num @ (Upper | Num) => {
-                    if last != Some(upper_or_num) {
-                        format!("_{c}")
-                    } else {
-                        c.to_string()
-                    }
-                }
+                upper_or_num @ (Upper | Num) => last_ty
+                    .and_then(|ty| ty.ne(&upper_or_num).then_some(format!("_{c}")))
+                    .unwrap_or(c.to_string()),
                 UnderScore => "_".to_owned(),
-                _ => "".to_owned(),
-            };
-            last = Some(ty);
-            c
+                Other => "".to_owned(),
+            }
         })
-        .collect::<String>();
-    text.strip_prefix("_").unwrap_or(&text).to_owned()
+        .collect()
 }

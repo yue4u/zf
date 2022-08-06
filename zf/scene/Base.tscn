@@ -1,26 +1,13 @@
-[gd_scene load_steps=17 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://assets/self-made/code_theme.tres" type="Theme" id=1]
-[ext_resource path="res://scripts/Radar.gdns" type="Script" id=2]
 [ext_resource path="res://scripts/PerfLabel.gdns" type="Script" id=3]
-[ext_resource path="res://scripts/PlayerStatusDisplay.gdns" type="Script" id=4]
 [ext_resource path="res://scripts/SysManager.gdns" type="Script" id=5]
 [ext_resource path="res://scripts/CommandHistory.gdns" type="Script" id=6]
 [ext_resource path="res://scripts/VMManager.gdns" type="Script" id=7]
 [ext_resource path="res://scripts/CommandResultDisplay.gdns" type="Script" id=8]
 [ext_resource path="res://scripts/CommandPalette.gdns" type="Script" id=9]
-[ext_resource path="res://assets/3rd/kenney_boardgameicons/PNG/Default (64px)/d10.png" type="Texture" id=10]
-[ext_resource path="res://shaders/radar_bg.shader" type="Shader" id=11]
-[ext_resource path="res://shaders/radar_tint.shader" type="Shader" id=12]
-[ext_resource path="res://assets/3rd/kenney_boardgameicons/PNG/Default (64px)/pawn.png" type="Texture" id=13]
 [ext_resource path="res://scene/Environment.tscn" type="PackedScene" id=14]
-
-[sub_resource type="ShaderMaterial" id=6]
-shader = ExtResource( 11 )
-shader_param/corner_radius = 120.0
-
-[sub_resource type="ShaderMaterial" id=8]
-shader = ExtResource( 12 )
 
 [node name="Scene" type="Node"]
 
@@ -57,21 +44,10 @@ anchor_bottom = 0.5
 
 [node name="CommandHistory" type="ItemList" parent="UI/MarginContainer/Control/VBoxContainer"]
 margin_right = 289.0
-margin_bottom = 133.0
+margin_bottom = 270.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 6 )
-
-[node name="RichTextLabel" type="RichTextLabel" parent="UI/MarginContainer/Control/VBoxContainer"]
-margin_top = 137.0
-margin_right = 289.0
-margin_bottom = 270.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-bbcode_enabled = true
-script = ExtResource( 4 )
 
 [node name="CommandPalette" type="HBoxContainer" parent="UI/MarginContainer/Control"]
 anchor_left = 0.5
@@ -100,41 +76,6 @@ align = 3
 placeholder_text = "_"
 caret_blink = true
 script = ExtResource( 9 )
-
-[node name="Radar" type="Control" parent="UI/MarginContainer/Control"]
-anchor_top = 1.0
-anchor_bottom = 1.0
-margin_top = -250.0
-margin_right = 200.0
-margin_bottom = -50.0
-script = ExtResource( 2 )
-
-[node name="ColorRect" type="ColorRect" parent="UI/MarginContainer/Control/Radar"]
-material = SubResource( 6 )
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="Me" type="TextureRect" parent="UI/MarginContainer/Control/Radar"]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -16.0
-margin_top = -16.0
-margin_right = 16.0
-margin_bottom = 16.0
-texture = ExtResource( 10 )
-expand = true
-
-[node name="pawn" type="TextureRect" parent="UI/MarginContainer/Control/Radar"]
-visible = false
-material = SubResource( 8 )
-margin_left = 155.0
-margin_top = 43.0
-margin_right = 195.0
-margin_bottom = 83.0
-texture = ExtResource( 13 )
-expand = true
 
 [node name="PerfLabel" type="Label" parent="UI/MarginContainer/Control"]
 anchor_left = 1.0

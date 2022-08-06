@@ -19,11 +19,11 @@ impl PlayerStatusDisplay {
     }
 
     #[export]
-    fn _process(&mut self, owner: &RichTextLabel, _delta: f64) -> Option<()> {
+    fn _process(&self, owner: &RichTextLabel, _delta: f64) -> Option<()> {
         self.sync(owner)
     }
 
-    fn sync(&mut self, owner: &RichTextLabel) -> Option<()> {
+    fn sync(&self, owner: &RichTextLabel) -> Option<()> {
         unsafe { owner.get_node_as_instance::<Player>(Player::path())? }
             .map(|p, _| {
                 owner.set_bbcode(p.display());

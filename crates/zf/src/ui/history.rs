@@ -20,7 +20,7 @@ impl CommandHistory {
     }
 
     #[export]
-    fn on_cmd_entered(&mut self, owner: &Node, text: String) -> Option<()> {
+    fn on_cmd_entered(&self, owner: &Node, text: String) -> Option<()> {
         godot_print!("add item {text}");
         owner
             .cast::<ItemList>()?

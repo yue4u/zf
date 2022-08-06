@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap};
 
 use gdnative::{
     api::{Area, TextureRect},
@@ -15,7 +15,7 @@ use crate::{
 #[inherit(Node)]
 #[register_with(register_vm_signal)]
 pub struct Radar {
-    detected: HashMap<GodotString, Ref<Area>>,
+    detected: RefCell<HashMap<GodotString, Ref<Area>>>,
 }
 
 #[methods]
@@ -69,18 +69,18 @@ impl Radar {
     }
 
     #[export]
-    fn _process(&mut self, owner: &Node, _delta: f64) -> Option<()> {
+    fn _process(&self, owner: &Node, _delta: f64) -> Option<()> {
         let player = unsafe { owner.get_node(Player::path())?.assume_safe() }.cast::<Spatial>()?;
-        for entry in self.detected.iter() {
+        for entry in self.detected.borrow().iter() {
             render_marker(owner, player, entry);
         }
         Some(())
     }
 
     #[export]
-    fn on_detected(&mut self, owner: &Node, area: Ref<Area>) -> Option<()> {
+    fn on_detected(&self, owner: &Node, area: Ref<Area>) -> Option<()> {
         let id = unsafe { area.assume_safe().get_parent()?.assume_safe() }.name();
-        self.detected.insert(id.clone(), area);
+        self.detected.borrow_mut().insert(id.clone(), area);
         let enemy = unsafe {
             owner
                 .get_node("pawn")?
@@ -95,9 +95,9 @@ impl Radar {
     }
 
     #[export]
-    fn on_lost(&mut self, owner: &Node, area: Ref<Area>) -> Option<()> {
+    fn on_lost(&self, owner: &Node, area: Ref<Area>) -> Option<()> {
         let id = unsafe { area.assume_safe().get_parent()?.assume_safe() }.name();
-        self.detected.remove(&id);
+        self.detected.borrow_mut().remove(&id);
         owner.remove_child(owner.get_node(id)?);
         Some(())
     }

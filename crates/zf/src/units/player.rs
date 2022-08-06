@@ -12,8 +12,8 @@ use crate::{
 #[register_with(register_vm_signal)]
 pub struct Player {
     speed: RefCell<f64>,
-    position: Position,
-    rotation: Rotation,
+    position: RefCell<Position>,
+    rotation: RefCell<Rotation>,
     engine: RefCell<EngineStatus>,
 }
 
@@ -39,7 +39,7 @@ impl Player {
     }
 
     #[export]
-    fn _ready(&mut self, owner: TRef<Spatial>) -> Option<()> {
+    fn _ready(&self, owner: TRef<Spatial>) -> Option<()> {
         // FIXME: this is a hack to get it to work.
         let node = unsafe { owner.get_node_as::<Node>(".")? };
         node.connect_vm_signal(VMSignal::OnCmdParsed);
@@ -84,8 +84,8 @@ impl Player {
     #[export]
     fn _process(&mut self, owner: &Spatial, delta: f64) -> Option<()> {
         let transform = owner.cast::<Spatial>()?.global_transform();
-        self.position = transform.origin;
-        self.rotation = transform.basis.to_euler();
+        self.position.replace(transform.origin);
+        self.rotation.replace(transform.basis.to_euler());
         let speed = *self.speed.borrow();
         (speed > 0.01).then_some(())?;
 
@@ -105,8 +105,8 @@ rotation: {}
 engine: {:?}
 "#,
             self.speed.borrow(),
-            self.position.display(),
-            self.rotation.display(),
+            self.position.borrow().display(),
+            self.rotation.borrow().display(),
             self.engine.borrow()
         )
     }

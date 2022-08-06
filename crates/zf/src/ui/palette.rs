@@ -5,7 +5,7 @@ use gdnative::{api::LineEdit, prelude::*};
 pub struct CommandPalette;
 
 pub trait HandleCommandEntered {
-    fn on_cmd_entered(&mut self, owner: &LineEdit, text: String) -> Option<()>;
+    fn on_cmd_entered(&self, owner: &LineEdit, text: String) -> Option<()>;
 }
 
 #[methods]
@@ -33,7 +33,7 @@ impl CommandPalette {
     }
 
     #[export]
-    fn on_text_entered(&mut self, owner: &LineEdit, _text: String) -> Option<()> {
+    fn on_text_entered(&self, owner: &LineEdit, _text: String) -> Option<()> {
         owner.clear();
         Some(())
     }

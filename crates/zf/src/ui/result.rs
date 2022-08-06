@@ -19,7 +19,7 @@ impl CommandResultDisplay {
     }
 
     #[export]
-    fn on_cmd_result(&mut self, owner: &Node, result: CommandResult) -> Option<()> {
+    fn on_cmd_result(&self, owner: &Node, result: CommandResult) -> Option<()> {
         let result = match result.result {
             Ok(result) => result,
             Err(_) => format!("{:?}", result),

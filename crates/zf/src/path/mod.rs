@@ -26,7 +26,7 @@ macro_rules! bind_path {
 }
 
 bind_path!(
-    Player => space::T_MJOLNIR,
-    VMManager => space::VM,
-    CommandPalette => space::LINE_EDIT
+    Player => sandbox::T_MJOLNIR,
+    VMManager => base::VM,
+    CommandPalette => base::LINE_EDIT
 );

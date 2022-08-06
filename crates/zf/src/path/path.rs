@@ -1,23 +1,19 @@
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod space {
-    pub const GAME: &str = "/root/Scene/Game";
-    pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/Game/DirectionalLight";
-    pub const WORLD_ENVIRONMENT: &str = "/root/Scene/Game/WorldEnvironment";
-    pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Game/t-gangut_space_hub";
-    pub const PATH: &str = "/root/Scene/Game/Path";
-    pub const PATH_FOLLOW: &str = "/root/Scene/Game/Path/PathFollow";
-    pub const T_MJOLNIR: &str = "/root/Scene/Game/Path/PathFollow/t-mjolnir";
-    pub const CAMERA: &str = "/root/Scene/Game/Path/PathFollow/t-mjolnir/Camera";
-    pub const RADAR_AREA: &str = "/root/Scene/Game/Path/PathFollow/t-mjolnir/RadarArea";
-    pub const COLLISION_SHAPE: &str = "/root/Scene/Game/Path/PathFollow/t-mjolnir/RadarArea/CollisionShape";
-    pub const PROJECTILES: &str = "/root/Scene/Game/Path/PathFollow/t-mjolnir/Projectiles";
-    pub const CSGPOLYGON: &str = "/root/Scene/Game/Path/CSGPolygon";
+pub mod environment {
+    pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/DirectionalLight";
+    pub const WORLD_ENVIRONMENT: &str = "/root/Scene/WorldEnvironment";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod base {
+    pub const LEVEL: &str = "/root/Scene/Level";
     pub const UI: &str = "/root/Scene/UI";
     pub const MARGIN_CONTAINER: &str = "/root/Scene/UI/MarginContainer";
     pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
     pub const COMMAND_RESULT: &str = "/root/Scene/UI/MarginContainer/Control/CommandResult";
-    pub const VBOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/Control/VBoxContainer";
+    pub const V_BOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/Control/VBoxContainer";
     pub const COMMAND_HISTORY: &str = "/root/Scene/UI/MarginContainer/Control/VBoxContainer/CommandHistory";
     pub const RICH_TEXT_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/VBoxContainer/RichTextLabel";
     pub const COMMAND_PALETTE: &str = "/root/Scene/UI/MarginContainer/Control/CommandPalette";
@@ -28,13 +24,67 @@ pub mod space {
     pub const ME: &str = "/root/Scene/UI/MarginContainer/Control/Radar/Me";
     pub const PAWN: &str = "/root/Scene/UI/MarginContainer/Control/Radar/pawn";
     pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/PerfLabel";
-    pub const ENEMY_CLUSTER: &str = "/root/Scene/EnemyCluster";
-    pub const T_DUMMY_3: &str = "/root/Scene/EnemyCluster/t-dummy3";
-    pub const T_DUMMY_4: &str = "/root/Scene/EnemyCluster/t-dummy4";
-    pub const T_DUMMY_6: &str = "/root/Scene/EnemyCluster/t-dummy6";
-    pub const T_DUMMY_5: &str = "/root/Scene/EnemyCluster/t-dummy5";
-    pub const T_DUMMY_2: &str = "/root/Scene/EnemyCluster/t-dummy2";
     pub const MANAGERS: &str = "/root/Scene/Managers";
     pub const VM: &str = "/root/Scene/Managers/VM";
     pub const SYS: &str = "/root/Scene/Managers/Sys";
+    pub const ENVIRONMENT: &str = "/root/Scene/Environment";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod t_dummy {
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod base_level {
+
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod homing_missile {
+    pub const MESH_INSTANCE: &str = "/root/Scene/MeshInstance";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod start_menu {
+    pub const GAME: &str = "/root/Scene/Game";
+    pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/Game/DirectionalLight";
+    pub const WORLD_ENVIRONMENT: &str = "/root/Scene/Game/WorldEnvironment";
+    pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Game/t-gangut_space_hub";
+    pub const T_MJOLNIR: &str = "/root/Scene/Game/t-mjolnir";
+    pub const CAMERA: &str = "/root/Scene/Game/t-mjolnir/Camera";
+    pub const RADAR_AREA: &str = "/root/Scene/Game/t-mjolnir/RadarArea";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Game/t-mjolnir/RadarArea/CollisionShape";
+    pub const UI: &str = "/root/Scene/UI";
+    pub const MARGIN_CONTAINER: &str = "/root/Scene/UI/MarginContainer";
+    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
+    pub const COMMAND_PALETTE: &str = "/root/Scene/UI/MarginContainer/Control/CommandPalette";
+    pub const LABEL: &str = "/root/Scene/UI/MarginContainer/Control/CommandPalette/Label";
+    pub const LINE_EDIT: &str = "/root/Scene/UI/MarginContainer/Control/CommandPalette/LineEdit";
+    pub const COMMAND_RESULT: &str = "/root/Scene/UI/MarginContainer/Control/CommandResult";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod sandbox {
+    pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const T_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir";
+    pub const CAMERA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Camera";
+    pub const RADAR_AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea/CollisionShape";
+    pub const PROJECTILES: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Projectiles";
+    pub const CSG_POLYGON: &str = "/root/Scene/Level/Path/CSGPolygon";
+    pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
+    pub const T_DUMMY_4: &str = "/root/Scene/Level/EnemyCluster/t-dummy4";
+    pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
+    pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
 }

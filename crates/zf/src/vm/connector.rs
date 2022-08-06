@@ -1,4 +1,4 @@
-use gdnative::prelude::*;
+use gdnative::{api::object::ConnectFlags, prelude::*};
 
 use crate::{common::find_ref, managers::VMManager, vm::Command};
 
@@ -71,7 +71,7 @@ impl<'a> VMConnecter for TRef<'a, Node> {
                 self,
                 &signal,
                 VariantArray::new_shared(),
-                0,
+                ConnectFlags::DEFERRED.into(),
             )
             .expect(&format!("failed to connect vm {}", signal.as_str()));
 
@@ -81,7 +81,7 @@ impl<'a> VMConnecter for TRef<'a, Node> {
                 vm_manager,
                 VMSignal::OnCmdResult,
                 VariantArray::new_shared(),
-                0,
+                ConnectFlags::DEFERRED.into(),
             )
             .expect(&format!("failed to connect vm back {}", signal.as_str()));
         };

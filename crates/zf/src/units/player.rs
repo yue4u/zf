@@ -4,6 +4,7 @@ use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
+    path::path::scene,
     vm::{register_vm_signal, Command, CommandInput, EngineCommand, VMConnecter, VMSignal},
 };
 
@@ -58,7 +59,7 @@ impl Player {
             Command::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
             Command::Fire(fire) => {
                 godot_print!("fire: {:?}", fire);
-                let missile = common::load_as::<Spatial>("res://scene/HomingMissile.tscn").unwrap();
+                let missile = common::load_as::<Spatial>(scene::HOMING_MISSILE).unwrap();
                 missile.set_scale(Vector3::new(0.05, 0.05, 0.05));
                 unsafe { owner.get_node("Projectiles").unwrap().assume_safe() }
                     .add_child(missile, true);

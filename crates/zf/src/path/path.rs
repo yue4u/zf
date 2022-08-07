@@ -1,5 +1,22 @@
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod scene {
+    pub const ENVIRONMENT: &str = "res://scene/Environment.tscn";
+    pub const BASE: &str = "res://scene/Base.tscn";
+    pub const T_DUMMY: &str = "res://scene/T-Dummy.tscn";
+    pub const BASE_LEVEL: &str = "res://scene/BaseLevel.tscn";
+    pub const HOMING_MISSILE: &str = "res://scene/HomingMissile.tscn";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod levels {
+    pub const START_MENU: &str = "res://levels/StartMenu.tscn";
+    pub const SANDBOX: &str = "res://levels/Sandbox.tscn";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod environment {
     pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/DirectionalLight";
     pub const WORLD_ENVIRONMENT: &str = "/root/Scene/WorldEnvironment";

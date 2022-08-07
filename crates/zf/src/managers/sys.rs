@@ -2,7 +2,10 @@ use gdnative::prelude::*;
 
 use crate::{
     entities::Mission,
-    vm::{register_vm_signal, Command, CommandInput, MissionCommand, VMConnecter, VMSignal},
+    vm::{
+        register_vm_signal, Command, CommandInput, GameCommand, MissionCommand, VMConnecter,
+        VMSignal,
+    },
 };
 
 #[derive(NativeClass)]
@@ -29,6 +32,11 @@ impl SysManager {
                 MissionCommand::Summary => Mission::dummy().summary(),
                 MissionCommand::Tartget => Mission::dummy().targets().join("\n"),
                 MissionCommand::Position => format!("{:?}", Mission::dummy().positions()),
+            },
+            Command::Game(g) => match g {
+                GameCommand::Start => "Game started".to_owned(),
+                GameCommand::Menu => "Game Menu".to_owned(),
+                GameCommand::End => "Game End".to_owned(),
             },
             _ => return,
         };

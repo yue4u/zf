@@ -55,7 +55,8 @@ impl TryFrom<&str> for Command {
             ["help" | "h"] => Help,
             ["game" | "g", act] => match act {
                 "start" => Game(GameCommand::Start),
-                "stop" => Game(GameCommand::Stop),
+                "menu" => Game(GameCommand::Menu),
+                "end" => Game(GameCommand::End),
                 _ => Invalid,
             },
             ["mission" | "m", ..] => match args[1..] {
@@ -105,7 +106,8 @@ impl TryFrom<&str> for Command {
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum GameCommand {
     Start,
-    Stop,
+    Menu,
+    End,
 }
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]

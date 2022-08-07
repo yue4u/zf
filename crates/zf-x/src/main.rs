@@ -8,7 +8,7 @@ use std::{
 pub fn main() -> io::Result<()> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let mut code = "".to_owned();
-    let mods = ["scene", "levels"]
+    let mods = ["scenes", "levels"]
         .iter()
         .flat_map(|&dir_name| {
             let dir_path = &manifest_dir.join("../../zf/").join(dir_name);

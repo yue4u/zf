@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=2]
 
-[ext_resource path="res://scene/Base.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/Base.tscn" type="PackedScene" id=1]
 [ext_resource path="res://assets/3rd/Julius_Sans_One,Lancelot,Orbitron/Lancelot/Lancelot-Regular.ttf" type="DynamicFontData" id=2]
 
 [sub_resource type="DynamicFont" id=1]

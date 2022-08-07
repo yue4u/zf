@@ -1,11 +1,11 @@
 [gd_scene load_steps=14 format=2]
 
-[ext_resource path="res://scene/BaseLevel.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scripts/player.gdns" type="Script" id=2]
 [ext_resource path="res://scripts/GangutSpaceHub.gdns" type="Script" id=3]
 [ext_resource path="res://assets/3rd/mjolnir/scene.gltf" type="PackedScene" id=4]
 [ext_resource path="res://assets/3rd/gangut_space_hub/scene.gltf" type="PackedScene" id=5]
-[ext_resource path="res://scene/T-Dummy.tscn" type="PackedScene" id=6]
+[ext_resource path="res://scenes/T-Dummy.tscn" type="PackedScene" id=6]
 [ext_resource path="res://shaders/radar_tint.shader" type="Shader" id=8]
 [ext_resource path="res://shaders/radar_bg.shader" type="Shader" id=10]
 

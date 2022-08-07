@@ -1,11 +1,11 @@
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod scene {
-    pub const ENVIRONMENT: &str = "res://scene/Environment.tscn";
-    pub const BASE: &str = "res://scene/Base.tscn";
-    pub const T_DUMMY: &str = "res://scene/T-Dummy.tscn";
-    pub const BASE_LEVEL: &str = "res://scene/BaseLevel.tscn";
-    pub const HOMING_MISSILE: &str = "res://scene/HomingMissile.tscn";
+pub mod scenes {
+    pub const ENVIRONMENT: &str = "res://scenes/Environment.tscn";
+    pub const BASE: &str = "res://scenes/Base.tscn";
+    pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
+    pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
+    pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
 }
 
 #[rustfmt::skip]
@@ -69,6 +69,7 @@ pub mod homing_missile {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod start_menu {
+    pub const LABEL: &str = "/root/Scene/UI/MarginContainer/Control/Label";
     pub const CAMERA: &str = "/root/Scene/Camera";
 }
 

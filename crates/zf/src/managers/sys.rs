@@ -1,8 +1,9 @@
-use gdnative::{core_types::GodotResult, prelude::*};
+use gdnative::prelude::*;
 
 use crate::{
+    common::get_tree,
     entities::Mission,
-    path::path::{self, levels},
+    path::path::levels,
     vm::{
         register_vm_signal, Command, CommandInput, GameCommand, MissionCommand, VMConnecter,
         VMSignal,
@@ -36,22 +37,25 @@ impl SysManager {
             },
             Command::Game(g) => match g {
                 GameCommand::Start => {
-                    // TODO: handle this.
-                    change_scene(owner, levels::SANDBOX).unwrap();
-                    "Game started".to_owned()
+                    // TODO: handle this error.
+                    get_tree(owner).change_scene(levels::SANDBOX).unwrap();
+                    "Game started"
                 }
-                GameCommand::Menu => "Game Menu".to_owned(),
-                GameCommand::End => "Game End".to_owned(),
-            },
+                GameCommand::Menu => {
+                    get_tree(owner).change_scene(levels::START_MENU).unwrap();
+                    "Game Menu"
+                }
+                GameCommand::End => {
+                    get_tree(owner).quit(0);
+                    "Game End"
+                }
+            }
+            .to_owned(),
             _ => return,
         };
         let res = input.into_result(Ok(res));
         owner.emit_signal(VMSignal::OnCmdResult, &res.as_var());
     }
-}
-
-fn change_scene(owner: &Node, scene: &str) -> GodotResult {
-    unsafe { owner.get_tree().unwrap().assume_safe() }.change_scene(scene)
 }
 
 const HELP: &'static str = r#"ZF

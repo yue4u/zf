@@ -32,3 +32,7 @@ where
 {
     unsafe { target.get_node(S::path())?.assume_safe() }.cast::<R>()
 }
+
+pub fn get_tree<'a>(owner: &'a Node) -> TRef<'a, SceneTree> {
+    unsafe { owner.get_tree().unwrap().assume_safe() }
+}

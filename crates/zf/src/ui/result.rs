@@ -14,7 +14,7 @@ impl CommandResultDisplay {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command result ready");
-        owner.connect_vm_signal(VMSignal::OnCmdResult);
+        owner.connect_vm_signal(VMSignal::OnCmdResult.into());
         Some(())
     }
 

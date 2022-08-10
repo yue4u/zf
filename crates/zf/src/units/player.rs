@@ -43,7 +43,7 @@ impl Player {
     fn _ready(&self, owner: TRef<Spatial>) -> Option<()> {
         // FIXME: this is a hack to get it to work.
         let node = unsafe { owner.get_node_as::<Node>(".")? };
-        node.connect_vm_signal(VMSignal::OnCmdParsed);
+        node.connect_vm_signal(VMSignal::OnCmdParsed.into());
         Some(())
     }
 

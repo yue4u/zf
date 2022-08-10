@@ -36,7 +36,35 @@ pub enum VMSignal {
     OnCmdResult,
 }
 
+pub struct VMSignalConnectOptions {
+    pub signal: VMSignal,
+    pub bidirectional: bool,
+}
+
+impl VMSignalConnectOptions {
+    pub fn bidirectional(mut self, bidirectional: bool) -> Self {
+        self.bidirectional = bidirectional;
+        self
+    }
+}
+
+impl Into<VMSignalConnectOptions> for VMSignal {
+    fn into(self) -> VMSignalConnectOptions {
+        // defualt bidirectional is true for OnCmdParsed
+        let bidirectional = self == VMSignal::OnCmdParsed;
+
+        VMSignalConnectOptions {
+            signal: self,
+            bidirectional,
+        }
+    }
+}
+
 impl VMSignal {
+    pub fn to_options(self) -> VMSignalConnectOptions {
+        self.into()
+    }
+
     pub fn as_str(&self) -> &'static str {
         match self {
             VMSignal::OnCmdEntered => "on_cmd_entered",
@@ -59,23 +87,23 @@ impl Into<GodotString> for &VMSignal {
 }
 
 pub trait VMConnecter {
-    fn connect_vm_signal(self, signal: VMSignal) -> Option<()>;
+    fn connect_vm_signal(self, signal: VMSignalConnectOptions) -> Option<()>;
 }
 
 impl<'a> VMConnecter for TRef<'a, Node> {
-    fn connect_vm_signal(self, signal: VMSignal) -> Option<()> {
+    fn connect_vm_signal(self, config: VMSignalConnectOptions) -> Option<()> {
         let vm_manager = find_ref::<VMManager, Node>(self)?;
         vm_manager
             .connect(
-                &signal, // fmt
+                &config.signal, // fmt
                 self,
-                &signal,
+                &config.signal,
                 VariantArray::new_shared(),
                 ConnectFlags::DEFERRED.into(),
             )
-            .expect(&format!("failed to connect vm {}", signal.as_str()));
+            .expect(&format!("failed to connect vm {}", config.signal.as_str()));
 
-        if VMSignal::OnCmdParsed == signal {
+        if config.bidirectional {
             self.connect(
                 VMSignal::OnCmdResult,
                 vm_manager,
@@ -83,7 +111,10 @@ impl<'a> VMConnecter for TRef<'a, Node> {
                 VariantArray::new_shared(),
                 ConnectFlags::DEFERRED.into(),
             )
-            .expect(&format!("failed to connect vm back {}", signal.as_str()));
+            .expect(&format!(
+                "failed to connect vm back {}",
+                config.signal.as_str()
+            ));
         };
         Some(())
     }

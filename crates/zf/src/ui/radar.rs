@@ -26,7 +26,7 @@ impl Radar {
 
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
-        owner.connect_vm_signal(VMSignal::OnCmdParsed);
+        owner.connect_vm_signal(VMSignal::OnCmdParsed.into());
 
         let player_radar = unsafe {
             owner

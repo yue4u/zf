@@ -23,7 +23,7 @@ impl SysManager {
 
     #[export]
     fn _ready(&self, owner: TRef<Node>) {
-        owner.connect_vm_signal(VMSignal::OnCmdParsed);
+        owner.connect_vm_signal(VMSignal::OnCmdParsed.into());
     }
 
     #[export]

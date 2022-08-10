@@ -1,4 +1,4 @@
-use crate::path::HasPath;
+use crate::path::{path, HasPath};
 use gdnative::{api::*, prelude::*};
 
 pub type Id = u32;
@@ -35,4 +35,27 @@ where
 
 pub fn get_tree<'a>(owner: &'a Node) -> TRef<'a, SceneTree> {
     unsafe { owner.get_tree().unwrap().assume_safe() }
+}
+
+pub enum SceneName {
+    StartMenu,
+    Sandbox,
+    Unknown,
+}
+
+pub fn current_scene<'a>(owner: &'a Node) -> SceneName {
+    let current_scene = get_tree(owner).current_scene();
+    godot_dbg!(current_scene);
+    match current_scene {
+        Some(scene) => {
+            let name = unsafe { scene.assume_safe() }.filename();
+            godot_dbg!(&name);
+            match name.to_string().as_str() {
+                path::levels::START_MENU => SceneName::StartMenu,
+                path::levels::SANDBOX => SceneName::Sandbox,
+                _ => SceneName::Unknown,
+            }
+        }
+        None => SceneName::Unknown,
+    }
 }

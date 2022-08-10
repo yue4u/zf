@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://assets/self-made/code_theme.tres" type="Theme" id=1]
 [ext_resource path="res://scripts/PerfLabel.gdns" type="Script" id=2]
@@ -9,6 +9,11 @@
 [ext_resource path="res://scripts/CommandResultDisplay.gdns" type="Script" id=7]
 [ext_resource path="res://scenes/Environment.tscn" type="PackedScene" id=8]
 [ext_resource path="res://assets/3rd/Julius_Sans_One,Lancelot,Orbitron/Orbitron/static/Orbitron-Regular.ttf" type="DynamicFontData" id=9]
+[ext_resource path="res://scripts/Tips.gdns" type="Script" id=10]
+[ext_resource path="res://assets/3rd/JetBrains_Mono/static/JetBrainsMono-Bold.ttf" type="DynamicFontData" id=11]
+
+[sub_resource type="DynamicFont" id=4]
+font_data = ExtResource( 11 )
 
 [sub_resource type="DynamicFont" id=3]
 outline_color = Color( 0.380392, 0.643137, 0.737255, 1 )
@@ -106,12 +111,14 @@ caret_blink = true
 script = ExtResource( 3 )
 
 [node name="Tips" type="RichTextLabel" parent="UI/MarginContainer/Wrapper/Bottom"]
-margin_top = -140.0
-margin_right = 400.0
+margin_top = -100.0
+margin_right = 600.0
 margin_bottom = -40.0
+custom_fonts/bold_font = SubResource( 4 )
 custom_fonts/normal_font = SubResource( 3 )
 custom_styles/normal = SubResource( 2 )
-text = "Help"
+bbcode_enabled = true
+script = ExtResource( 10 )
 
 [node name="Managers" type="Node" parent="."]
 

@@ -15,7 +15,7 @@ impl CommandHistory {
     #[export]
     fn _ready(&self, owner: TRef<Node>) -> Option<()> {
         godot_print!("command history ready");
-        owner.connect_vm_signal(VMSignal::OnCmdEntered);
+        owner.connect_vm_signal(VMSignal::OnCmdEntered.into());
         Some(())
     }
 

@@ -28,14 +28,16 @@ pub mod base {
     pub const LEVEL: &str = "/root/Scene/Level";
     pub const UI: &str = "/root/Scene/UI";
     pub const MARGIN_CONTAINER: &str = "/root/Scene/UI/MarginContainer";
-    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
-    pub const COMMAND_RESULT: &str = "/root/Scene/UI/MarginContainer/Control/CommandResult";
-    pub const V_BOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/Control/VBoxContainer";
-    pub const COMMAND_HISTORY: &str = "/root/Scene/UI/MarginContainer/Control/VBoxContainer/CommandHistory";
-    pub const COMMAND_PALETTE: &str = "/root/Scene/UI/MarginContainer/Control/CommandPalette";
-    pub const LABEL: &str = "/root/Scene/UI/MarginContainer/Control/CommandPalette/Label";
-    pub const LINE_EDIT: &str = "/root/Scene/UI/MarginContainer/Control/CommandPalette/LineEdit";
-    pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/PerfLabel";
+    pub const WRAPPER: &str = "/root/Scene/UI/MarginContainer/Wrapper";
+    pub const COMMAND_RESULT: &str = "/root/Scene/UI/MarginContainer/Wrapper/CommandResult";
+    pub const V_BOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/Wrapper/VBoxContainer";
+    pub const COMMAND_HISTORY: &str = "/root/Scene/UI/MarginContainer/Wrapper/VBoxContainer/CommandHistory";
+    pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Wrapper/PerfLabel";
+    pub const BOTTOM: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom";
+    pub const COMMAND_PALETTE: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/CommandPalette";
+    pub const LABEL: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/CommandPalette/Label";
+    pub const LINE_EDIT: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/CommandPalette/LineEdit";
+    pub const HELP: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/Help";
     pub const MANAGERS: &str = "/root/Scene/Managers";
     pub const VM: &str = "/root/Scene/Managers/VM";
     pub const SYS: &str = "/root/Scene/Managers/Sys";
@@ -52,12 +54,7 @@ pub mod t_dummy {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod base_level {
-    pub const COMMAND_HISTORY: &str = "/root/Scene/UI/MarginContainer/Control/VBoxContainer/CommandHistory";
-    pub const RICH_TEXT_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/VBoxContainer/RichTextLabel";
-    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/Control/Radar";
-    pub const COLOR_RECT: &str = "/root/Scene/UI/MarginContainer/Control/Radar/ColorRect";
-    pub const ME: &str = "/root/Scene/UI/MarginContainer/Control/Radar/Me";
-    pub const PAWN: &str = "/root/Scene/UI/MarginContainer/Control/Radar/pawn";
+
 }
 
 #[rustfmt::skip]
@@ -69,8 +66,9 @@ pub mod homing_missile {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod start_menu {
-    pub const LABEL: &str = "/root/Scene/UI/MarginContainer/Control/Label";
     pub const CAMERA: &str = "/root/Scene/Camera";
+    pub const CENTER_CONTAINER: &str = "/root/Scene/CenterContainer";
+    pub const TITLE: &str = "/root/Scene/CenterContainer/Title";
 }
 
 #[rustfmt::skip]
@@ -94,3 +92,4 @@ pub mod sandbox {
     pub const COLOR_RECT: &str = "/root/Scene/UI/MarginContainer/Control/Radar/ColorRect";
     pub const PAWN: &str = "/root/Scene/UI/MarginContainer/Control/Radar/pawn";
 }
+

@@ -105,7 +105,7 @@ placeholder_text = "_"
 caret_blink = true
 script = ExtResource( 3 )
 
-[node name="Help" type="RichTextLabel" parent="UI/MarginContainer/Wrapper/Bottom"]
+[node name="Tips" type="RichTextLabel" parent="UI/MarginContainer/Wrapper/Bottom"]
 margin_top = -140.0
 margin_right = 400.0
 margin_bottom = -40.0

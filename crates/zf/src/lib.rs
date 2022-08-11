@@ -22,6 +22,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<units::Player>();
     handle.add_class::<weapons::HomingMissile>();
     handle.add_class::<managers::VMManager>();
+    handle.add_class::<managers::AnimationManager>();
     handle.add_class::<managers::SysManager>();
 }
 

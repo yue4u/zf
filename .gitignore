@@ -23,5 +23,6 @@ target
 # Project
 tmp
 external
+logs
 
 zf/assets/3rd

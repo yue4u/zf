@@ -37,7 +37,7 @@ pub mod base {
     pub const COMMAND_PALETTE: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/CommandPalette";
     pub const LABEL: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/CommandPalette/Label";
     pub const LINE_EDIT: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/CommandPalette/LineEdit";
-    pub const HELP: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/Help";
+    pub const TIPS: &str = "/root/Scene/UI/MarginContainer/Wrapper/Bottom/Tips";
     pub const MANAGERS: &str = "/root/Scene/Managers";
     pub const VM: &str = "/root/Scene/Managers/VM";
     pub const SYS: &str = "/root/Scene/Managers/Sys";
@@ -66,9 +66,12 @@ pub mod homing_missile {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod start_menu {
-    pub const CAMERA: &str = "/root/Scene/Camera";
-    pub const CENTER_CONTAINER: &str = "/root/Scene/CenterContainer";
-    pub const TITLE: &str = "/root/Scene/CenterContainer/Title";
+    pub const SCENE: &str = "/root/Scene/Level/scene";
+    pub const ANIMATION_PLAYER: &str = "/root/Scene/Level/scene/AnimationPlayer";
+    pub const CENTER_CONTAINER: &str = "/root/Scene/Level/CenterContainer";
+    pub const TITLE: &str = "/root/Scene/Level/CenterContainer/Title";
+    pub const OMNI_LIGHT: &str = "/root/Scene/Level/OmniLight";
+    pub const CAMERA: &str = "/root/Scene/Level/Camera";
 }
 
 #[rustfmt::skip]
@@ -92,4 +95,3 @@ pub mod sandbox {
     pub const COLOR_RECT: &str = "/root/Scene/UI/MarginContainer/Control/Radar/ColorRect";
     pub const PAWN: &str = "/root/Scene/UI/MarginContainer/Control/Radar/pawn";
 }
-

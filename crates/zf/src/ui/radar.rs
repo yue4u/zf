@@ -83,7 +83,7 @@ impl Radar {
         self.detected.borrow_mut().insert(id.clone(), area);
         let enemy = unsafe {
             owner
-                .get_node("pawn")?
+                .get_node("D4")?
                 .assume_safe()
                 .duplicate(0)?
                 .assume_safe()

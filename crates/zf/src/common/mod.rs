@@ -33,8 +33,8 @@ where
     unsafe { target.get_node(S::path())?.assume_safe() }.cast::<R>()
 }
 
-pub fn get_tree<'a>(owner: &'a Node) -> TRef<'a, SceneTree> {
-    unsafe { owner.get_tree().unwrap().assume_safe() }
+pub fn get_tree<'a>(base: &'a Node) -> TRef<'a, SceneTree> {
+    unsafe { base.get_tree().unwrap().assume_safe() }
 }
 
 pub enum SceneName {
@@ -43,8 +43,8 @@ pub enum SceneName {
     Unknown,
 }
 
-pub fn current_scene<'a>(owner: &'a Node) -> SceneName {
-    let current_scene = get_tree(owner).current_scene();
+pub fn current_scene<'a>(base: &'a Node) -> SceneName {
+    let current_scene = get_tree(base).current_scene();
     godot_dbg!(current_scene);
     match current_scene {
         Some(scene) => {

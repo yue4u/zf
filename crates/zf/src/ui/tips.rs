@@ -10,27 +10,27 @@ pub struct Tips;
 
 #[methods]
 impl Tips {
-    fn new(_owner: &RichTextLabel) -> Self {
+    fn new(_base: &RichTextLabel) -> Self {
         Tips
     }
 
-    #[export]
-    fn _ready(&self, owner: &RichTextLabel) -> Option<()> {
+    #[method]
+    fn _ready(&self, #[base] base: &RichTextLabel) -> Option<()> {
         godot_print!("tips ready");
-        let as_node = unsafe { owner.get_node_as::<Node>(".")? };
+        let as_node = unsafe { base.get_node_as::<Node>(".")? };
         as_node.connect_vm_signal(VMSignal::OnCmdParsed.to_options().bidirectional(false));
         let text = match current_scene(&as_node) {
             SceneName::Sandbox => "",
             SceneName::StartMenu => "Type [b][color=#FFC23C]game start[/color][/b] to continue or [b][color=#FFC23C]help[/color][/b] for help.",
             _ => "",
         };
-        owner.update_label(text);
+        base.update_label(text);
         Some(())
     }
 
-    #[export]
-    fn on_cmd_parsed(&self, owner: &RichTextLabel, input: CommandInput) {
-        owner.update_label(&format!("{:?}", input));
+    #[method]
+    fn on_cmd_parsed(&self, #[base] base: &RichTextLabel, input: CommandInput) {
+        base.update_label(&format!("{:?}", input));
     }
 }
 

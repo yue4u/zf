@@ -10,4 +10,5 @@ crate-type = ["cdylib"]
 path = "src/lib.rs"
 
 [dependencies]
-gdnative = "0.10"
+# unreleased at 2022-09-22
+gdnative = { git = "https://github.com/Bromeon/godot-rust.git", branch = "feature/godot-3.5" }

@@ -6,18 +6,18 @@ pub struct Env;
 
 #[methods]
 impl Env {
-    fn new(_owner: &Node) -> Self {
+    fn new(_base: &Node) -> Self {
         Env
     }
 
-    #[export]
-    fn _ready(&self, _owner: &Node) {
+    #[method]
+    fn _ready(&self) {
         godot_print!("env ready");
     }
 
-    #[export]
-    fn _process(&self, owner: &Node, delta: f64) -> Option<()> {
-        let env = owner.cast::<WorldEnvironment>()?.environment()?;
+    #[method]
+    fn _process(&self, #[base] base: &Node, delta: f64) -> Option<()> {
+        let env = base.cast::<WorldEnvironment>()?.environment()?;
         let env = unsafe { env.assume_safe() };
         let mut degrees = env.sky_rotation_degrees();
         degrees.y -= delta as f32;

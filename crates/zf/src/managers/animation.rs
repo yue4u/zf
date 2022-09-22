@@ -9,13 +9,13 @@ pub struct AnimationManager {
 
 #[methods]
 impl AnimationManager {
-    fn new(_owner: &AnimationPlayer) -> Self {
+    fn new(_base: &AnimationPlayer) -> Self {
         AnimationManager { name: None }
     }
 
-    #[export]
-    fn _ready(&self, owner: &AnimationPlayer) -> Option<()> {
-        owner.play(self.name.as_ref()?, -1.0, 0.05, false);
+    #[method]
+    fn _ready(&self, #[base] base: &AnimationPlayer) -> Option<()> {
+        base.play(self.name.as_ref()?, -1.0, 0.05, false);
         Some(())
     }
 }

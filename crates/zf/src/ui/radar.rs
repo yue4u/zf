@@ -20,17 +20,16 @@ pub struct Radar {
 
 #[methods]
 impl Radar {
-    fn new(_owner: &Node) -> Self {
+    fn new(_base: &Node) -> Self {
         Default::default()
     }
 
-    #[export]
-    fn _ready(&self, owner: TRef<Node>) -> Option<()> {
-        owner.connect_vm_signal(VMSignal::OnCmdParsed.into());
+    #[method]
+    fn _ready(&self, #[base] base: TRef<Node>) -> Option<()> {
+        base.connect_vm_signal(VMSignal::OnCmdParsed.into());
 
         let player_radar = unsafe {
-            owner
-                .get_node(&format!("{}/{}", Player::path(), "RadarArea"))?
+            base.get_node(&format!("{}/{}", Player::path(), "RadarArea"))?
                 .assume_safe()
         }
         .cast::<Area>()?;
@@ -38,7 +37,7 @@ impl Radar {
         player_radar
             .connect(
                 "area_entered",
-                owner,
+                base,
                 "on_detected",
                 VariantArray::new_shared(),
                 0,
@@ -48,7 +47,7 @@ impl Radar {
         player_radar
             .connect(
                 "area_exited",
-                owner,
+                base,
                 "on_lost",
                 VariantArray::new_shared(),
                 0,
@@ -58,57 +57,56 @@ impl Radar {
         Some(())
     }
 
-    #[export]
-    fn on_cmd_parsed(&self, owner: &Node, input: CommandInput) {
+    #[method]
+    fn on_cmd_parsed(&self, #[base] base: &Node, input: CommandInput) {
         if !matches!(input.cmd, Command::Radar(_)) {
             return;
         }
         let msg = Ok(format!("{:?}", &self.detected));
         let res = input.into_result(msg);
-        owner.emit_signal(VMSignal::OnCmdResult, &res.as_var());
+        base.emit_signal(VMSignal::OnCmdResult, &res.as_var());
     }
 
-    #[export]
-    fn _process(&self, owner: &Node, _delta: f64) -> Option<()> {
-        let player = unsafe { owner.get_node(Player::path())?.assume_safe() }.cast::<Spatial>()?;
+    #[method]
+    fn _process(&self, #[base] base: &Node, _delta: f64) -> Option<()> {
+        let player = unsafe { base.get_node(Player::path())?.assume_safe() }.cast::<Spatial>()?;
         for entry in self.detected.borrow().iter() {
-            render_marker(owner, player, entry);
+            render_marker(base, player, entry);
         }
         Some(())
     }
 
-    #[export]
-    fn on_detected(&self, owner: &Node, area: Ref<Area>) -> Option<()> {
+    #[method]
+    fn on_detected(&self, #[base] base: &Node, area: Ref<Area>) -> Option<()> {
         let id = unsafe { area.assume_safe().get_parent()?.assume_safe() }.name();
         self.detected.borrow_mut().insert(id.clone(), area);
         let enemy = unsafe {
-            owner
-                .get_node("D4")?
+            base.get_node("D4")?
                 .assume_safe()
                 .duplicate(0)?
                 .assume_safe()
         };
         enemy.set_name(id);
         enemy.set("visible", true);
-        owner.add_child(enemy, false);
+        base.add_child(enemy, false);
         Some(())
     }
 
-    #[export]
-    fn on_lost(&self, owner: &Node, area: Ref<Area>) -> Option<()> {
+    #[method]
+    fn on_lost(&self, #[base] base: &Node, area: Ref<Area>) -> Option<()> {
         let id = unsafe { area.assume_safe().get_parent()?.assume_safe() }.name();
         self.detected.borrow_mut().remove(&id);
-        owner.remove_child(owner.get_node(id)?);
+        base.remove_child(base.get_node(id)?);
         Some(())
     }
 }
 
 fn render_marker(
-    owner: &Node,
+    base: &Node,
     player: TRef<Spatial>,
     (id, area): (&GodotString, &Ref<Area>),
 ) -> Option<()> {
-    let node = owner.get_node(id.to_owned())?;
+    let node = base.get_node(id.to_owned())?;
 
     if let Some(ret) = unsafe { node.assume_safe() }.cast::<TextureRect>() {
         let vec = (unsafe { area.assume_safe() }.global_transform().origin

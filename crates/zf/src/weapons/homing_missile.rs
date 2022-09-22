@@ -7,14 +7,14 @@ pub struct HomingMissile;
 
 #[methods]
 impl HomingMissile {
-    fn new(_owner: &Spatial) -> Self {
+    fn new(_base: &Spatial) -> Self {
         godot_print!("prepare HomingMissile");
         HomingMissile
     }
 
-    #[export]
-    fn _process(&self, owner: &Spatial, delta: f64) -> Option<()> {
-        owner.translate(Vector3::new(0.0, 0.0, (-delta as f32) * 500.0));
+    #[method]
+    fn _process(&self, #[base] base: &Spatial, delta: f64) -> Option<()> {
+        base.translate(Vector3::new(0.0, 0.0, (-delta as f32) * 500.0));
         Some(())
     }
 }

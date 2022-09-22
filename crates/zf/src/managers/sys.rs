@@ -17,17 +17,17 @@ pub struct SysManager;
 
 #[methods]
 impl SysManager {
-    fn new(_owner: TRef<Node>) -> Self {
+    fn new(_base: TRef<Node>) -> Self {
         SysManager
     }
 
-    #[export]
-    fn _ready(&self, owner: TRef<Node>) {
-        owner.connect_vm_signal(VMSignal::OnCmdParsed.into());
+    #[method]
+    fn _ready(&self, #[base] base: TRef<Node>) {
+        base.connect_vm_signal(VMSignal::OnCmdParsed.into());
     }
 
-    #[export]
-    fn on_cmd_parsed(&self, owner: &Node, input: CommandInput) {
+    #[method]
+    fn on_cmd_parsed(&self, #[base] base: &Node, input: CommandInput) {
         let res = match &input.cmd {
             Command::Help => HELP.to_owned(),
             Command::Mission(m) => match m {
@@ -38,15 +38,15 @@ impl SysManager {
             Command::Game(g) => match g {
                 GameCommand::Start => {
                     // TODO: handle this error.
-                    get_tree(owner).change_scene(levels::SANDBOX).unwrap();
+                    get_tree(base).change_scene(levels::SANDBOX).unwrap();
                     "Game started"
                 }
                 GameCommand::Menu => {
-                    get_tree(owner).change_scene(levels::START_MENU).unwrap();
+                    get_tree(base).change_scene(levels::START_MENU).unwrap();
                     "Game Menu"
                 }
                 GameCommand::End => {
-                    get_tree(owner).quit(0);
+                    get_tree(base).quit(0);
                     "Game End"
                 }
             }
@@ -54,7 +54,7 @@ impl SysManager {
             _ => return,
         };
         let res = input.into_result(Ok(res));
-        owner.emit_signal(VMSignal::OnCmdResult, &res.as_var());
+        base.emit_signal(VMSignal::OnCmdResult, &res.as_var());
     }
 }
 

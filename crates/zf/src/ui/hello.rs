@@ -6,12 +6,12 @@ pub struct Hello;
 
 #[methods]
 impl Hello {
-    fn new(_owner: &Node) -> Self {
+    fn new(_base: &Node) -> Self {
         Hello
     }
 
-    #[export]
-    fn _ready(&self, _owner: &Node) {
+    #[method]
+    fn _ready(&self) {
         godot_print!("hello, zf outside")
     }
 }

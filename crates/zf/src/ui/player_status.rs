@@ -8,25 +8,25 @@ pub struct PlayerStatusDisplay;
 
 #[methods]
 impl PlayerStatusDisplay {
-    fn new(_owner: &RichTextLabel) -> Self {
+    fn new(_base: &RichTextLabel) -> Self {
         PlayerStatusDisplay::default()
     }
 
-    #[export]
-    fn _ready(&self, _owner: TRef<RichTextLabel>) -> Option<()> {
+    #[method]
+    fn _ready(&self) -> Option<()> {
         godot_print!("player status ready");
         Some(())
     }
 
-    #[export]
-    fn _process(&self, owner: &RichTextLabel, _delta: f64) -> Option<()> {
-        self.sync(owner)
+    #[method]
+    fn _process(&self, #[base] base: &RichTextLabel, _delta: f64) -> Option<()> {
+        self.sync(base)
     }
 
-    fn sync(&self, owner: &RichTextLabel) -> Option<()> {
-        unsafe { owner.get_node_as_instance::<Player>(Player::path())? }
+    fn sync(&self, base: &RichTextLabel) -> Option<()> {
+        unsafe { base.get_node_as_instance::<Player>(Player::path())? }
             .map(|p, _| {
-                owner.set_bbcode(p.display());
+                base.set_bbcode(p.display());
             })
             .ok()
     }

@@ -7,24 +7,24 @@ pub struct CommandResultDisplay;
 
 #[methods]
 impl CommandResultDisplay {
-    fn new(_owner: &Node) -> Self {
+    fn new(_base: &Node) -> Self {
         CommandResultDisplay
     }
 
-    #[export]
-    fn _ready(&self, owner: TRef<Node>) -> Option<()> {
+    #[method]
+    fn _ready(&self, #[base] base: TRef<Node>) -> Option<()> {
         godot_print!("command result ready");
-        owner.connect_vm_signal(VMSignal::OnCmdResult.into());
+        base.connect_vm_signal(VMSignal::OnCmdResult.into());
         Some(())
     }
 
-    #[export]
-    fn on_cmd_result(&self, owner: &Node, result: CommandResult) -> Option<()> {
+    #[method]
+    fn on_cmd_result(&self, #[base] base: &Node, result: CommandResult) -> Option<()> {
         let result = match result.result {
             Ok(result) => result,
             Err(_) => format!("{:?}", result),
         };
-        owner.cast::<RichTextLabel>()?.set_bbcode(result);
+        base.cast::<RichTextLabel>()?.set_bbcode(result);
         Some(())
     }
 }

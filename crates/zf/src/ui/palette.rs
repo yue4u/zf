@@ -5,36 +5,35 @@ use gdnative::{api::LineEdit, prelude::*};
 pub struct CommandPalette;
 
 pub trait HandleCommandEntered {
-    fn on_cmd_entered(&self, owner: &LineEdit, text: String) -> Option<()>;
+    fn on_cmd_entered(&self, base: &LineEdit, text: String) -> Option<()>;
 }
 
 #[methods]
 impl CommandPalette {
-    fn new(_owner: &LineEdit) -> Self {
+    fn new(_base: &LineEdit) -> Self {
         Self
     }
 
-    #[export]
-    fn _ready(&self, owner: TRef<LineEdit>) -> Option<()> {
+    #[method]
+    fn _ready(&self, #[base] base: TRef<LineEdit>) -> Option<()> {
         godot_print!("line_edit ready");
-        owner.set_cursor_position(owner.text().len() as i64);
-        owner
-            .connect(
-                "text_entered",
-                owner,
-                "on_text_entered",
-                VariantArray::new_shared(),
-                0,
-            )
-            .expect("failed to connect line edit");
-        owner.grab_focus();
+        base.set_cursor_position(base.text().len() as i64);
+        base.connect(
+            "text_entered",
+            base,
+            "on_text_entered",
+            VariantArray::new_shared(),
+            0,
+        )
+        .expect("failed to connect line edit");
+        base.grab_focus();
 
         Some(())
     }
 
-    #[export]
-    fn on_text_entered(&self, owner: &LineEdit, _text: String) -> Option<()> {
-        owner.clear();
+    #[method]
+    fn on_text_entered(&self, #[base] base: &LineEdit, _text: String) -> Option<()> {
+        base.clear();
         Some(())
     }
 }

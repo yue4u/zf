@@ -8,22 +8,21 @@ pub struct CommandHistory;
 
 #[methods]
 impl CommandHistory {
-    fn new(_owner: &Node) -> Self {
+    fn new(_base: &Node) -> Self {
         CommandHistory
     }
 
-    #[export]
-    fn _ready(&self, owner: TRef<Node>) -> Option<()> {
+    #[method]
+    fn _ready(&self, #[base] base: TRef<Node>) -> Option<()> {
         godot_print!("command history ready");
-        owner.connect_vm_signal(VMSignal::OnCmdEntered.into());
+        base.connect_vm_signal(VMSignal::OnCmdEntered.into());
         Some(())
     }
 
-    #[export]
-    fn on_cmd_entered(&self, owner: &Node, text: String) -> Option<()> {
+    #[method]
+    fn on_cmd_entered(&self, #[base] base: &Node, text: String) -> Option<()> {
         godot_print!("add item {text}");
-        owner
-            .cast::<ItemList>()?
+        base.cast::<ItemList>()?
             .add_item(text, GodotObject::null(), false);
         Some(())
     }

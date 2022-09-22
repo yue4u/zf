@@ -24,7 +24,7 @@ type ResultBuffer = HashMap<u32, CommandResult>;
 
 #[methods]
 impl VMManager {
-    pub(crate) fn new(_owner: &Node) -> Self {
+    pub(crate) fn new(_base: &Node) -> Self {
         VMManager::default()
     }
 
@@ -34,13 +34,13 @@ impl VMManager {
         builder.signal(VMSignal::OnCmdResult.as_str()).done();
     }
 
-    #[export]
-    pub(crate) fn _ready(&self, owner: TRef<Node>) -> Option<()> {
+    #[method]
+    pub(crate) fn _ready(&self, #[base] base: TRef<Node>) -> Option<()> {
         godot_print!("vm host ready");
-        find_ref::<CommandPalette, Node>(owner)?
+        find_ref::<CommandPalette, Node>(base)?
             .connect(
                 "text_entered",
-                owner,
+                base,
                 VMSignal::OnCmdEntered,
                 VariantArray::new_shared(),
                 0,
@@ -50,10 +50,10 @@ impl VMManager {
         Some(())
     }
 
-    #[export]
-    pub(crate) fn on_cmd_entered(&self, owner: &Node, text: String) -> Option<()> {
+    #[method]
+    pub(crate) fn on_cmd_entered(&self, #[base] base: &Node, text: String) -> Option<()> {
         godot_print!("on_cmd_entered: {text}!");
-        owner.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
+        base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
 
         let cmds = Parser::parse(text).ok()?;
         let id = self.run_id.replace_with(|&mut i| i + 1);
@@ -71,19 +71,19 @@ impl VMManager {
         };
         let first = run.cmds.first()?.clone();
         self.run_buffer.borrow_mut().push(run);
-        owner.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(first)]);
+        base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(first)]);
         Some(())
     }
 
-    #[export]
-    pub fn on_cmd_result(&self, owner: &Node, result: CommandResult) -> Option<()> {
+    #[method]
+    pub fn on_cmd_result(&self, #[base] base: &Node, result: CommandResult) -> Option<()> {
         godot_print!("receive_command_result: {}", result.id);
 
         let mut result_buffer = self.result_buffer.borrow_mut();
         result_buffer.insert(result.id, result);
 
         for run in self.run_buffer.borrow_mut().iter_mut() {
-            process_cmd(owner, &mut result_buffer, run);
+            process_cmd(base, &mut result_buffer, run);
         }
 
         Some(())
@@ -91,7 +91,7 @@ impl VMManager {
 }
 
 fn process_cmd(
-    owner: &Node,
+    base: &Node,
     result_buffer: &mut RefMut<ResultBuffer>,
     run: &mut CommandRun,
 ) -> Option<()> {
@@ -102,7 +102,7 @@ fn process_cmd(
         .into_iter()
         .skip_while(|cmd| {
             if let Some(res) = result_buffer.get(&cmd.id) {
-                owner.emit_signal(VMSignal::OnCmdResult, &res.as_var());
+                base.emit_signal(VMSignal::OnCmdResult, &res.as_var());
                 run.active_id += 1;
                 return true;
             }
@@ -112,7 +112,7 @@ fn process_cmd(
 
     if run.cmds.len() < waiting {
         let cmd = run.cmds.first()?;
-        owner.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(cmd)]);
+        base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(cmd)]);
     }
     Some(())
 }

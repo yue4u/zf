@@ -95,7 +95,7 @@ impl<'a> VMConnecter for TRef<'a, Node> {
         let vm_manager = find_ref::<VMManager, Node>(self)?;
         vm_manager
             .connect(
-                &config.signal, // fmt
+                &config.signal,
                 self,
                 &config.signal,
                 VariantArray::new_shared(),

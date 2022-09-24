@@ -4,11 +4,7 @@ use std::{
     collections::HashMap,
 };
 
-use crate::{
-    common::find_ref,
-    ui::CommandPalette,
-    vm::{CommandInput, CommandResult, CommandRun, CommandRunState, Parser, VMSignal},
-};
+use crate::vm::{CommandInput, CommandResult, CommandRun, CommandRunState, Parser, VMSignal};
 
 #[derive(NativeClass, Debug, Default)]
 #[inherit(Node)]
@@ -35,18 +31,8 @@ impl VMManager {
     }
 
     #[method]
-    pub(crate) fn _ready(&self, #[base] base: TRef<Node>) -> Option<()> {
+    pub(crate) fn _ready(&self) -> Option<()> {
         godot_print!("vm host ready");
-        find_ref::<CommandPalette, Node>(base)?
-            .connect(
-                "text_entered",
-                base,
-                VMSignal::OnCmdEntered,
-                VariantArray::new_shared(),
-                0,
-            )
-            .expect("failed to connect line edit");
-
         Some(())
     }
 

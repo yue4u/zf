@@ -49,6 +49,7 @@ __meta__ = {
 }
 
 [node name="Wrapper" type="Control" parent="UI/MarginContainer"]
+visible = false
 margin_right = 964.0
 margin_bottom = 540.0
 

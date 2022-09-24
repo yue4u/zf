@@ -1,5 +1,6 @@
 use convert_case::{Case, Casing};
 use std::{
+    collections::HashMap,
     ffi::OsStr,
     fs, io,
     path::{Path, PathBuf},
@@ -43,6 +44,7 @@ pub fn main() -> io::Result<()> {
             entries
         })
         .map(|path| {
+            let mut seen = HashMap::<String, u32>::new();
             let paths = fs::read_to_string(&path)?
                 .lines()
                 .filter_map(|line| {
@@ -69,6 +71,12 @@ pub fn main() -> io::Result<()> {
                             name
                         );
                         let name = name.to_case(Case::ScreamingSnake);
+                        *seen.entry(name.clone()).or_insert(0) += 1;
+                        let name = if seen[&name] > 1 {
+                            format!("{}_{}", name, seen[&name] - 1)
+                        } else {
+                            name
+                        };
                         let line = format!(r#"    pub const {name}: &str = "{path}";"#);
                         return Some(line);
                     }

@@ -1,0 +1,15 @@
+[package]
+name = "zf-runtime"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "zf-runtime-bin"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = { workspace = true, version = "1.0.65"}
+wasmtime = "1.0.0"
+wasmtime-wasi = "1.0.0"

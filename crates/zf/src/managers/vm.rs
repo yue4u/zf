@@ -31,9 +31,17 @@ impl VMManager {
     }
 
     #[method]
-    pub(crate) fn _ready(&self) -> Option<()> {
+    pub(crate) fn _ready(&self) {
         godot_print!("vm host ready");
-        Some(())
+        let mut runtime = zf_runtime::Runtime::new();
+        let mut store = runtime.store(());
+
+        let hello = zf_runtime::Func::wrap(&mut store, || {
+            godot_print!("Calling back...");
+            godot_print!("> hello from wasm!");
+        });
+
+        runtime.run(store, hello).unwrap();
     }
 
     #[method]

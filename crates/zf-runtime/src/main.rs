@@ -10,5 +10,5 @@ fn main() -> Result<()> {
         print!("> hello from wasm!");
     });
 
-    runtime.run(store, hello)
+    runtime.run(&mut store, &[hello.into()], runtime::HELLO_WAT)
 }

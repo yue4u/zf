@@ -1,10 +1,12 @@
 use anyhow::Result;
 use wasmtime::*;
-pub use wasmtime::{Func, Store};
+pub use wasmtime::{Caller, Func, Store};
 
 pub struct Runtime {
     engine: Engine,
 }
+
+pub const HELLO_WAT: &[u8] = include_bytes!("./bin/hello.wat");
 
 impl Runtime {
     pub fn new() -> Self {
@@ -16,18 +18,14 @@ impl Runtime {
         Store::new(&self.engine, data)
     }
 
-    // pub fn run(&self, binary: &[u8]) -> Result<()> {
-    pub fn run(&self, mut store: Store<()>, hello: Func) -> Result<()> {
-        let binary = include_bytes!("./bin/hello.wat");
+    pub fn run<T>(&self, store: &mut Store<T>, imports: &[Extern], binary: &[u8]) -> Result<()> {
         let module = Module::new(&self.engine, binary)?;
 
-        // let imports = [hello_func.into()];
-        let imports = [hello.into()];
-        let instance = Instance::new(&mut store, &module, &imports)?;
+        let instance = Instance::new(&mut *store, &module, &imports)?;
 
-        let run = instance.get_typed_func::<(), (), _>(&mut store, "run")?;
+        let run = instance.get_typed_func::<(), (), _>(&mut *store, "run")?;
 
-        run.call(&mut store, ())?;
+        run.call(&mut *store, ())?;
 
         Ok(())
     }

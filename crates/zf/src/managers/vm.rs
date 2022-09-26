@@ -18,6 +18,10 @@ pub struct VMManager {
 
 type ResultBuffer = HashMap<u32, CommandResult>;
 
+struct VMData<'a> {
+    base: &'a Node,
+}
+
 #[methods]
 impl VMManager {
     pub(crate) fn new(_base: &Node) -> Self {
@@ -31,17 +35,20 @@ impl VMManager {
     }
 
     #[method]
-    pub(crate) fn _ready(&self) {
+    pub(crate) fn _ready(&self, #[base] base: &Node) {
         godot_print!("vm host ready");
         let mut runtime = zf_runtime::Runtime::new();
-        let mut store = runtime.store(());
-
-        let hello = zf_runtime::Func::wrap(&mut store, || {
+        let vm_data = VMData { base };
+        let mut store = runtime.store(vm_data);
+        let hello = zf_runtime::Func::wrap(&mut store, |caller: zf_runtime::Caller<'_, VMData>| {
             godot_print!("Calling back...");
             godot_print!("> hello from wasm!");
+            godot_print!("> current path is {:?}", caller.data().base.get_path());
         });
 
-        runtime.run(store, hello).unwrap();
+        runtime
+            .run(&mut store, &[hello.into()], zf_runtime::HELLO_WAT)
+            .unwrap();
     }
 
     #[method]

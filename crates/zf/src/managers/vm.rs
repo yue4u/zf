@@ -37,6 +37,7 @@ impl VMManager {
     #[method]
     pub(crate) fn _ready(&self, #[base] base: &Node) {
         godot_print!("vm host ready");
+
         let mut runtime = zf_runtime::Runtime::new();
         let vm_data = VMData { base };
         let mut store = runtime.store(vm_data);

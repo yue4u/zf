@@ -18,6 +18,15 @@ pub struct TerminalWrap {
 }
 
 const ENTER_SIGNAL: &'static str = "signal";
+const ZF: &'static str = r#"
+___          _        _     _______
+| _ \_ _ ___ (_)___ __| |_  |_  / __|
+|  _/ '_/ _ \| / -_) _|  _|  / /| _|
+|_| |_| \___// \___\__|\__| /___|_|
+           |__/
+
+Weclome to zf console!
+"#;
 
 #[methods]
 impl TerminalWrap {
@@ -70,18 +79,18 @@ impl TerminalWrap {
 
         self.term = Some(term.claim());
 
-        godot_print!("terminal wrap ready");
-        self.write("terminal wrap ready");
+        self.write(ZF);
+        self.prompt();
         // TODO: size_changed
         Some(())
     }
 
-    fn write(&self, data: impl ToVariant) {
+    fn write(&self, data: &str) {
         unsafe {
             self.term
                 .expect("term should be ready")
                 .assume_safe()
-                .call("write", &[data.to_variant()]);
+                .call("write", &[data.replace("\n", "\r\n").to_variant()]);
         }
     }
 
@@ -98,7 +107,7 @@ impl TerminalWrap {
             GlobalConstants::KEY_ENTER => {
                 base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
                 self.buffer = "".to_string();
-                self.write("\r\n");
+                self.prompt();
             }
             GlobalConstants::KEY_BACKSPACE => {
                 if !self.buffer.is_empty() {
@@ -109,10 +118,14 @@ impl TerminalWrap {
             _ => {
                 let char = event.unicode() as u8 as char;
                 self.buffer.push(char);
-                self.write(char.to_string());
+                self.write(&char.to_string());
             }
         }
         Some(())
+    }
+
+    fn prompt(&self) {
+        self.write("\n> ");
     }
 
     #[method]
@@ -121,8 +134,9 @@ impl TerminalWrap {
             Ok(result) => result,
             Err(_) => format!("{:?}", result),
         };
-        self.write("\r\n");
-        self.write(result);
+        self.write("\n");
+        self.write(&result);
+        self.prompt();
         Some(())
     }
 }

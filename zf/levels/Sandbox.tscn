@@ -84,14 +84,5 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 362.201, 262.592, -334.042 )
 [node name="t-dummy2" parent="Level/EnemyCluster" index="4" instance=ExtResource( 6 )]
 transform = Transform( 0.918571, 0, 0.395257, 0, 1, 0, -0.395257, 0, 0.918571, 9.73321, -53.8456, 259.526 )
 
-[node name="HBoxContainer" parent="UI/MarginContainer/Control" index="0"]
-anchor_top = 0.6
-
-[node name="CommandPalette" parent="UI/MarginContainer/Control/HBoxContainer" index="0"]
-margin_bottom = 216.0
-
-[node name="Label" parent="UI/MarginContainer/Control/HBoxContainer/CommandPalette" index="0"]
-margin_bottom = 216.0
-
-[node name="LineEdit" parent="UI/MarginContainer/Control/HBoxContainer/CommandPalette" index="1"]
-margin_bottom = 216.0
+[node name="Terminal" parent="UI/MarginContainer/Control/TerminalWrap" index="0"]
+modulate = Color( 1, 1, 1, 0.501961 )

@@ -7,6 +7,7 @@ mod player_status;
 mod radar;
 mod result;
 mod tips;
+mod terminal_wrap;
 
 pub use env::*;
 pub use hello::*;
@@ -17,3 +18,4 @@ pub use player_status::*;
 pub use radar::*;
 pub use result::*;
 pub use tips::*;
+pub use terminal_wrap::*;

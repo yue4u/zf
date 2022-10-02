@@ -6,13 +6,14 @@ use gdnative::{
 use crate::{
     common::find_ref,
     managers::VMManager,
-    vm::{CommandResult, VMSignal},
+    vm::{CommandResult, ProcessState, VMSignal},
 };
 
 #[derive(NativeClass, Debug, Default)]
 #[inherit(Control)]
 #[register_with(Self::register_signals)]
 pub struct TerminalWrap {
+    state: ProcessState,
     buffer: String,
     term: Option<Ref<Node>>,
 }
@@ -103,11 +104,15 @@ impl TerminalWrap {
     ) -> Option<()> {
         let event = unsafe { event.assume_safe() }.cast::<InputEventKey>()?;
 
+        if self.state == ProcessState::Running {
+            return None;
+        }
+
         match event.scancode() {
             GlobalConstants::KEY_ENTER => {
                 base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
+                self.state = ProcessState::Running;
                 self.buffer = "".to_string();
-                self.prompt();
             }
             GlobalConstants::KEY_BACKSPACE => {
                 if !self.buffer.is_empty() {
@@ -125,15 +130,29 @@ impl TerminalWrap {
     }
 
     fn prompt(&self) {
-        self.write("\n> ");
+        self.write(&format!(
+            "\n{}> ",
+            match self.state {
+                ProcessState::Idle => "",
+                ProcessState::Error => "[error]",
+                _ => "",
+            },
+        ));
     }
 
     #[method]
-    fn on_cmd_result(&self, result: CommandResult) -> Option<()> {
+    fn on_cmd_result(&mut self, result: CommandResult) -> Option<()> {
         let result = match result.result {
-            Ok(result) => result,
-            Err(_) => format!("{:?}", result),
+            Ok(result) => {
+                self.state = ProcessState::Idle;
+                result
+            }
+            Err(_) => {
+                self.state = ProcessState::Error;
+                format!("{:?}", result)
+            }
         };
+        godot_dbg!(&result);
         self.write("\n");
         self.write(&result);
         self.prompt();

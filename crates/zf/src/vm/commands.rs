@@ -2,25 +2,26 @@ use gdnative::derive::{FromVariant, ToVariant};
 
 use crate::vm::CommandInput;
 
-#[derive(FromVariant, ToVariant, Clone, Debug)]
-pub enum CommandRunState {
+#[derive(FromVariant, ToVariant, Clone, Debug, PartialEq)]
+pub enum ProcessState {
+    Idle,
     Done,
-    Failed,
+    Error,
     Running,
 }
 
-impl Default for CommandRunState {
+impl Default for ProcessState {
     fn default() -> Self {
-        CommandRunState::Running
+        ProcessState::Idle
     }
 }
 
 #[derive(FromVariant, ToVariant, Clone, Default, Debug)]
-pub struct CommandRun {
+pub struct Process {
     pub id: u32,
     pub active_id: usize,
     pub cmds: Vec<CommandInput>,
-    pub state: CommandRunState,
+    pub state: ProcessState,
 }
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
@@ -94,7 +95,7 @@ impl TryFrom<&str> for Command {
                 }),
                 _ => Invalid,
             },
-            _ => Unkonwn(value.to_owned()),
+            _ => Invalid,
         };
         match cmd {
             Invalid => Err(InvalidCommand),

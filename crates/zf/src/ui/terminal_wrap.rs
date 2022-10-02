@@ -53,7 +53,7 @@ impl TerminalWrap {
         .expect("failed to connect on_key_pressed");
 
         unsafe {
-            term.call("grab_focus", &[]);
+            term.call_deferred("grab_focus", &[]);
         }
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };

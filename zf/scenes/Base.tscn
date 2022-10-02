@@ -48,6 +48,8 @@ __meta__ = {
 "_edit_use_anchors_": true
 }
 
+[node name="UIExtra" type="CanvasLayer" parent="UI/MarginContainer"]
+
 [node name="Managers" type="Node" parent="."]
 
 [node name="VM" type="Node" parent="Managers"]

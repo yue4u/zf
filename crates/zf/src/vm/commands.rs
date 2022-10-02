@@ -34,6 +34,7 @@ pub enum Command {
     Unkonwn(String),
     Fire(FireCommand),
     Radar(RadarCommand),
+    UI(UICommand),
     Invalid,
 }
 
@@ -95,6 +96,14 @@ impl TryFrom<&str> for Command {
                 }),
                 _ => Invalid,
             },
+            ["ui", action, label] => UI(UICommand {
+                label: label.to_owned(),
+                action: match action {
+                    "s" | "show" => UIAction::Show,
+                    "h" | "hide" => UIAction::Hide,
+                    _ => return Err(InvalidCommand),
+                },
+            }),
             _ => Invalid,
         };
         match cmd {
@@ -145,4 +154,16 @@ pub struct FireCommand {
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct RadarCommand {
     // TODO: options
+}
+
+#[derive(Debug, FromVariant, ToVariant, Clone)]
+pub enum UIAction {
+    Hide,
+    Show,
+}
+
+#[derive(Debug, FromVariant, ToVariant, Clone)]
+pub struct UICommand {
+    pub label: String,
+    pub action: UIAction,
 }

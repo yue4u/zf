@@ -8,7 +8,7 @@ use gdnative::{
 use crate::{
     path::HasPath,
     units::player::Player,
-    vm::{register_vm_signal, Command, CommandInput, VMConnecter, VMSignal},
+    vm::{register_vm_signal, Command, CommandInput, UIAction, UICommand, VMConnecter, VMSignal},
 };
 
 #[derive(NativeClass, Default)]
@@ -58,13 +58,26 @@ impl Radar {
     }
 
     #[method]
-    fn on_cmd_parsed(&self, #[base] base: &Node, input: CommandInput) {
-        if !matches!(input.cmd, Command::Radar(_)) {
-            return;
+    fn on_cmd_parsed(&self, #[base] base: TRef<Node>, input: CommandInput) {
+        match &input.cmd {
+            Command::Radar(_) => {
+                let msg = Ok(format!("{:?}", &self.detected));
+                let res = input.into_result(msg);
+                base.emit_signal(VMSignal::OnCmdResult, &res.as_var());
+            }
+            Command::UI(UICommand { label, action }) if label.as_str() == "radar" => {
+                let ui = base.cast::<Control>().unwrap();
+                match action {
+                    UIAction::Hide => ui.set_visible(false),
+                    UIAction::Show => ui.set_visible(true),
+                }
+                base.emit_signal(
+                    VMSignal::OnCmdResult,
+                    &input.into_result(Ok("ok".to_owned())).as_var(),
+                );
+            }
+            _ => return,
         }
-        let msg = Ok(format!("{:?}", &self.detected));
-        let res = input.into_result(msg);
-        base.emit_signal(VMSignal::OnCmdResult, &res.as_var());
     }
 
     #[method]

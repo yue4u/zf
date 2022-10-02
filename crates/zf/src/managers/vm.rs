@@ -61,7 +61,6 @@ impl VMManager {
         let cmds = match Parser::parse(text) {
             Ok(cmds) => cmds,
             Err(e) => {
-                godot_print!("failed to parse command: {:#?}", e);
                 self.on_cmd_result(
                     base,
                     CommandResult {

@@ -110,8 +110,17 @@ impl TerminalWrap {
 
         match event.scancode() {
             GlobalConstants::KEY_ENTER => {
-                base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
-                self.state = ProcessState::Running;
+                match self.buffer.as_str() {
+                    "clear" => {
+                        self.write(&"\n".repeat(20));
+                        self.prompt()
+                    }
+                    _ => {
+                        base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
+                        self.state = ProcessState::Running;
+                        self.buffer = "".to_string();
+                    }
+                }
                 self.buffer = "".to_string();
             }
             GlobalConstants::KEY_BACKSPACE => {
@@ -130,14 +139,13 @@ impl TerminalWrap {
     }
 
     fn prompt(&self) {
-        self.write(&format!(
-            "\n{}> ",
-            match self.state {
-                ProcessState::Idle => "",
-                ProcessState::Error => "[error]",
-                _ => "",
-            },
-        ));
+        use nu_ansi_term::Color::*;
+        let err = match self.state {
+            ProcessState::Idle => "",
+            ProcessState::Error => "[error]",
+            _ => "",
+        };
+        self.write(&format!("\n{}{}", Red.paint(err), Cyan.paint("> ")));
     }
 
     #[method]

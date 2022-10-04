@@ -3,6 +3,7 @@
 members = [
     "zf",
     "zf-x",
+    "zf-shell",
     "zf-runtime",
 ]
 

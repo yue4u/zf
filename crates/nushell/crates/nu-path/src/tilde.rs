@@ -60,6 +60,11 @@ fn user_home_dir(username: &str) -> PathBuf {
     // Returns home dir of user.
 }
 
+#[cfg(target_os = "wasi")]
+fn user_home_dir(username: &str) -> PathBuf {
+    PathBuf::from(format!("/home/{username}"))
+}
+
 #[cfg(target_os = "macos")]
 fn user_home_dir(username: &str) -> PathBuf {
     match dirs_next::home_dir() {

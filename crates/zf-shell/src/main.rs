@@ -3,14 +3,13 @@ mod commands;
 mod shell;
 
 use commands::Hi;
-use nu_command::{Help, Math, MathSum, SplitList};
+use nu_command::{Math, MathSum, SplitList};
 use nu_protocol::engine::{EngineState, Stack, StateWorkingSet};
 
 fn main() {
     init_shell! {
         engine_state / stack / working_set
         Hi,
-        Help,
         Math,
         MathSum,
         SplitList,

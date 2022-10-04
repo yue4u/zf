@@ -7,5 +7,7 @@ members = [
     "zf-runtime",
 ]
 
+exclude = ["nushell"]
+
 [workspace.dependencies]
 anyhow = "1.0.65"

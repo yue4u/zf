@@ -1,14 +1,6 @@
-use anyhow::Result;
 mod runtime;
+mod shell;
 
-fn main() -> Result<()> {
-    let mut runtime = runtime::Runtime::new();
-    let mut store = runtime.store(());
-
-    let hello = zf_runtime::Func::wrap(&mut store, || {
-        print!("Calling back...");
-        print!("> hello from wasm!");
-    });
-
-    runtime.run(&mut store, &[hello.into()], runtime::HELLO_WAT)
+fn main() {
+    shell::eval(std::env::args().nth(1).unwrap_or("help".to_string()));
 }

@@ -1,0 +1,182 @@
+on:
+  pull_request:
+  push: # Run CI on the main branch after every merge. This is important to fill the GitHub Actions cache in a way that pull requests can see it
+    branches:
+      - main
+
+name: continuous-integration
+
+jobs:
+  nu-fmt-clippy:
+    strategy:
+      fail-fast: true
+      matrix:
+        platform: [windows-latest, macos-latest, ubuntu-latest]
+        rust:
+          - stable
+
+    runs-on: ${{ matrix.platform }}
+    env:
+      NUSHELL_CARGO_TARGET: ci
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        # makes ci use rust-toolchain.toml
+        # with:
+        #   profile: minimal
+        #   toolchain: ${{ matrix.rust }}
+        #   override: true
+        #   components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: "v2" # increment this to bust the cache if needed
+
+      - name: Rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --features=extra --workspace --exclude nu_plugin_* -- -D warnings -D clippy::unwrap_used -A clippy::needless_collect
+
+  nu-tests:
+    env:
+      NUSHELL_CARGO_TARGET: ci
+
+    strategy:
+      fail-fast: true
+      matrix:
+        platform: [windows-latest, macos-latest, ubuntu-latest]
+        style: [extra, default]
+        rust:
+          - stable
+        include:
+          - style: extra
+            flags: "--features=extra"
+          - style: default
+            flags: ""
+        exclude:
+          - platform: windows-latest
+            style: default
+          - platform: macos-latest
+            style: default
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        # makes ci use rust-toolchain.toml
+        # with:
+        #   profile: minimal
+        #   toolchain: ${{ matrix.rust }}
+        #   override: true
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ matrix.style }}v3 # increment this to bust the cache if needed
+
+      - name: Tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace --profile ci --exclude nu_plugin_* ${{ matrix.flags }}
+
+  python-virtualenv:
+    env:
+      NUSHELL_CARGO_TARGET: ci
+
+    strategy:
+      fail-fast: true
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+        rust:
+          - stable
+        py:
+          - py
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        # makes ci use rust-toolchain.toml
+        # with:
+        #   profile: minimal
+        #   toolchain: ${{ matrix.rust }}
+        #   override: true
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: "2" # increment this to bust the cache if needed
+
+      - name: Install Nushell
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --path=. --profile ci --no-default-features
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - run: python -m pip install tox
+
+      - name: Install virtualenv
+        run: git clone https://github.com/pypa/virtualenv.git
+        shell: bash
+
+      - name: Test Nushell in virtualenv
+        run: cd virtualenv && tox -e ${{ matrix.py }} -- -k nushell
+        shell: bash
+
+  # Build+test plugins on their own, without the rest of Nu. This helps with CI parallelization and
+  # also helps test that the plugins build without any feature unification shenanigans
+  plugins:
+    env:
+      NUSHELL_CARGO_TARGET: ci
+
+    strategy:
+      fail-fast: true
+      matrix:
+        platform: [windows-latest, macos-latest, ubuntu-latest]
+        rust:
+          - stable
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        # makes ci use rust-toolchain.toml
+        # with:
+        #   profile: minimal
+        #   toolchain: ${{ matrix.rust }}
+        #   override: true
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --package nu_plugin_* ${{ matrix.flags }} -- -D warnings -D clippy::unwrap_used -A clippy::needless_collect
+
+      - name: Tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --profile ci --package nu_plugin_*

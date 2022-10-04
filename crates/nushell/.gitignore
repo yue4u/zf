@@ -1,0 +1,37 @@
+/target
+/scratch
+**/*.rs.bk
+history.txt
+tests/fixtures/nuplayground
+crates/*/target
+.mailmap
+
+# Debian/Ubuntu
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/nu.substvars
+debian/nu/
+
+# macOS junk
+.DS_Store
+
+# JetBrains' IDE items
+.idea/*
+
+# VSCode's IDE items
+.vscode/*
+
+# Helix configuration folder
+.helix/*
+.helix
+
+# Coverage tools
+lcov.info
+tarpaulin-report.html
+
+# Visual Studio
+.vs/*
+*.rsproj
+*.rsproj.user
+*.sln

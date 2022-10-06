@@ -11,6 +11,8 @@ path = "src/lib.rs"
 
 [dependencies]
 # unreleased at 2022-09-22
+anyhow = { workspace = true, version = "1.0.65"}
 gdnative = { git = "https://github.com/Bromeon/godot-rust.git", branch = "feature/godot-3.5" }
 nu-ansi-term = "0.46"
 zf-runtime = { path = "../zf-runtime" }
+zf-shell = { path = "../zf-shell" }

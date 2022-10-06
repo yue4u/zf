@@ -1,4 +1,5 @@
 use anyhow::{Error, Result};
+use nu_command::{Math, MathSum};
 use nu_engine::eval_block;
 use nu_parser::parse;
 use nu_protocol::{
@@ -6,17 +7,33 @@ use nu_protocol::{
     CliError, PipelineData, Span,
 };
 
+use crate::commands::Hi;
+
 macro_rules! init_shell {
-    ($e:ident / $s:ident / $w:ident $( $command:expr ),* $(,)? ) => {
+    ($e:ident / $s:ident $( $command:expr ),* $(,)? ) => {
         let mut $e = EngineState::new();
         let mut $s = Stack::new();
-        let mut $w = StateWorkingSet::new(&$e);
+        let mut working_set = StateWorkingSet::new(&$e);
 
-        $( $w.add_decl(Box::new($command)); )*
+        $( working_set.add_decl(Box::new($command)); )*
 
-        let delta = $w.render();
+        let delta = working_set.render();
         $e.merge_delta(delta).unwrap();
     };
+}
+
+pub fn eval(line: String) -> Result<String> {
+    init_shell! {
+        engine_state / stack
+        Hi,
+        Math,
+        MathSum,
+    }
+    return eval_impl(
+        &mut engine_state, //
+        &mut stack,
+        line,
+    );
 }
 
 fn outcome_err(
@@ -27,7 +44,11 @@ fn outcome_err(
     Error::msg(format!("Error: {:?}", CliError(error, &working_set)))
 }
 
-pub fn eval(engine_state: &mut EngineState, stack: &mut Stack, line: String) -> Result<String> {
+pub fn eval_impl(
+    engine_state: &mut EngineState,
+    stack: &mut Stack,
+    line: String,
+) -> Result<String> {
     let (block, delta) = {
         let mut working_set = StateWorkingSet::new(&engine_state);
         let (block, err) = parse(

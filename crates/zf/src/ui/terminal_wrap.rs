@@ -115,10 +115,21 @@ impl TerminalWrap {
                         self.write(&"\n".repeat(20));
                         self.prompt()
                     }
-                    _ => {
-                        base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
-                        self.state = ProcessState::Running;
-                        self.buffer = "".to_string();
+                    block => {
+                        let result = zf_shell::eval(block.to_string());
+                        self.write("\n");
+                        match result {
+                            Ok(result) => {
+                                self.write(&result);
+                            }
+                            Err(err) => {
+                                self.write(&err.to_string());
+                            }
+                        }
+                        self.prompt()
+                        // base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
+                        // self.state = ProcessState::Running;
+                        // self.buffer = "".to_string();
                     }
                 }
                 self.buffer = "".to_string();

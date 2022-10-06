@@ -13,3 +13,4 @@ path = "src/main.rs"
 anyhow = { workspace = true, version = "1.0.65"}
 wasmtime = "1.0.0"
 wasmtime-wasi = "1.0.0"
+wasi-common = "1.0.1"

@@ -6,7 +6,11 @@ fn main() {
     let result = shell::eval(
         std::env::args().nth(1).unwrap_or("help".to_string()), //
     );
-    println!("{:?}", result);
+    let out = match result {
+        Ok(inner) => inner,
+        Err(e) => format!("{:?}", e),
+    };
+    print!("{}", out);
 }
 
 #[test]

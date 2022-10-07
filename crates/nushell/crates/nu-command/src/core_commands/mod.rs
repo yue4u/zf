@@ -26,7 +26,7 @@ mod metadata;
 mod module;
 pub(crate) mod overlay;
 mod use_;
-mod version;
+// mod version;
 
 pub use alias::Alias;
 pub use ast::Ast;
@@ -56,7 +56,7 @@ pub use metadata::Metadata;
 pub use module::Module;
 pub use overlay::*;
 pub use use_::Use;
-pub use version::Version;
+// pub use version::Version;
 #[cfg(feature = "plugin")]
 mod register;
 

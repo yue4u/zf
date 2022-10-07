@@ -39,18 +39,18 @@ impl VMManager {
     pub(crate) fn _ready(&self, #[base] base: &Node) {
         godot_print!("vm host ready");
 
-        let mut runtime = zf_runtime::Runtime::new();
-        let vm_data = VMData { base };
-        let mut store = runtime.store(vm_data);
-        let hello = zf_runtime::Func::wrap(&mut store, |caller: zf_runtime::Caller<'_, VMData>| {
-            godot_print!("Calling back...");
-            godot_print!("> hello from wasm!");
-            godot_print!("> current path is {:?}", caller.data().base.get_path());
-        });
+        // let mut runtime = zf_runtime::Runtime::new();
+        // let vm_data = VMData { base };
+        // let mut store = runtime.store(vm_data);
+        // let hello = zf_runtime::Func::wrap(&mut store, |caller: zf_runtime::Caller<'_, VMData>| {
+        //     godot_print!("Calling back...");
+        //     godot_print!("> hello from wasm!");
+        //     godot_print!("> current path is {:?}", caller.data().base.get_path());
+        // });
 
-        runtime
-            .run(&mut store, &[hello.into()], zf_runtime::HELLO_WAT)
-            .unwrap();
+        // runtime
+        //     .run(&mut store, &[hello.into()], zf_runtime::HELLO_WAT)
+        //     .unwrap();
     }
 
     #[method]

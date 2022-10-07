@@ -115,8 +115,9 @@ impl TerminalWrap {
                         self.write(&"\n".repeat(20));
                         self.prompt()
                     }
-                    block => {
-                        let result = zf_shell::eval(block.to_string());
+                    lines => {
+                        godot_dbg!("lines: {}", lines);
+                        let result = zf_runtime::Runtime::eval(lines);
                         self.write("\n");
                         match result {
                             Ok(result) => {

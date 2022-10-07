@@ -58,35 +58,42 @@ impl VMManager {
         godot_print!("on_cmd_entered: {text}!");
         base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
 
-        let cmds = match Parser::parse(text) {
-            Ok(cmds) => cmds,
-            Err(e) => {
-                self.on_cmd_result(
-                    base,
-                    CommandResult {
-                        id: 0,
-                        result: Err(format!("failed to parse command: {:#?}", e)),
-                    },
-                );
-                return None;
-            }
+        // let cmds = match Parser::parse(text) {
+        //     Ok(cmds) => cmds,
+        //     Err(e) => {
+        //         self.on_cmd_result(
+        //             base,
+        //             CommandResult {
+        //                 id: 0,
+        //                 result: Err(format!("failed to parse command: {:#?}", e)),
+        //             },
+        //         );
+        //         return None;
+        //     }
+        // };
+        // let id = self.process_id.replace_with(|&mut i| i + 1);
+        // let process = Process {
+        //     id,
+        //     active_id: 0,
+        //     cmds: cmds
+        //         .into_iter()
+        //         .map(|cmd| CommandInput {
+        //             cmd,
+        //             id: self.cmd_id.replace_with(|&mut i| i + 1),
+        //         })
+        //         .collect(),
+        //     state: ProcessState::Running,
+        // };
+        // let first = process.cmds.first()?.clone();
+        // self.process_buffer.borrow_mut().push(process);
+        // base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(first)]);
+        let result = CommandResult {
+            id: 0,
+            result: zf_runtime::Runtime::eval(text).map_err(|e| e.to_string()),
         };
-        let id = self.process_id.replace_with(|&mut i| i + 1);
-        let process = Process {
-            id,
-            active_id: 0,
-            cmds: cmds
-                .into_iter()
-                .map(|cmd| CommandInput {
-                    cmd,
-                    id: self.cmd_id.replace_with(|&mut i| i + 1),
-                })
-                .collect(),
-            state: ProcessState::Running,
-        };
-        let first = process.cmds.first()?.clone();
-        self.process_buffer.borrow_mut().push(process);
-        base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(first)]);
+        godot_dbg!(&result);
+        base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
+
         Some(())
     }
 

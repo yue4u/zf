@@ -117,20 +117,10 @@ impl TerminalWrap {
                     }
                     lines => {
                         godot_dbg!("lines: {}", lines);
-                        let result = zf_runtime::Runtime::eval(lines);
                         self.write("\n");
-                        match result {
-                            Ok(result) => {
-                                self.write(&result);
-                            }
-                            Err(err) => {
-                                self.write(&err.to_string());
-                            }
-                        }
-                        self.prompt()
-                        // base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
-                        // self.state = ProcessState::Running;
-                        // self.buffer = "".to_string();
+                        base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
+                        self.state = ProcessState::Running;
+                        self.buffer = "".to_string();
                     }
                 }
                 self.buffer = "".to_string();

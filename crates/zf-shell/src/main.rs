@@ -1,16 +1,17 @@
 mod commands;
 #[macro_use]
 mod shell;
+mod imports;
+mod memory;
 
 fn main() {
     let result = shell::eval(
-        std::env::args().nth(1).unwrap_or("help".to_string()), //
+        std::env::args().nth(1).unwrap_or("".to_string()), //
     );
-    let out = match result {
-        Ok(inner) => inner,
-        Err(e) => format!("{:?}", e),
+    match result {
+        Ok(inner) => print!("{}", inner),
+        Err(e) => eprint!("{:?}", e),
     };
-    print!("{}", out);
 }
 
 #[test]

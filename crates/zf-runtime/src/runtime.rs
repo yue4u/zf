@@ -1,3 +1,4 @@
+use wasi_common::WasiCtx;
 use wasmtime::*;
 pub use wasmtime::{Caller, Func, Store};
 
@@ -39,23 +40,62 @@ impl Runtime {
         wasmtime_wasi::add_to_linker(&mut linker, |s| s)?;
 
         let stdout = WritePipe::new_in_memory();
+        let stderr = WritePipe::new_in_memory();
 
         let wasi = WasiCtxBuilder::new()
             .stdout(Box::new(stdout.clone()))
+            .stderr(Box::new(stderr.clone()))
             .args(&["".to_owned(), input.into()])?
             .build();
         let mut store = Store::new(&engine, wasi);
+        let zf_shell_module = Module::from_binary(&engine, SHELL_WASM)?;
 
-        let module = Module::from_binary(&engine, SHELL_WASM)?;
-        linker.module(&mut store, "", &module)?;
+        let zf_shell_instance = linker
+            .func_wrap(
+                "zf",
+                "game_start",
+                |mut caller: Caller<'_, WasiCtx>| -> i64 {
+                    let content = "🌈 it works!".to_owned();
+                    let content = content.as_bytes();
+                    let mem = caller.get_export("memory").unwrap().into_memory().unwrap();
+                    let alloc_string = caller
+                        .get_export("alloc_string")
+                        .unwrap()
+                        .into_func()
+                        .unwrap();
+
+                    let mut store = caller.as_context_mut();
+                    let len = content.len() as i32;
+                    let ptr = alloc_string
+                        .typed::<i32, i32, _>(&mut store)
+                        .unwrap()
+                        .call(&mut store, len)
+                        .unwrap();
+
+                    mem.write(&mut store, ptr as usize, content).unwrap();
+
+                    debug_assert_eq!(
+                        &mem.data(&store)[ptr as usize..ptr as usize + len as usize],
+                        content
+                    );
+                    (ptr as i64) << 32 | (len as i64)
+                },
+            )?
+            .instantiate(&mut store, &zf_shell_module)?;
+
+        linker.instance(&mut store, "zf-shell", zf_shell_instance)?;
         linker
-            .get_default(&mut store, "")?
+            .get_default(&mut store, "zf-shell")?
             .typed::<(), (), _>(&store)?
             .call(&mut store, ())?;
 
         drop(store);
 
-        let contents: Vec<u8> = stdout.try_into_inner().unwrap().into_inner();
-        String::from_utf8(contents).map_err(Into::into)
+        let stdout: Vec<u8> = stdout.try_into_inner().unwrap().into_inner();
+        let stderr: Vec<u8> = stderr.try_into_inner().unwrap().into_inner();
+        if stderr.is_empty() {
+            return Ok(String::from_utf8(stdout)?.to_string());
+        }
+        return String::from_utf8(stderr).map_err(Into::into);
     }
 }

@@ -6,7 +6,9 @@ use std::{
 
 use crate::vm::{Command, CommandInput, CommandResult, Parser, Process, ProcessState, VMSignal};
 
-#[derive(NativeClass, Debug, Default)]
+use zf_runtime::{prepare_for_test, Runtime};
+
+#[derive(NativeClass)]
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
 pub struct VMManager {
@@ -15,6 +17,7 @@ pub struct VMManager {
     process_buffer: RefCell<Vec<Process>>,
     result_buffer: RefCell<ResultBuffer>,
     // TODO: more pts
+    runtime: Runtime,
 }
 
 type ResultBuffer = HashMap<u32, CommandResult>;
@@ -26,7 +29,13 @@ struct VMData<'a> {
 #[methods]
 impl VMManager {
     pub(crate) fn new(_base: &Node) -> Self {
-        VMManager::default()
+        VMManager {
+            process_id: RefCell::new(0),
+            cmd_id: RefCell::new(0),
+            process_buffer: RefCell::new(vec![]),
+            result_buffer: RefCell::new(HashMap::new()),
+            runtime: Runtime::init(prepare_for_test).unwrap(),
+        }
     }
 
     pub(crate) fn register_signals(builder: &ClassBuilder<Self>) {
@@ -54,7 +63,7 @@ impl VMManager {
     }
 
     #[method]
-    pub(crate) fn on_cmd_entered(&self, #[base] base: &Node, text: String) -> Option<()> {
+    pub(crate) fn on_cmd_entered(&mut self, #[base] base: &Node, text: String) -> Option<()> {
         godot_print!("on_cmd_entered: {text}!");
         base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
 
@@ -89,7 +98,7 @@ impl VMManager {
         // base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(first)]);
         let result = CommandResult {
             id: 0,
-            result: zf_runtime::Runtime::eval(text).map_err(|e| e.to_string()),
+            result: self.runtime.eval(text).map_err(|e| e.to_string()),
         };
         godot_dbg!(&result);
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());

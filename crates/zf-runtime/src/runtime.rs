@@ -10,7 +10,7 @@ use crate::bridge;
 
 pub struct Runtime<S> {
     linker: Linker<ExtendedStore<S>>,
-    store: Store<ExtendedStore<S>>,
+    pub store: Store<ExtendedStore<S>>,
     instance: Instance,
     _stdout: WritePipe<Cursor<Vec<u8>>>,
     _stderr: WritePipe<Cursor<Vec<u8>>>,
@@ -140,12 +140,30 @@ impl<T> Runtime<T> {
 }
 
 pub fn prepare_for_test<S>(linker: &mut Linker<ExtendedStore<S>>) -> anyhow::Result<()> {
-    linker.func_wrap(
-        "zf",
+    macro_rules! dummy {
+        (
+            $(
+                $fn_name:literal
+            ),*
+        ) => {
+            $(
+                linker.func_wrap(
+                    "zf",
+                    $fn_name,
+                    || -> i64 {
+                        println!("{}", $fn_name);
+                        0
+                    },
+                )?;
+            )*
+        };
+    }
+
+    dummy! {
         "game_start",
-        |caller: Caller<'_, ExtendedStore<S>>| -> i64 {
-            bridge::write_string_inside(caller, "🌈 it works!".to_owned())
-        },
-    )?;
+        "game_end",
+        "game_menu"
+    }
+
     Ok(())
 }

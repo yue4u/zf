@@ -26,6 +26,7 @@ pub struct VMManager {
 type ResultBuffer = HashMap<u32, CommandResult>;
 
 struct VMData {
+    cmd_id: u32,
     base: Ref<Node>,
 }
 
@@ -51,35 +52,41 @@ impl VMManager {
     pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
         godot_print!("vm host ready");
 
-        let vm_data = VMData { base: base.claim() };
+        let vm_data = VMData {
+            cmd_id: 0,
+            base: base.claim(),
+        };
 
         self.runtime = Some(
             Runtime::<VMData>::init(vm_data, |linker| -> anyhow::Result<()> {
-                linker.func_wrap(
-                    "zf",
-                    "game_start",
-                    |caller: Caller<'_, ExtendedStore<VMData>>| -> i64 {
-                        fire_and_forget(&caller.data().ext.base, Command::Game(GameCommand::Start));
-                        0
-                    },
-                )?;
+                macro_rules! fire_and_forget {
+                    (
+                        $(
+                            $fn_name:literal => $cmd:expr
+                        ),*
+                    ) => {
+                        $(
+                            linker.func_wrap(
+                                "zf",
+                                $fn_name,
+                                |mut caller: Caller<'_, ExtendedStore<VMData>>| -> i64 {
+                                    fire_and_forget(&mut caller.data_mut().ext, $cmd);
+                                    0
+                                },
+                            )?;
+                        )*
+                    };
+                }
+
+                fire_and_forget!(
+                    "game_start" => Command::Game(GameCommand::Start),
+                    "game_end" => Command::Game(GameCommand::End),
+                    "game_menu" => Command::Game(GameCommand::Menu)
+                );
                 Ok(())
             })
             .unwrap(),
         )
-
-        // let mut runtime = zf_runtime::Runtime::new();
-        // let vm_data = VMData { base };
-        // let mut store = runtime.store(vm_data);
-        // let hello = zf_runtime::Func::wrap(&mut store, |caller: zf_runtime::Caller<'_, VMData>| {
-        //     godot_print!("Calling back...");
-        //     godot_print!("> hello from wasm!");
-        //     godot_print!("> current path is {:?}", caller.data().base.get_path());
-        // });
-
-        // runtime
-        //     .run(&mut store, &[hello.into()], zf_runtime::HELLO_WAT)
-        //     .unwrap();
     }
 
     #[method]
@@ -117,10 +124,10 @@ impl VMManager {
         // let first = process.cmds.first()?.clone();
         // self.process_buffer.borrow_mut().push(process);
         // base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(first)]);
-        let result = CommandResult {
-            id: 0,
-            result: runtime.eval(text).map_err(|e| e.to_string()),
-        };
+        let result = runtime.eval(text).map_err(|e| e.to_string());
+        let id = runtime.store.data_mut().ext.cmd_id + 1;
+        runtime.store.data_mut().ext.cmd_id = id;
+        let result = CommandResult { id, result };
         godot_dbg!(&result);
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
 
@@ -143,11 +150,11 @@ impl VMManager {
     }
 }
 
-fn fire_and_forget(base: &Ref<Node>, cmd: Command) {
-    unsafe { base.assume_safe() }.emit_signal(
+fn fire_and_forget(vm_data: &VMData, cmd: Command) {
+    unsafe { vm_data.base.assume_safe() }.emit_signal(
         VMSignal::OnCmdParsed,
         &[CommandInput {
-            id: 0, //self.cmd_id.replace_with(|&mut i| i + 1),
+            id: vm_data.cmd_id,
             cmd,
         }
         .to_variant()],

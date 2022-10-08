@@ -7,7 +7,7 @@ use nu_protocol::{
     CliError, PipelineData, Span,
 };
 
-use crate::commands::{Game, GameStart, Hi};
+use crate::commands::{Game, GameEnd, GameMenu, GameStart, Hi};
 
 macro_rules! eval {
     ($line:ident with $( $command:expr ),* $(,)? ) => {
@@ -28,13 +28,15 @@ macro_rules! eval {
     };
 }
 
-pub fn eval(line: String) -> Result<String> {
+pub fn eval(input: String) -> Result<String> {
     eval! {
-        line with
+        input with
         Hi,
         // game
         Game,
         GameStart,
+        GameEnd,
+        GameMenu,
 
         // default_context below
 

@@ -1,10 +1,11 @@
-use crate::memory;
+use crate::{
+    imports::{game_end, game_menu, game_start},
+    memory,
+};
 use nu_protocol::{engine::Command, IntoPipelineData, ShellError, Signature, Value};
 
 #[derive(Clone)]
 pub(crate) struct Game;
-
-use crate::imports::game_start;
 
 impl Command for Game {
     fn name(&self) -> &str {
@@ -58,6 +59,70 @@ impl Command for GameStart {
         _input: nu_protocol::PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
         let val = unsafe { memory::string_from(game_start()) };
+        Ok(Value::String {
+            val,
+            span: call.head,
+        }
+        .into_pipeline_data())
+    }
+}
+
+#[derive(Clone)]
+pub(crate) struct GameMenu;
+
+impl Command for GameMenu {
+    fn name(&self) -> &str {
+        "game menu"
+    }
+
+    fn signature(&self) -> Signature {
+        Signature::build("game menu")
+    }
+
+    fn usage(&self) -> &str {
+        "Goto game menu"
+    }
+
+    fn run(
+        &self,
+        _engine_state: &nu_protocol::engine::EngineState,
+        _stack: &mut nu_protocol::engine::Stack,
+        call: &nu_protocol::ast::Call,
+        _input: nu_protocol::PipelineData,
+    ) -> Result<nu_protocol::PipelineData, ShellError> {
+        let val = unsafe { memory::string_from(game_menu()) };
+        Ok(Value::String {
+            val,
+            span: call.head,
+        }
+        .into_pipeline_data())
+    }
+}
+
+#[derive(Clone)]
+pub(crate) struct GameEnd;
+
+impl Command for GameEnd {
+    fn name(&self) -> &str {
+        "game end"
+    }
+
+    fn signature(&self) -> Signature {
+        Signature::build("game end")
+    }
+
+    fn usage(&self) -> &str {
+        "End game"
+    }
+
+    fn run(
+        &self,
+        _engine_state: &nu_protocol::engine::EngineState,
+        _stack: &mut nu_protocol::engine::Stack,
+        call: &nu_protocol::ast::Call,
+        _input: nu_protocol::PipelineData,
+    ) -> Result<nu_protocol::PipelineData, ShellError> {
+        let val = unsafe { memory::string_from(game_end()) };
         Ok(Value::String {
             val,
             span: call.head,

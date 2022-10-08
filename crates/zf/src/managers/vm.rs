@@ -1,12 +1,15 @@
 use gdnative::prelude::*;
 use std::{
+    any,
     cell::{RefCell, RefMut},
     collections::HashMap,
 };
 
-use crate::vm::{Command, CommandInput, CommandResult, Parser, Process, ProcessState, VMSignal};
+use crate::vm::{
+    Command, CommandInput, CommandResult, GameCommand, Parser, Process, ProcessState, VMSignal,
+};
 
-use zf_runtime::{prepare_for_test, Runtime};
+use zf_runtime::{Caller, ExtendedStore, Runtime};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -17,13 +20,13 @@ pub struct VMManager {
     process_buffer: RefCell<Vec<Process>>,
     result_buffer: RefCell<ResultBuffer>,
     // TODO: more pts
-    runtime: Runtime,
+    runtime: Option<Runtime<VMData>>,
 }
 
 type ResultBuffer = HashMap<u32, CommandResult>;
 
-struct VMData<'a> {
-    base: &'a Node,
+struct VMData {
+    base: Ref<Node>,
 }
 
 #[methods]
@@ -34,7 +37,7 @@ impl VMManager {
             cmd_id: RefCell::new(0),
             process_buffer: RefCell::new(vec![]),
             result_buffer: RefCell::new(HashMap::new()),
-            runtime: Runtime::init(prepare_for_test).unwrap(),
+            runtime: None,
         }
     }
 
@@ -45,8 +48,25 @@ impl VMManager {
     }
 
     #[method]
-    pub(crate) fn _ready(&self, #[base] base: &Node) {
+    pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
         godot_print!("vm host ready");
+
+        let vm_data = VMData { base: base.claim() };
+
+        self.runtime = Some(
+            Runtime::<VMData>::init(vm_data, |linker| -> anyhow::Result<()> {
+                linker.func_wrap(
+                    "zf",
+                    "game_start",
+                    |caller: Caller<'_, ExtendedStore<VMData>>| -> i64 {
+                        fire_and_forget(&caller.data().ext.base, Command::Game(GameCommand::Start));
+                        0
+                    },
+                )?;
+                Ok(())
+            })
+            .unwrap(),
+        )
 
         // let mut runtime = zf_runtime::Runtime::new();
         // let vm_data = VMData { base };
@@ -64,6 +84,7 @@ impl VMManager {
 
     #[method]
     pub(crate) fn on_cmd_entered(&mut self, #[base] base: &Node, text: String) -> Option<()> {
+        let runtime = self.runtime.as_mut()?;
         godot_print!("on_cmd_entered: {text}!");
         base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
 
@@ -98,7 +119,7 @@ impl VMManager {
         // base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(first)]);
         let result = CommandResult {
             id: 0,
-            result: self.runtime.eval(text).map_err(|e| e.to_string()),
+            result: runtime.eval(text).map_err(|e| e.to_string()),
         };
         godot_dbg!(&result);
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
@@ -122,6 +143,16 @@ impl VMManager {
     }
 }
 
+fn fire_and_forget(base: &Ref<Node>, cmd: Command) {
+    unsafe { base.assume_safe() }.emit_signal(
+        VMSignal::OnCmdParsed,
+        &[CommandInput {
+            id: 0, //self.cmd_id.replace_with(|&mut i| i + 1),
+            cmd,
+        }
+        .to_variant()],
+    );
+}
 fn run(base: &Node, result_buffer: &mut RefMut<ResultBuffer>, process: &mut Process) -> Option<()> {
     let waiting = process.cmds.len();
     process.cmds = process

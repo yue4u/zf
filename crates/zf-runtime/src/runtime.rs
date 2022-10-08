@@ -8,9 +8,9 @@ use wasmtime_wasi::WasiCtxBuilder;
 
 use crate::bridge;
 
-pub struct Runtime {
-    linker: Linker<WasiCtx>,
-    store: Store<WasiCtx>,
+pub struct Runtime<S> {
+    linker: Linker<ExtendedStore<S>>,
+    store: Store<ExtendedStore<S>>,
     instance: Instance,
     _stdout: WritePipe<Cursor<Vec<u8>>>,
     _stderr: WritePipe<Cursor<Vec<u8>>>,
@@ -18,15 +18,19 @@ pub struct Runtime {
 
 pub const ZF_SHELL_MODULE: &'static str = "zf-shell";
 pub const SHELL_WASM: &[u8] = include_bytes!("../../target/wasm32-wasi/release/zf-shell.wasm");
+pub struct ExtendedStore<T> {
+    pub ext: T,
+    pub wasi: WasiCtx,
+}
 
-impl Runtime {
-    pub fn init<F>(prepare: F) -> anyhow::Result<Runtime>
+impl<T> Runtime<T> {
+    pub fn init<S, F>(store_ext: S, prepare: F) -> anyhow::Result<Runtime<S>>
     where
-        F: FnOnce(&mut Linker<WasiCtx>) -> (),
+        F: FnOnce(&mut Linker<ExtendedStore<S>>) -> anyhow::Result<()>,
     {
         let engine = Engine::default();
-        let mut linker = Linker::new(&engine);
-        wasmtime_wasi::add_to_linker(&mut linker, |s| s)?;
+        let mut linker = Linker::<ExtendedStore<S>>::new(&engine);
+        wasmtime_wasi::add_to_linker(&mut linker, |s| &mut s.wasi)?;
 
         let stdout = WritePipe::new_in_memory();
         let stderr = WritePipe::new_in_memory();
@@ -35,10 +39,16 @@ impl Runtime {
             .stdout(Box::new(stdout.clone()))
             .stderr(Box::new(stderr.clone()))
             .build();
-        let mut store = Store::new(&engine, wasi);
+        let mut store = Store::new(
+            &engine,
+            ExtendedStore {
+                ext: store_ext,
+                wasi,
+            },
+        );
         let zf_shell_module = Module::from_binary(&engine, SHELL_WASM)?;
 
-        prepare(&mut linker);
+        prepare(&mut linker)?;
 
         // let zf_shell_instance = linker
         //     .func_wrap("zf", "game_start", |caller: Caller<'_, WasiCtx>| -> i64 {
@@ -129,10 +139,13 @@ impl Runtime {
     }
 }
 
-pub fn prepare_for_test(linker: &mut Linker<WasiCtx>) {
-    linker
-        .func_wrap("zf", "game_start", |caller: Caller<'_, WasiCtx>| -> i64 {
+pub fn prepare_for_test<S>(linker: &mut Linker<ExtendedStore<S>>) -> anyhow::Result<()> {
+    linker.func_wrap(
+        "zf",
+        "game_start",
+        |caller: Caller<'_, ExtendedStore<S>>| -> i64 {
             bridge::write_string_inside(caller, "🌈 it works!".to_owned())
-        })
-        .unwrap();
+        },
+    )?;
+    Ok(())
 }

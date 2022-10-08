@@ -4,7 +4,7 @@ pub fn alloc_string(len: usize) -> *mut u8 {
     let mut buf = String::with_capacity(len);
     let ptr = buf.as_mut_ptr();
     std::mem::forget(buf);
-    return ptr;
+    ptr
 }
 
 pub unsafe fn string_from(parts: i64) -> String {

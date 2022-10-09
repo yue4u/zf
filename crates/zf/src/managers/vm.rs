@@ -1,13 +1,11 @@
 use gdnative::prelude::*;
 use std::{
-    any,
     cell::{RefCell, RefMut},
     collections::HashMap,
 };
 
 use crate::vm::{
-    Command, CommandInput, CommandResult, GameCommand, IntoCommand, Parser, Process, ProcessState,
-    VMSignal,
+    Command, CommandInput, CommandResult, GameCommand, IntoCommand, Process, VMSignal,
 };
 
 use zf_runtime::{Caller, ExtendedStore, Runtime};
@@ -16,8 +14,8 @@ use zf_runtime::{Caller, ExtendedStore, Runtime};
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
 pub struct VMManager {
-    process_id: RefCell<u32>,
-    cmd_id: RefCell<u32>,
+    // process_id: RefCell<u32>,
+    // cmd_id: RefCell<u32>,
     process_buffer: RefCell<Vec<Process>>,
     result_buffer: RefCell<ResultBuffer>,
     // TODO: more pts
@@ -35,8 +33,8 @@ struct VMData {
 impl VMManager {
     pub(crate) fn new(_base: &Node) -> Self {
         VMManager {
-            process_id: RefCell::new(0),
-            cmd_id: RefCell::new(0),
+            // process_id: RefCell::new(0),
+            // cmd_id: RefCell::new(0),
             process_buffer: RefCell::new(vec![]),
             result_buffer: RefCell::new(HashMap::new()),
             runtime: None,

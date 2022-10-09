@@ -1,4 +1,4 @@
-use zf_bridge::{config, encode_into_slice, encode_to_vec};
+use zf_bridge::{config, encode_to_vec};
 
 use zf_bridge::ZFCommandArgs;
 

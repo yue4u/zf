@@ -11,7 +11,7 @@ pub enum ZFCommandArgs {
     // Fire(FireCommand),
     // Radar(RadarCommand),
     // UI(UICommand),
-    // Invalid,
+    Invalid,
 }
 
 #[derive(Decode, Encode, Debug)]

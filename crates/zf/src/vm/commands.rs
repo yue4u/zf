@@ -181,7 +181,7 @@ impl IntoCommand for ZFCommandArgs {
             Arg::Engine(bridge::EngineCommand::On) => Command::Engine(EngineCommand::On),
             Arg::Engine(bridge::EngineCommand::Off) => Command::Engine(EngineCommand::Off),
             Arg::Engine(bridge::EngineCommand::Thruster(t)) => Command::Engine(EngineCommand::Thruster(t)),
-            Arg::Unkonwn => Command::Invalid,
+            Arg::Mystery => Command::Invalid,
         }
     }
 }

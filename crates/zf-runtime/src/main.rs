@@ -33,3 +33,15 @@ fn call() -> anyhow::Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn mystery() -> anyhow::Result<()> {
+    let mut runtime = test_runtime()?;
+
+    assert_eq!(
+        runtime.eval("mystery").unwrap(),
+        "🌈 it works!!".to_string()
+    );
+
+    Ok(())
+}

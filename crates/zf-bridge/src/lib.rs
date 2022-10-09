@@ -11,8 +11,9 @@ pub enum ZFCommandArgs {
     // Fire(FireCommand),
     // Radar(RadarCommand),
     // UI(UICommand),
-    /// use this only for test!
-    Unkonwn,
+
+    /// up to host impl and could use for test
+    Mystery,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

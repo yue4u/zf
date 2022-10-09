@@ -50,10 +50,6 @@ impl<S> Runtime<S> {
 
         prepare(&mut linker)?;
 
-        // let zf_shell_instance = linker
-        //     .func_wrap("zf", "game_start", |caller: Caller<'_, WasiCtx>| -> i64 {
-        //         utils::write_string(caller, "🌈 it works!".to_owned())
-        //     })?
         let instance = linker.instantiate(&mut store, &zf_shell_module)?;
 
         linker.instance(&mut store, ZF_SHELL_MODULE, instance)?;
@@ -115,15 +111,23 @@ pub struct TestStore {
 }
 
 pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
-    let store = TestStore { last_cmd_call: None };
+    let store = TestStore {
+        last_cmd_call: None,
+    };
     let runtime = Runtime::init(store, |linker| -> anyhow::Result<()> {
         linker.func_wrap(
             "zf",
             "zf_cmd",
             |mut caller: Caller<'_, ExtendedStore<TestStore>>, tag: i64| -> i64 {
                 let cmd = cmd_args_from_caller(&mut caller, tag);
+                let ret = match &cmd {
+                    &zf_bridge::ZFCommandArgs::Mystery => {
+                        bridge::write_string_inside(&mut caller, "🌈 it works!!".to_owned())
+                    }
+                    _ => 0,
+                };
                 caller.data_mut().ext.last_cmd_call = Some(cmd);
-                0
+                ret
             },
         )?;
         Ok(())

@@ -8,7 +8,7 @@ use crate::vm::{
     Command, CommandInput, CommandResult, GameCommand, IntoCommand, Process, VMSignal,
 };
 
-use zf_runtime::{Caller, ExtendedStore, Runtime};
+use zf_runtime::{cmd_args_from_caller, Caller, ExtendedStore, Runtime};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -58,40 +58,14 @@ impl VMManager {
 
         self.runtime = Some(
             Runtime::init(vm_data, |linker| -> anyhow::Result<()> {
-                macro_rules! fire_and_forget {
-                    (
-                        $(
-                            $fn_name:literal => $cmd:expr
-                        ),*
-                    ) => {
-                        $(
-                            linker.func_wrap(
-                                "zf",
-                                $fn_name,
-                                |mut caller: Caller<'_, ExtendedStore<VMData>>| -> i64 {
-                                    fire_and_forget(&mut caller.data_mut().ext, $cmd);
-                                    0
-                                },
-                            )?;
-                        )*
-                    };
-                }
-
-                use Command::*;
-
-                fire_and_forget!(
-                    "game_start" => Game(GameCommand::Start),
-                    "game_end" => Game(GameCommand::End),
-                    "game_menu" => Game(GameCommand::Menu)
-                );
-
                 linker.func_wrap(
                     "zf",
-                    "engine",
-                    |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| {
-                        let cmd = zf_runtime::cmd_args_from_caller(&mut caller, tag);
+                    "zf_cmd",
+                    |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| -> i64 {
+                        let cmd = cmd_args_from_caller(&mut caller, tag);
                         godot_dbg!(&cmd);
                         fire_and_forget(&mut caller.data_mut().ext, cmd.into_command());
+                        0
                     },
                 )?;
 

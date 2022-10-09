@@ -1,6 +1,6 @@
 pub use bincode::*;
 
-#[derive(Decode, Encode, Debug)]
+#[derive(Decode, Encode, Debug, PartialEq)]
 pub enum ZFCommandArgs {
     // Help,
     Game(GameCommand),
@@ -11,17 +11,18 @@ pub enum ZFCommandArgs {
     // Fire(FireCommand),
     // Radar(RadarCommand),
     // UI(UICommand),
-    Invalid,
+    /// use this only for test!
+    Unkonwn,
 }
 
-#[derive(Decode, Encode, Debug)]
+#[derive(Decode, Encode, Debug, PartialEq)]
 pub enum GameCommand {
     Start,
     Menu,
     End,
 }
 
-#[derive(Decode, Encode, Debug)]
+#[derive(Decode, Encode, Debug, PartialEq)]
 pub enum EngineCommand {
     On,
     Off,

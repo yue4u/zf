@@ -172,12 +172,16 @@ impl IntoCommand for ZFCommandArgs {
     #[rustfmt::skip]
     fn into_command(self) -> Command {
         use zf_bridge as bridge;
+        use zf_bridge::ZFCommandArgs as Arg;
         
         match self {
-            ZFCommandArgs::Engine(bridge::EngineCommand::On) => Command::Engine(EngineCommand::On),
-            ZFCommandArgs::Engine(bridge::EngineCommand::Off) => Command::Engine(EngineCommand::Off),
-            ZFCommandArgs::Engine(bridge::EngineCommand::Thruster(t)) => Command::Engine(EngineCommand::Thruster(t)),
-            _ => Command::Invalid,
+            Arg::Game(bridge::GameCommand::Start) => Command::Game(GameCommand::Start),
+            Arg::Game(bridge::GameCommand::End) => Command::Game(GameCommand::End),
+            Arg::Game(bridge::GameCommand::Menu) => Command::Game(GameCommand::Menu),
+            Arg::Engine(bridge::EngineCommand::On) => Command::Engine(EngineCommand::On),
+            Arg::Engine(bridge::EngineCommand::Off) => Command::Engine(EngineCommand::Off),
+            Arg::Engine(bridge::EngineCommand::Thruster(t)) => Command::Engine(EngineCommand::Thruster(t)),
+            Arg::Unkonwn => Command::Invalid,
         }
     }
 }

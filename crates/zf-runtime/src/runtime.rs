@@ -58,10 +58,6 @@ impl<S> Runtime<S> {
 
         linker.instance(&mut store, ZF_SHELL_MODULE, instance)?;
 
-        // linker
-        //     .get_default(&mut store, ZF_SHELL_MODULE)?
-        //     .typed::<(), (), _>(&store)?
-        //     .call(&mut store, ())?;
         Ok(Runtime {
             linker,
             store,
@@ -114,40 +110,24 @@ impl<S> Runtime<S> {
     }
 }
 
-pub fn prepare_for_test<S>(linker: &mut Linker<ExtendedStore<S>>) -> anyhow::Result<()> {
-    macro_rules! dummy {
-        (
-            $(
-                $fn_name:literal
-            ),*
-        ) => {
-            $(
-                linker.func_wrap(
-                    "zf",
-                    $fn_name,
-                    || -> i64 {
-                        println!("{}", $fn_name);
-                        0
-                    },
-                )?;
-            )*
-        };
-    }
+pub struct TestStore {
+    pub last_cmd_call: Option<zf_bridge::ZFCommandArgs>,
+}
 
-    dummy! {
-        "game_start",
-        "game_end",
-        "game_menu"
-    }
+pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
+    let store = TestStore { last_cmd_call: None };
+    let runtime = Runtime::init(store, |linker| -> anyhow::Result<()> {
+        linker.func_wrap(
+            "zf",
+            "zf_cmd",
+            |mut caller: Caller<'_, ExtendedStore<TestStore>>, tag: i64| -> i64 {
+                let cmd = cmd_args_from_caller(&mut caller, tag);
+                caller.data_mut().ext.last_cmd_call = Some(cmd);
+                0
+            },
+        )?;
+        Ok(())
+    })?;
 
-    linker.func_wrap(
-        "zf",
-        "engine",
-        |mut caller: Caller<'_, ExtendedStore<S>>, tag: i64| {
-            let cmd = cmd_args_from_caller(&mut caller, tag);
-            dbg!(&cmd);
-        },
-    )?;
-
-    Ok(())
+    Ok(runtime)
 }

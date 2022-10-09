@@ -1,8 +1,18 @@
+use zf_bridge::ZFCommandArgs;
+
+use crate::memory;
+
 #[link(wasm_import_module = "zf")]
 extern "C" {
-    pub fn game_start() -> i64;
-    pub fn game_end() -> i64;
-    pub fn game_menu() -> i64;
+    /// args: tag of ZFCommandArgs
+    /// return: tag of String
+    fn zf_cmd(args: i64) -> i64;
+}
 
-    pub fn engine(args: i64);
+pub fn zf_call(args: ZFCommandArgs) -> String {
+    let tag_out = memory::alloc_cmd_args(args);
+    unsafe {
+        let tag_in = zf_cmd(tag_out);
+        memory::string_from(tag_in)
+    }
 }

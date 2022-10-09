@@ -1,8 +1,6 @@
-use crate::{
-    imports::{game_end, game_menu, game_start},
-    memory,
-};
+use crate::imports;
 use nu_protocol::{engine::Command, IntoPipelineData, ShellError, Signature, Value};
+use zf_bridge::{GameCommand, ZFCommandArgs};
 
 #[derive(Clone)]
 pub(crate) struct Game;
@@ -27,11 +25,7 @@ impl Command for Game {
         call: &nu_protocol::ast::Call,
         _input: nu_protocol::PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
-        Ok(Value::String {
-            val: "game".into(),
-            span: call.head,
-        }
-        .into_pipeline_data())
+        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }
 }
 
@@ -58,12 +52,9 @@ impl Command for GameStart {
         call: &nu_protocol::ast::Call,
         _input: nu_protocol::PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
-        let val = unsafe { memory::string_from(game_start()) };
-        Ok(Value::String {
-            val,
-            span: call.head,
-        }
-        .into_pipeline_data())
+        let args = ZFCommandArgs::Game(GameCommand::Start);
+        imports::zf_call(args);
+        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }
 }
 
@@ -90,12 +81,10 @@ impl Command for GameMenu {
         call: &nu_protocol::ast::Call,
         _input: nu_protocol::PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
-        let val = unsafe { memory::string_from(game_menu()) };
-        Ok(Value::String {
-            val,
-            span: call.head,
-        }
-        .into_pipeline_data())
+        let args = ZFCommandArgs::Game(GameCommand::Menu);
+        imports::zf_call(args);
+
+        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }
 }
 
@@ -122,11 +111,9 @@ impl Command for GameEnd {
         call: &nu_protocol::ast::Call,
         _input: nu_protocol::PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
-        let val = unsafe { memory::string_from(game_end()) };
-        Ok(Value::String {
-            val,
-            span: call.head,
-        }
-        .into_pipeline_data())
+        let args = ZFCommandArgs::Game(GameCommand::End);
+        imports::zf_call(args);
+
+        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }
 }

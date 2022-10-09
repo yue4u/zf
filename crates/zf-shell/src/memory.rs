@@ -11,7 +11,6 @@ pub fn alloc_string(len: usize) -> *mut u8 {
     ptr
 }
 
-#[no_mangle]
 pub fn alloc_string_inside(mut string: String) -> i64 {
     string.shrink_to_fit();
     let ptr = string.as_mut_ptr();

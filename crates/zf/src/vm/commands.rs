@@ -181,6 +181,10 @@ impl IntoCommand for CommandBridge {
             Arg::Engine(bridge::EngineCommand::On) => Command::Engine(EngineCommand::On),
             Arg::Engine(bridge::EngineCommand::Off) => Command::Engine(EngineCommand::Off),
             Arg::Engine(bridge::EngineCommand::Thruster(t)) => Command::Engine(EngineCommand::Thruster(t)),
+            Arg::UI(bridge::UICommand { label, action }) => Command::UI(UICommand{label,action: match action {
+                bridge::UIAction::Hide => UIAction::Hide,
+                bridge::UIAction::Show => UIAction::Show,
+            }}),
             Arg::Mystery => Command::Invalid,
         }
     }

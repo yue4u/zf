@@ -120,6 +120,7 @@ pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
             "zf_cmd",
             |mut caller: Caller<'_, ExtendedStore<TestStore>>, tag: i64| -> i64 {
                 let cmd = cmd_args_from_caller(&mut caller, tag);
+                dbg!(&cmd);
                 let ret = match &cmd {
                     &zf_bridge::CommandBridge::Mystery => {
                         bridge::write_string_inside(&mut caller, "🌈 it works!!".to_owned())

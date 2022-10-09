@@ -9,6 +9,7 @@ use nu_protocol::{
 
 use crate::commands::{
     Engine, EngineOff, EngineOn, EngineThruster, Game, GameEnd, GameMenu, GameStart, Hi, Mystery,
+    UI,
 };
 
 macro_rules! eval {
@@ -44,6 +45,8 @@ pub fn eval(input: String) -> Result<String> {
         EngineOn,
         EngineOff,
         EngineThruster,
+
+        UI,
 
         Mystery,
 

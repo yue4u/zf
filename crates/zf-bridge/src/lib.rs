@@ -10,7 +10,7 @@ pub enum CommandBridge {
     // Unkonwn(String),
     // Fire(FireCommand),
     // Radar(RadarCommand),
-    // UI(UICommand),
+    UI(UICommand),
     /// up to host impl and could use for test
     Mystery,
 }
@@ -27,6 +27,18 @@ pub enum EngineCommand {
     On,
     Off,
     Thruster(i8),
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+pub enum UIAction {
+    Hide,
+    Show,
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+pub struct UICommand {
+    pub label: String,
+    pub action: UIAction,
 }
 
 pub struct Tag;

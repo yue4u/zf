@@ -1,5 +1,5 @@
 use wasmtime::{AsContextMut, Caller, Instance, Memory, Store};
-use zf_bridge::{config, decode_from_slice, ZFCommandArgs};
+use zf_bridge::{config, decode_from_slice, Tag, ZFCommandArgs};
 
 use crate::runtime::ExtendedStore;
 
@@ -30,8 +30,7 @@ use crate::runtime::ExtendedStore;
 // }
 
 pub fn read_string_outside<T>(store: &Store<T>, memory: &Memory, tag: i64) -> String {
-    let len = tag as i32;
-    let ptr = (tag >> 32) as i32;
+    let (ptr, len) = Tag::from(tag);
     String::from_utf8_lossy(memory.data(store)[ptr as usize..ptr as usize + len as usize].into())
         .to_string()
 }
@@ -59,7 +58,7 @@ pub(crate) fn write_string_outside<T>(
         &memory.data(&&mut *store)[ptr as usize..ptr as usize + len as usize],
         content
     );
-    (ptr as i64) << 32 | (len as i64)
+    Tag::into(ptr, len)
 }
 
 pub fn cmd_args_from_caller<T>(
@@ -69,8 +68,7 @@ pub fn cmd_args_from_caller<T>(
     let memory = caller.get_export("memory").unwrap().into_memory().unwrap();
     let mut store = caller.as_context_mut();
 
-    let len = tag as i32;
-    let ptr = (tag >> 32) as i32;
+    let (ptr, len) = Tag::from(tag);
 
     let data = &memory.data(&mut store)[ptr as usize..ptr as usize + len as usize];
     let (args, _) = decode_from_slice(data, config::standard()).unwrap();

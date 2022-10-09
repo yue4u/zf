@@ -1,4 +1,4 @@
-use zf_bridge::{config, encode_to_vec};
+use zf_bridge::{config, encode_to_vec, Tag};
 
 use zf_bridge::ZFCommandArgs;
 
@@ -18,12 +18,11 @@ pub fn alloc_string_inside(mut string: String) -> i64 {
     let len = string.len() as i32;
     std::mem::forget(string);
 
-    (ptr as i64) << 32 | (len as i64)
+    Tag::into(ptr as i32, len)
 }
 
 pub unsafe fn string_from(tag: i64) -> String {
-    let len = tag as i32;
-    let ptr = (tag >> 32) as i32;
+    let (ptr, len) = Tag::from(tag);
     String::from_raw_parts(
         ptr as *mut u8, //
         len as usize,
@@ -39,5 +38,5 @@ pub fn alloc_cmd_args(args: ZFCommandArgs) -> i64 {
 
     std::mem::forget(vec);
 
-    (ptr as i64) << 32 | (len as i64)
+    Tag::into(ptr as i32, len)
 }

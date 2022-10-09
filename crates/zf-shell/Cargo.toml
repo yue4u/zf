@@ -19,3 +19,5 @@ nu-protocol = { path = "../nushell/crates/nu-protocol", default-features = false
 # nu-source = { path = "../nushell/crates/nu-source", default-features = false }
 nu-engine = { path = "../nushell/crates/nu-engine", default-features = false }
 nu-parser = { path = "../nushell/crates/nu-parser", default-features = false }
+
+zf-bridge = { path = "../zf-bridge" }

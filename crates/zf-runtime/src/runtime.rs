@@ -6,7 +6,7 @@ use wasmtime::*;
 pub use wasmtime::{Caller, Func, Store};
 use wasmtime_wasi::WasiCtxBuilder;
 
-use crate::bridge;
+use crate::{bridge, cmd_args_from_caller};
 
 pub struct Runtime<S> {
     linker: Linker<ExtendedStore<S>>,
@@ -23,8 +23,8 @@ pub struct ExtendedStore<T> {
     pub wasi: WasiCtx,
 }
 
-impl<T> Runtime<T> {
-    pub fn init<S, F>(store_ext: S, prepare: F) -> anyhow::Result<Runtime<S>>
+impl<S> Runtime<S> {
+    pub fn init<F>(store_ext: S, prepare: F) -> anyhow::Result<Runtime<S>>
     where
         F: FnOnce(&mut Linker<ExtendedStore<S>>) -> anyhow::Result<()>,
     {
@@ -72,31 +72,6 @@ impl<T> Runtime<T> {
     }
 
     pub fn eval(&mut self, input: impl Into<String>) -> anyhow::Result<String> {
-        // use wasi_common::pipe::WritePipe;
-        // use wasmtime_wasi::WasiCtxBuilder;
-
-        // let engine = Engine::default();
-        // let mut linker = Linker::new(&engine);
-        // wasmtime_wasi::add_to_linker(&mut linker, |s| s)?;
-
-        // let stdout = WritePipe::new_in_memory();
-        // let stderr = WritePipe::new_in_memory();
-
-        // let wasi = WasiCtxBuilder::new()
-        //     .stdout(Box::new(stdout.clone()))
-        //     .stderr(Box::new(stderr.clone()))
-        //     .args(&["".to_owned(), input.into()])?
-        //     .build();
-        // let mut store = Store::new(&engine, wasi);
-        // let zf_shell_module = Module::from_binary(&engine, SHELL_WASM)?;
-
-        // let zf_shell_instance = linker
-        //     .func_wrap("zf", "game_start", |caller: Caller<'_, WasiCtx>| -> i64 {
-        //         utils::write_string(caller, "🌈 it works!".to_owned())
-        //     })?
-        //     .instantiate(&mut store, &zf_shell_module)?;
-
-        // linker.instance(&mut store, ZF_SHELL_MODULE, zf_shell_instance)?;
         let memory = self
             .instance
             .get_export(&mut self.store, "memory")
@@ -164,6 +139,15 @@ pub fn prepare_for_test<S>(linker: &mut Linker<ExtendedStore<S>>) -> anyhow::Res
         "game_end",
         "game_menu"
     }
+
+    linker.func_wrap(
+        "zf",
+        "engine",
+        |mut caller: Caller<'_, ExtendedStore<S>>, tag: i64| {
+            let cmd = cmd_args_from_caller(&mut caller, tag);
+            dbg!(&cmd);
+        },
+    )?;
 
     Ok(())
 }

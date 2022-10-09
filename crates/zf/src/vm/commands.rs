@@ -1,6 +1,7 @@
 use gdnative::derive::{FromVariant, ToVariant};
 
 use crate::vm::CommandInput;
+use zf_bridge::ZFCommandArgs;
 
 #[derive(FromVariant, ToVariant, Clone, Debug, PartialEq)]
 pub enum ProcessState {
@@ -55,12 +56,6 @@ impl TryFrom<&str> for Command {
 
         let cmd = match args[..] {
             ["help" | "h"] => Help,
-            ["game" | "g", act] => match act {
-                "start" => Game(GameCommand::Start),
-                "menu" => Game(GameCommand::Menu),
-                "end" => Game(GameCommand::End),
-                _ => Invalid,
-            },
             ["mission" | "m", ..] => match args[1..] {
                 ["summary" | "s"] | [] => Mission(MissionCommand::Summary),
                 ["target" | "t"] => Mission(MissionCommand::Tartget),
@@ -166,4 +161,23 @@ pub enum UIAction {
 pub struct UICommand {
     pub label: String,
     pub action: UIAction,
+}
+
+pub trait IntoCommand {
+    fn into_command(self) -> Command;
+}
+
+impl IntoCommand for ZFCommandArgs {
+
+    #[rustfmt::skip]
+    fn into_command(self) -> Command {
+        use zf_bridge as bridge;
+        
+        match self {
+            ZFCommandArgs::Engine(bridge::EngineCommand::On) => Command::Engine(EngineCommand::On),
+            ZFCommandArgs::Engine(bridge::EngineCommand::Off) => Command::Engine(EngineCommand::Off),
+            ZFCommandArgs::Engine(bridge::EngineCommand::Thruster(t)) => Command::Engine(EngineCommand::Thruster(t)),
+            _ => Command::Invalid,
+        }
+    }
 }

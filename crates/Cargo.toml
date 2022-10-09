@@ -4,6 +4,7 @@ members = [
     "zf",
     "zf-x",
     "zf-shell",
+    'zf-bridge',
     "zf-runtime",
 ]
 

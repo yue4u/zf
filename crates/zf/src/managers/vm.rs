@@ -6,7 +6,8 @@ use std::{
 };
 
 use crate::vm::{
-    Command, CommandInput, CommandResult, GameCommand, Parser, Process, ProcessState, VMSignal,
+    Command, CommandInput, CommandResult, GameCommand, IntoCommand, Parser, Process, ProcessState,
+    VMSignal,
 };
 
 use zf_runtime::{Caller, ExtendedStore, Runtime};
@@ -58,7 +59,7 @@ impl VMManager {
         };
 
         self.runtime = Some(
-            Runtime::<VMData>::init(vm_data, |linker| -> anyhow::Result<()> {
+            Runtime::init(vm_data, |linker| -> anyhow::Result<()> {
                 macro_rules! fire_and_forget {
                     (
                         $(
@@ -78,11 +79,24 @@ impl VMManager {
                     };
                 }
 
+                use Command::*;
+
                 fire_and_forget!(
-                    "game_start" => Command::Game(GameCommand::Start),
-                    "game_end" => Command::Game(GameCommand::End),
-                    "game_menu" => Command::Game(GameCommand::Menu)
+                    "game_start" => Game(GameCommand::Start),
+                    "game_end" => Game(GameCommand::End),
+                    "game_menu" => Game(GameCommand::Menu)
                 );
+
+                linker.func_wrap(
+                    "zf",
+                    "engine",
+                    |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| {
+                        let cmd = zf_runtime::cmd_args_from_caller(&mut caller, tag);
+                        godot_dbg!(&cmd);
+                        fire_and_forget(&mut caller.data_mut().ext, cmd.into_command());
+                    },
+                )?;
+
                 Ok(())
             })
             .unwrap(),
@@ -95,35 +109,6 @@ impl VMManager {
         godot_print!("on_cmd_entered: {text}!");
         base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
 
-        // let cmds = match Parser::parse(text) {
-        //     Ok(cmds) => cmds,
-        //     Err(e) => {
-        //         self.on_cmd_result(
-        //             base,
-        //             CommandResult {
-        //                 id: 0,
-        //                 result: Err(format!("failed to parse command: {:#?}", e)),
-        //             },
-        //         );
-        //         return None;
-        //     }
-        // };
-        // let id = self.process_id.replace_with(|&mut i| i + 1);
-        // let process = Process {
-        //     id,
-        //     active_id: 0,
-        //     cmds: cmds
-        //         .into_iter()
-        //         .map(|cmd| CommandInput {
-        //             cmd,
-        //             id: self.cmd_id.replace_with(|&mut i| i + 1),
-        //         })
-        //         .collect(),
-        //     state: ProcessState::Running,
-        // };
-        // let first = process.cmds.first()?.clone();
-        // self.process_buffer.borrow_mut().push(process);
-        // base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(first)]);
         let result = runtime.eval(text).map_err(|e| e.to_string());
         let id = runtime.store.data_mut().ext.cmd_id + 1;
         runtime.store.data_mut().ext.cmd_id = id;
@@ -151,6 +136,7 @@ impl VMManager {
 }
 
 fn fire_and_forget(vm_data: &VMData, cmd: Command) {
+    godot_dbg!(&cmd);
     unsafe { vm_data.base.assume_safe() }.emit_signal(
         VMSignal::OnCmdParsed,
         &[CommandInput {
@@ -160,6 +146,7 @@ fn fire_and_forget(vm_data: &VMData, cmd: Command) {
         .to_variant()],
     );
 }
+
 fn run(base: &Node, result_buffer: &mut RefMut<ResultBuffer>, process: &mut Process) -> Option<()> {
     let waiting = process.cmds.len();
     process.cmds = process

@@ -49,6 +49,7 @@ impl Player {
 
     #[method]
     fn on_cmd_parsed(&self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
+        godot_dbg!(&input);
         let current_status = self.engine.borrow();
         let next_status = match &input.cmd {
             Command::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
@@ -67,6 +68,8 @@ impl Player {
             }
             _ => None,
         }?;
+
+        godot_dbg!(&next_status);
 
         let speed = match next_status {
             EngineStatus::On(percent) => MAX_SPEED * (percent as f64) / 100.,

@@ -42,6 +42,10 @@ fn mystery() -> anyhow::Result<()> {
         runtime.eval("mystery").unwrap(),
         "🌈 it works!!".to_string()
     );
+    assert_eq!(
+        runtime.eval("mystery | str contains 🌈").unwrap(),
+        "true".to_string()
+    );
 
     Ok(())
 }

@@ -1,6 +1,6 @@
 use zf_bridge::{config, encode_to_vec, Tag};
 
-use zf_bridge::ZFCommandArgs;
+use zf_bridge::CommandBridge;
 
 /// https://radu-matei.com/blog/practical-guide-to-wasm-memory/
 #[no_mangle]
@@ -29,7 +29,7 @@ pub unsafe fn string_from(tag: i64) -> String {
     )
 }
 
-pub fn alloc_cmd_args(args: ZFCommandArgs) -> i64 {
+pub fn alloc_cmd_args(args: CommandBridge) -> i64 {
     let config = config::standard();
     let mut vec = encode_to_vec(args, config).unwrap();
     let ptr = vec.as_mut_ptr();

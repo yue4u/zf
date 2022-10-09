@@ -1,5 +1,4 @@
 mod commands;
-#[macro_use]
 mod shell;
 mod imports;
 mod memory;

@@ -1,6 +1,6 @@
 use crate::imports;
 use nu_protocol::{engine::Command, IntoPipelineData, ShellError, Signature, Value};
-use zf_bridge::ZFCommandArgs;
+use zf_bridge::CommandBridge;
 
 #[derive(Clone)]
 pub(crate) struct Mystery;
@@ -25,7 +25,7 @@ impl Command for Mystery {
         call: &nu_protocol::ast::Call,
         _input: nu_protocol::PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
-        let args = ZFCommandArgs::Mystery;
+        let args = CommandBridge::Mystery;
         let val = imports::zf_call(args);
         Ok(Value::String {
             val,

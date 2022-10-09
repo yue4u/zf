@@ -1,7 +1,7 @@
 pub use bincode::*;
 
 #[derive(Decode, Encode, Debug, PartialEq)]
-pub enum ZFCommandArgs {
+pub enum CommandBridge {
     // Help,
     Game(GameCommand),
     // Mission(MissionCommand),
@@ -11,7 +11,6 @@ pub enum ZFCommandArgs {
     // Fire(FireCommand),
     // Radar(RadarCommand),
     // UI(UICommand),
-
     /// up to host impl and could use for test
     Mystery,
 }

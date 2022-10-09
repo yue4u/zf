@@ -22,14 +22,14 @@ fn sanity() -> anyhow::Result<()> {
 
 #[test]
 fn call() -> anyhow::Result<()> {
-    use zf_bridge::{GameCommand, ZFCommandArgs};
+    use zf_bridge::{CommandBridge, GameCommand};
 
     let mut runtime = test_runtime()?;
     runtime.eval("game start")?;
 
     assert_eq!(
         runtime.store.data().ext.last_cmd_call,
-        Some(ZFCommandArgs::Game(GameCommand::Start))
+        Some(CommandBridge::Game(GameCommand::Start))
     );
     Ok(())
 }

@@ -107,7 +107,7 @@ impl<S> Runtime<S> {
 }
 
 pub struct TestStore {
-    pub last_cmd_call: Option<zf_bridge::ZFCommandArgs>,
+    pub last_cmd_call: Option<zf_bridge::CommandBridge>,
 }
 
 pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
@@ -121,7 +121,7 @@ pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
             |mut caller: Caller<'_, ExtendedStore<TestStore>>, tag: i64| -> i64 {
                 let cmd = cmd_args_from_caller(&mut caller, tag);
                 let ret = match &cmd {
-                    &zf_bridge::ZFCommandArgs::Mystery => {
+                    &zf_bridge::CommandBridge::Mystery => {
                         bridge::write_string_inside(&mut caller, "🌈 it works!!".to_owned())
                     }
                     _ => 0,

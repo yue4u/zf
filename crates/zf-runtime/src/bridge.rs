@@ -1,5 +1,5 @@
 use wasmtime::{AsContextMut, Caller, Instance, Memory, Store};
-use zf_bridge::{config, decode_from_slice, Tag, ZFCommandArgs};
+use zf_bridge::{config, decode_from_slice, CommandBridge, Tag};
 
 use crate::runtime::ExtendedStore;
 
@@ -64,7 +64,7 @@ pub(crate) fn write_string_outside<T>(
 pub fn cmd_args_from_caller<T>(
     caller: &mut Caller<'_, ExtendedStore<T>>,
     tag: i64,
-) -> ZFCommandArgs {
+) -> CommandBridge {
     let memory = caller.get_export("memory").unwrap().into_memory().unwrap();
     let mut store = caller.as_context_mut();
 

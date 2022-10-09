@@ -4,9 +4,7 @@ use std::{
     collections::HashMap,
 };
 
-use crate::vm::{
-    Command, CommandInput, CommandResult, GameCommand, IntoCommand, Process, VMSignal,
-};
+use crate::vm::{Command, CommandInput, CommandResult, IntoCommand, Process, VMSignal};
 
 use zf_runtime::{cmd_args_from_caller, Caller, ExtendedStore, Runtime};
 

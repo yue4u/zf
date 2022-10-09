@@ -1,4 +1,8 @@
-use nu_protocol::{engine::Command, IntoPipelineData, ShellError, Signature, Value};
+use nu_protocol::{
+    ast::Call,
+    engine::{Command, EngineState, Stack},
+    IntoPipelineData, PipelineData, ShellError, Signature, Value,
+};
 
 #[derive(Clone)]
 pub(crate) struct Hi;
@@ -8,7 +12,7 @@ impl Command for Hi {
         "hi"
     }
 
-    fn signature(&self) -> nu_protocol::Signature {
+    fn signature(&self) -> Signature {
         Signature::build("hi")
     }
 
@@ -18,11 +22,11 @@ impl Command for Hi {
 
     fn run(
         &self,
-        _engine_state: &nu_protocol::engine::EngineState,
-        _stack: &mut nu_protocol::engine::Stack,
-        call: &nu_protocol::ast::Call,
-        _input: nu_protocol::PipelineData,
-    ) -> Result<nu_protocol::PipelineData, ShellError> {
+        _engine_state: &EngineState,
+        _stack: &mut Stack,
+        call: &Call,
+        _input: PipelineData,
+    ) -> Result<PipelineData, ShellError> {
         Ok(Value::String {
             val: "hi!".into(),
             span: call.head,

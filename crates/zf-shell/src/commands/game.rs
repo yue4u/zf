@@ -1,119 +1,31 @@
-use crate::imports;
-use nu_protocol::{engine::Command, IntoPipelineData, ShellError, Signature, Value};
-use zf_bridge::{GameCommand, ZFCommandArgs};
+use nu_protocol::{IntoPipelineData, Signature};
+use zf_bridge::{CommandBridge, GameCommand};
 
-#[derive(Clone)]
-pub(crate) struct Game;
+use super::zf_call;
 
-impl Command for Game {
-    fn name(&self) -> &str {
-        "game"
-    }
+zf_call::empty_command!(
+    Game,
+    name: "game",
+    usage: "game"
+);
 
-    fn signature(&self) -> nu_protocol::Signature {
-        Signature::build("game")
-    }
+zf_call::proxy_command!(
+    GameStart,
+    name: "game start",
+    usage: "Start game",
+    arg: CommandBridge::Game(GameCommand::Start)
+);
 
-    fn usage(&self) -> &str {
-        "game"
-    }
+zf_call::proxy_command!(
+    GameMenu,
+    name: "game menu",
+    usage: "Goto game game",
+    arg: CommandBridge::Game(GameCommand::Menu)
+);
 
-    fn run(
-        &self,
-        _engine_state: &nu_protocol::engine::EngineState,
-        _stack: &mut nu_protocol::engine::Stack,
-        call: &nu_protocol::ast::Call,
-        _input: nu_protocol::PipelineData,
-    ) -> Result<nu_protocol::PipelineData, ShellError> {
-        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
-    }
-}
-
-#[derive(Clone)]
-pub(crate) struct GameStart;
-
-impl Command for GameStart {
-    fn name(&self) -> &str {
-        "game start"
-    }
-
-    fn signature(&self) -> Signature {
-        Signature::build("game start")
-    }
-
-    fn usage(&self) -> &str {
-        "Start game"
-    }
-
-    fn run(
-        &self,
-        _engine_state: &nu_protocol::engine::EngineState,
-        _stack: &mut nu_protocol::engine::Stack,
-        call: &nu_protocol::ast::Call,
-        _input: nu_protocol::PipelineData,
-    ) -> Result<nu_protocol::PipelineData, ShellError> {
-        let args = ZFCommandArgs::Game(GameCommand::Start);
-        imports::zf_call(args);
-        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
-    }
-}
-
-#[derive(Clone)]
-pub(crate) struct GameMenu;
-
-impl Command for GameMenu {
-    fn name(&self) -> &str {
-        "game menu"
-    }
-
-    fn signature(&self) -> Signature {
-        Signature::build("game menu")
-    }
-
-    fn usage(&self) -> &str {
-        "Goto game menu"
-    }
-
-    fn run(
-        &self,
-        _engine_state: &nu_protocol::engine::EngineState,
-        _stack: &mut nu_protocol::engine::Stack,
-        call: &nu_protocol::ast::Call,
-        _input: nu_protocol::PipelineData,
-    ) -> Result<nu_protocol::PipelineData, ShellError> {
-        let args = ZFCommandArgs::Game(GameCommand::Menu);
-        imports::zf_call(args);
-
-        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
-    }
-}
-
-#[derive(Clone)]
-pub(crate) struct GameEnd;
-
-impl Command for GameEnd {
-    fn name(&self) -> &str {
-        "game end"
-    }
-
-    fn signature(&self) -> Signature {
-        Signature::build("game end")
-    }
-
-    fn usage(&self) -> &str {
-        "End game"
-    }
-
-    fn run(
-        &self,
-        _engine_state: &nu_protocol::engine::EngineState,
-        _stack: &mut nu_protocol::engine::Stack,
-        call: &nu_protocol::ast::Call,
-        _input: nu_protocol::PipelineData,
-    ) -> Result<nu_protocol::PipelineData, ShellError> {
-        let args = ZFCommandArgs::Game(GameCommand::End);
-        imports::zf_call(args);
-
-        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
-    }
-}
+zf_call::proxy_command!(
+    GameEnd,
+    name: "game end",
+    usage: "End game",
+    arg: CommandBridge::Game(GameCommand::End)
+);

@@ -62,22 +62,6 @@ impl TryFrom<&str> for Command {
                 ["position" | "p"] => Mission(MissionCommand::Position),
                 _ => Invalid,
             },
-            ["engine" | "e", ..] => match args[1..] {
-                ["on"] => Engine(EngineCommand::On),
-                ["off"] => Engine(EngineCommand::Off),
-                ["thruster" | "t", t] => Engine(EngineCommand::Thruster(
-                    t.parse::<i8>()
-                        .map(|n| {
-                            if -100 <= n && n <= 100 {
-                                Ok(n)
-                            } else {
-                                Err(InvalidCommand)
-                            }
-                        })
-                        .or(Err(InvalidCommand))??,
-                )),
-                _ => Invalid,
-            },
             ["autopilot" | "a", ..] => match args[1..] {
                 ["target" | "t", t] => Autopilot(AutopilotCommand::Tartget(t.to_owned())),
                 ["orbit" | "o", o] => Autopilot(AutopilotCommand::Orbit(o.to_owned())),
@@ -91,14 +75,6 @@ impl TryFrom<&str> for Command {
                 }),
                 _ => Invalid,
             },
-            ["ui", action, label] => UI(UICommand {
-                label: label.to_owned(),
-                action: match action {
-                    "s" | "show" => UIAction::Show,
-                    "h" | "hide" => UIAction::Hide,
-                    _ => return Err(InvalidCommand),
-                },
-            }),
             _ => Invalid,
         };
         match cmd {

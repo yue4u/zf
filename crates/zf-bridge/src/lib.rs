@@ -7,9 +7,8 @@ pub enum CommandBridge {
     Mission(MissionCommand),
     Engine(EngineCommand),
     // Autopilot(AutopilotCommand),
-    // Unkonwn(String),
-    // Fire(FireCommand),
-    // Radar(RadarCommand),
+    Fire(FireCommand),
+    Radar(RadarCommand),
     UI(UICommand),
     /// up to host impl and could use for test
     Mystery,
@@ -44,6 +43,17 @@ pub struct UICommand {
 #[derive(Decode, Encode, Debug, PartialEq)]
 pub enum MissionCommand {
     Info,
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+pub struct RadarCommand {
+    // TODO: options
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+pub struct FireCommand {
+    pub weapon: String,
+    pub target: String,
 }
 
 pub struct Tag;

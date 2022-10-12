@@ -31,7 +31,7 @@ pub enum Command {
     Game(GameCommand),
     Mission(MissionCommand),
     Engine(EngineCommand),
-    Autopilot(AutopilotCommand),
+    // Autopilot(AutopilotCommand),
     Unkonwn(String),
     Fire(FireCommand),
     Radar(RadarCommand),
@@ -40,42 +40,6 @@ pub enum Command {
 }
 
 use Command::*;
-
-#[derive(Debug)]
-pub struct InvalidCommand;
-
-impl TryFrom<&str> for Command {
-    type Error = InvalidCommand;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let args = value
-            .split(' ')
-            .take_while(|&arg| arg != "|")
-            .into_iter()
-            .collect::<Vec<&str>>();
-
-        let cmd = match args[..] {
-            ["autopilot" | "a", ..] => match args[1..] {
-                ["target" | "t", t] => Autopilot(AutopilotCommand::Tartget(t.to_owned())),
-                ["orbit" | "o", o] => Autopilot(AutopilotCommand::Orbit(o.to_owned())),
-                _ => Invalid,
-            },
-            ["radar"] => Radar(RadarCommand {}),
-            ["fire" | "f", ..] => match args[1..] {
-                ["hm", ..] => Fire(FireCommand {
-                    weapon: Weapon::HomingMissile,
-                    target: args.get(2).map(|&t| t.to_owned()),
-                }),
-                _ => Invalid,
-            },
-            _ => Invalid,
-        };
-        match cmd {
-            Invalid => Err(InvalidCommand),
-            _ => Ok(cmd),
-        }
-    }
-}
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum GameCommand {
@@ -97,20 +61,15 @@ pub enum EngineCommand {
 }
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
-pub enum AutopilotCommand {
+pub enum SteeringCommand {
     Tartget(String),
     Orbit(String),
 }
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
-pub enum Weapon {
-    HomingMissile,
-}
-
-#[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct FireCommand {
-    pub weapon: Weapon,
-    pub target: Option<String>,
+    pub weapon: String,
+    pub target: String,
 }
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
@@ -153,6 +112,14 @@ impl IntoCommand for CommandBridge {
                 bridge::UIAction::Show => UIAction::Show,
             }}),
             Arg::Mission(bridge::MissionCommand::Info) => Command::Mission(MissionCommand::Info),
+            Arg::Radar(bridge::RadarCommand{}) => Command::Radar(RadarCommand{}),
+            Arg::Fire(bridge::FireCommand{
+                weapon,
+                target,
+            }) => Command::Fire(FireCommand{
+                weapon,
+                target,
+            }),
             Arg::Mystery => Command::Invalid,
         }
     }

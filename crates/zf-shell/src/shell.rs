@@ -8,8 +8,8 @@ use nu_protocol::{
 };
 
 use crate::commands::{
-    Engine, EngineOff, EngineOn, EngineThruster, Game, GameEnd, GameMenu, GameStart, Hi, Mission,
-    Mystery, UI,
+    Engine, EngineOff, EngineOn, EngineThruster, Fire, Game, GameEnd, GameMenu, GameStart, Hi,
+    Mission, Mystery, Radar, UI,
 };
 
 macro_rules! eval {
@@ -51,6 +51,10 @@ pub fn eval(input: String) -> Result<String> {
         Mission,
 
         Mystery,
+
+        Radar,
+
+        Fire,
 
         // default_context below
 

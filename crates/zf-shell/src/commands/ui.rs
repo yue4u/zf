@@ -8,6 +8,8 @@ use nu_protocol::{
 use crate::imports;
 use zf_bridge::{CommandBridge, UIAction, UICommand};
 
+use super::expect_flag;
+
 #[derive(Clone)]
 pub(crate) struct UI;
 
@@ -54,15 +56,7 @@ impl Command for UI {
                     ))
                 }
             },
-            label: match call.get_flag(engine_state, stack, "label")? {
-                Some(val) => val,
-                _ => {
-                    return Err(ShellError::MissingParameter(
-                        "label not exist".to_string(),
-                        call.head,
-                    ))
-                }
-            },
+            label: expect_flag(engine_state, stack, call, "label")?,
         });
         imports::zf_call(args);
         // TODO: we may want to return true/false from here

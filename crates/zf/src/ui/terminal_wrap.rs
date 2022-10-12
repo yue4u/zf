@@ -117,7 +117,6 @@ impl TerminalWrap {
                     }
                     lines => {
                         godot_dbg!("lines: {}", lines);
-                        self.write("\n");
                         base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
                         self.state = ProcessState::Running;
                         self.buffer = "".to_string();

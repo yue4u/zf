@@ -1,4 +1,4 @@
-mod bridge;
+mod memory;
 mod runtime;
-pub use bridge::cmd_args_from_caller;
+pub use memory::cmd_args_from_caller;
 pub use runtime::*;

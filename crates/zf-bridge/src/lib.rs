@@ -4,7 +4,7 @@ pub use bincode::*;
 pub enum CommandBridge {
     // Help,
     Game(GameCommand),
-    // Mission(MissionCommand),
+    Mission(MissionCommand),
     Engine(EngineCommand),
     // Autopilot(AutopilotCommand),
     // Unkonwn(String),
@@ -39,6 +39,11 @@ pub enum UIAction {
 pub struct UICommand {
     pub label: String,
     pub action: UIAction,
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+pub enum MissionCommand {
+    Info,
 }
 
 pub struct Tag;

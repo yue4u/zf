@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::common::{Id, Position};
+use nu_ansi_term::*;
 
 #[derive(Debug)]
 pub struct Mission {
@@ -19,7 +20,11 @@ pub struct MissionTarget {
 
 impl Mission {
     pub fn summary(self) -> String {
-        format!("[b]{}[/b]\n\n{}", self.title, self.info)
+        format!(
+            "{}\n\n{}",
+            Color::Cyan.bold().underline().paint(self.title),
+            self.info
+        )
     }
 
     pub fn targets(&self) -> Vec<String> {

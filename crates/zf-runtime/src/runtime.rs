@@ -6,7 +6,7 @@ use wasmtime::*;
 pub use wasmtime::{Caller, Func, Store};
 use wasmtime_wasi::WasiCtxBuilder;
 
-use crate::{bridge, cmd_args_from_caller};
+use crate::{memory, cmd_args_from_caller};
 
 pub struct Runtime<S> {
     linker: Linker<ExtendedStore<S>>,
@@ -72,7 +72,7 @@ impl<S> Runtime<S> {
             .unwrap();
 
         let input =
-            bridge::write_string_outside(self.instance, &mut self.store, &memory, input.into());
+            memory::write_string_outside(self.instance, &mut self.store, &memory, input.into());
         let out = self
             .linker
             .get(&mut self.store, ZF_SHELL_MODULE, "eval")
@@ -82,7 +82,7 @@ impl<S> Runtime<S> {
             .typed::<i64, i64, _>(&self.store)?
             .call(&mut self.store, input)?;
 
-        let out = bridge::read_string_outside(&self.store, &memory, out);
+        let out = memory::read_string_outside(&self.store, &memory, out);
 
         // let Runtime {
         //     store,
@@ -123,7 +123,7 @@ pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
                 dbg!(&cmd);
                 let ret = match &cmd {
                     &zf_bridge::CommandBridge::Mystery => {
-                        bridge::write_string_inside(&mut caller, "🌈 it works!!".to_owned())
+                        memory::write_string_inside(&mut caller, "🌈 it works!!".to_owned())
                     }
                     _ => 0,
                 };

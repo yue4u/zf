@@ -55,13 +55,6 @@ impl TryFrom<&str> for Command {
             .collect::<Vec<&str>>();
 
         let cmd = match args[..] {
-            ["help" | "h"] => Help,
-            ["mission" | "m", ..] => match args[1..] {
-                ["summary" | "s"] | [] => Mission(MissionCommand::Summary),
-                ["target" | "t"] => Mission(MissionCommand::Tartget),
-                ["position" | "p"] => Mission(MissionCommand::Position),
-                _ => Invalid,
-            },
             ["autopilot" | "a", ..] => match args[1..] {
                 ["target" | "t", t] => Autopilot(AutopilotCommand::Tartget(t.to_owned())),
                 ["orbit" | "o", o] => Autopilot(AutopilotCommand::Orbit(o.to_owned())),
@@ -93,9 +86,7 @@ pub enum GameCommand {
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum MissionCommand {
-    Summary,
-    Tartget,
-    Position,
+    Info,
 }
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
@@ -161,6 +152,7 @@ impl IntoCommand for CommandBridge {
                 bridge::UIAction::Hide => UIAction::Hide,
                 bridge::UIAction::Show => UIAction::Show,
             }}),
+            Arg::Mission(bridge::MissionCommand::Info) => Command::Mission(MissionCommand::Info),
             Arg::Mystery => Command::Invalid,
         }
     }

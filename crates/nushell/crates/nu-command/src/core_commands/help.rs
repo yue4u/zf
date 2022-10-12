@@ -312,7 +312,15 @@ fn help(
             }
         }
     } else {
-        let msg = r#"Welcome to Nushell.
+        // TODO: adapt these examples to ZF
+        //
+        // Get information about the current system:
+        //     sys | get host
+        //
+        // Get the processes on your system actively using CPU:
+        //     ps | where cpu > 0
+
+        let msg = r#"Welcome to ZF console, powered by nushell.
 
 Here are some tips to help you get started.
   * help commands - list all available commands
@@ -326,12 +334,6 @@ Each stage in the pipeline works together to load, parse, and display informatio
 
 List the files in the current directory, sorted by size:
     ls | sort-by size
-
-Get information about the current system:
-    sys | get host
-
-Get the processes on your system actively using CPU:
-    ps | where cpu > 0
 
 You can also learn more at https://www.nushell.sh/book/"#;
 

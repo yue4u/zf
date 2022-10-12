@@ -1,7 +1,8 @@
 use anyhow::Result;
-mod bridge;
+mod memory;
 mod runtime;
-use bridge::cmd_args_from_caller;
+
+use memory::cmd_args_from_caller;
 use runtime::test_runtime;
 
 fn main() -> Result<()> {

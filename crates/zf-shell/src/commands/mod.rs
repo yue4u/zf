@@ -34,14 +34,11 @@ fn expect_flag<T>(
 where
     T: FromValue,
 {
-    let flag: T = match call.get_flag(engine_state, stack, name)? {
-        Some(val) => val,
-        _ => {
-            return Err(ShellError::MissingParameter(
-                format!("flag {} not exist", name),
-                call.head,
-            ))
-        }
-    };
-    Ok(flag)
+    match call.get_flag::<T>(engine_state, stack, name)? {
+        Some(val) => Ok(val),
+        _ => Err(ShellError::MissingParameter(
+            format!("flag {} not exist", name),
+            call.head,
+        )),
+    }
 }

@@ -56,6 +56,7 @@ Inflector = "0.11"
 lazy_static = "1.4.0"
 # log = "0.4.14"
 # lscolors = { version = "0.12.0", features = ["crossterm"]}
+lscolors = { version = "0.12.0" }
 # md5 = { package = "md-5", version = "0.10.0" }
 meval = "0.2.0"
 # mime = "0.3.16"
@@ -85,7 +86,7 @@ strip-ansi-escapes = "0.1.1"
 titlecase = "2.0.0"
 # toml = "0.5.8"
 unicode-segmentation = "1.8.0"
-# url = "2.2.1"
+url = "2.2.1"
 uuid = { version = "1.1.2", features = ["v4"] }
 # which = { version = "4.3.0", optional = true }
 # reedline = { version = "0.12.0", features = ["bashisms", "sqlite"]}

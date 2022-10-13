@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 // use super::icons::{icon_for_file, iconify_style_ansi_to_nu};
-use super::icons::icon_for_file;
+// use super::icons::icon_for_file;
 use lscolors::Style;
 use nu_engine::env_to_string;
 use nu_engine::CallExt;
@@ -13,7 +13,7 @@ use nu_protocol::{
 };
 use nu_term_grid::grid::{Alignment, Cell, Direction, Filling, Grid, GridOptions};
 use nu_utils::get_ls_colors;
-use terminal_size::{Height, Width};
+// use terminal_size::{Height, Width};
 #[derive(Clone)]
 pub struct Griddle;
 
@@ -211,9 +211,11 @@ fn create_grid_output(
 
     let cols = if let Some(col) = width_param {
         col as u16
-    } else if let Some((Width(w), Height(_h))) = terminal_size::terminal_size() {
-        w
-    } else {
+    }
+    // else if let Some((Width(w), Height(_h))) = terminal_size::terminal_size() {
+    //     w
+    // }
+    else {
         80u16
     };
     let sep = if let Some(separator) = separator_param {
@@ -231,33 +233,33 @@ fn create_grid_output(
         // only output value if the header name is 'name'
         if header == "name" {
             if color_param {
-                if use_grid_icons {
-                    let no_ansi = strip_ansi(&value);
-                    let path = std::path::Path::new(no_ansi.as_ref());
-                    let icon = icon_for_file(path, call.head)?;
-                    let ls_colors_style = ls_colors.style_for_path(path);
+                // if use_grid_icons {
+                //     let no_ansi = strip_ansi(&value);
+                //     let path = std::path::Path::new(no_ansi.as_ref());
+                //     let icon = icon_for_file(path, call.head)?;
+                //     let ls_colors_style = ls_colors.style_for_path(path);
 
-                    let icon_style = match ls_colors_style {
-                        Some(c) => c.to_crossterm_style(),
-                        None => crossterm::style::ContentStyle::default(),
-                    };
+                //     let icon_style = match ls_colors_style {
+                //         Some(c) => c.to_crossterm_style(),
+                //         None => crossterm::style::ContentStyle::default(),
+                //     };
 
-                    let ansi_style = ls_colors_style
-                        .map(Style::to_crossterm_style)
-                        .unwrap_or_default();
+                //     let ansi_style = ls_colors_style
+                //         .map(Style::to_crossterm_style)
+                //         .unwrap_or_default();
 
-                    let item = format!("{} {}", icon_style.apply(icon), ansi_style.apply(value));
+                //     let item = format!("{} {}", icon_style.apply(icon), ansi_style.apply(value));
 
-                    let mut cell = Cell::from(item);
-                    cell.alignment = Alignment::Left;
-                    grid.add(cell);
-                } else {
-                    let style = ls_colors.style_for_path(value.clone());
-                    let ansi_style = style.map(Style::to_crossterm_style).unwrap_or_default();
-                    let mut cell = Cell::from(ansi_style.apply(value).to_string());
-                    cell.alignment = Alignment::Left;
-                    grid.add(cell);
-                }
+                //     let mut cell = Cell::from(item);
+                //     cell.alignment = Alignment::Left;
+                //     grid.add(cell);
+                // } else {
+                let style = ls_colors.style_for_path(value.clone());
+                let ansi_style = style.map(Style::to_ansi_term_style).unwrap_or_default();
+                let mut cell = Cell::from(ansi_style.paint(value).to_string());
+                cell.alignment = Alignment::Left;
+                grid.add(cell);
+                // }
             } else {
                 let mut cell = Cell::from(value);
                 cell.alignment = Alignment::Left;

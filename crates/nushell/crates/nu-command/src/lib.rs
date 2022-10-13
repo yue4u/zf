@@ -24,7 +24,7 @@ mod random;
 // mod sort_utils;
 mod strings;
 // mod system;
-// mod viewers;
+mod viewers;
 
 // pub use bits::*;
 // pub use bytes::*;
@@ -53,7 +53,7 @@ pub use random::*;
 // pub use sort_utils::*;
 pub use strings::*;
 // pub use system::*;
-// pub use viewers::*;
+pub use viewers::*;
 
 // #[cfg(feature = "dataframe")]
 // mod dataframe;

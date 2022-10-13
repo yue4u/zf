@@ -18,7 +18,7 @@ use std::{
     path::PathBuf,
     sync::atomic::{AtomicBool, Ordering},
 };
-use terminal_size::{Height, Width};
+// use terminal_size::{Height, Width};
 use url::Url;
 
 const STREAM_PAGE_SIZE: usize = 1000;
@@ -28,9 +28,11 @@ const INDEX_COLUMN_NAME: &str = "index";
 fn get_width_param(width_param: Option<i64>) -> usize {
     if let Some(col) = width_param {
         col as usize
-    } else if let Some((Width(w), Height(_))) = terminal_size::terminal_size() {
-        w as usize
-    } else {
+    }
+    // else if let Some((Width(w), Height(_))) = terminal_size::terminal_size() {
+    //     w as usize
+    // }
+    else {
         80
     }
 }
@@ -1288,7 +1290,7 @@ fn render_path_name(
     let show_clickable_links = config.show_clickable_links_in_ls && !in_ssh_session && has_metadata;
 
     let ansi_style = style
-        .map(Style::to_crossterm_style)
+        .map(Style::to_ansi_term_style)
         // .map(ToNuAnsiStyle::to_nu_ansi_style)
         .unwrap_or_default();
 
@@ -1302,7 +1304,7 @@ fn render_path_name(
         show_clickable_links,
     );
 
-    let val = ansi_style.apply(full_path_link).to_string();
+    let val = ansi_style.paint(full_path_link).to_string();
     Some(Value::String { val, span })
 }
 

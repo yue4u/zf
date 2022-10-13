@@ -386,8 +386,8 @@ pub fn eval(input: String) -> Result<String> {
 
         // // Viewers
         // bind_command! {
-        //     Griddle,
-        //     Table,
+            Griddle,
+            Table,
         // };
 
         // // Conversions

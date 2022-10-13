@@ -28,7 +28,7 @@ nu-ansi-term = "0.46.0"
 num-format = { version = "0.4.0" }
 
 # Potential dependencies for extras
-# alphanumeric-sort = "1.4.4"
+alphanumeric-sort = "1.4.4"
 base64 = "0.13.0"
 # byteorder = "1.4.3"
 # bytesize = "1.1.0"
@@ -52,7 +52,7 @@ fancy-regex = "0.10.0"
 indexmap = { version="1.7", features=["serde-1"] }
 Inflector = "0.11"
 # is-root = "0.1.2"
-# itertools = "0.10.0"
+itertools = "0.10.0"
 lazy_static = "1.4.0"
 # log = "0.4.14"
 # lscolors = { version = "0.12.0", features = ["crossterm"]}
@@ -67,7 +67,7 @@ meval = "0.2.0"
 # powierza-coefficient = "1.0.1"
 # quick-xml = "0.23.0"
 rand = "0.8"
-# rayon = "1.5.1"
+rayon = "1.5.1"
 # reqwest = {version = "0.11", features = ["blocking", "json"] }
 # roxmltree = "0.14.0"
 # rust-embed = "6.3.0"

@@ -50,3 +50,45 @@ fn mystery() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn viewers() -> anyhow::Result<()> {
+    let mut runtime = test_runtime()?;
+
+    assert_eq!(
+        runtime.eval("[1 2 3] | table").unwrap(),
+        r#"
+╭───┬───╮
+│ 0 │ 1 │
+│ 1 │ 2 │
+│ 2 │ 3 │
+╰───┴───╯"#
+            .trim()
+    );
+    assert_eq!(
+        runtime.eval("[a b c] | grid").unwrap(),
+        "a │ b │ c
+"
+        .to_string()
+    );
+
+    Ok(())
+}
+
+#[test]
+fn filters() -> anyhow::Result<()> {
+    let mut runtime = test_runtime()?;
+
+    assert_eq!(
+        runtime.eval("{ project: zf } | get project").unwrap(),
+        "zf".to_string()
+    );
+    assert_eq!(
+        runtime.eval("[a b c] | grid").unwrap(),
+        "a │ b │ c
+"
+        .to_string()
+    );
+
+    Ok(())
+}

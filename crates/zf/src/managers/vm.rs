@@ -58,82 +58,7 @@ impl VMManager {
             base: base.claim(),
         };
 
-        self.runtime = Some(
-            Runtime::init(vm_data, |linker| -> anyhow::Result<()> {
-                linker.func_wrap(
-                    "zf",
-                    "zf_cmd",
-                    |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| -> i64 {
-                        let cmd = cmd_args_from_caller(&mut caller, tag).into_command();
-                        godot_dbg!(&cmd);
-                        match cmd {
-                            Command::Mission(m) => match m {
-                                MissionCommand::Info => zf_runtime::write_string_with_caller(
-                                    &mut caller,
-                                    Mission::dummy().summary(),
-                                ),
-                                _ => 0,
-                            },
-                            Command::Game(g) => {
-                                let tree = unsafe {
-                                    caller
-                                        .data()
-                                        .ext
-                                        .base
-                                        .assume_safe()
-                                        .get_tree()
-                                        .unwrap()
-                                        .assume_safe()
-                                };
-                                match g {
-                                    GameCommand::Start => {
-                                        // TODO: handle this error.
-                                        tree.change_scene(levels::SANDBOX).unwrap();
-                                    }
-                                    GameCommand::Menu => {
-                                        tree.change_scene(levels::START_MENU).unwrap();
-                                    }
-                                    GameCommand::End => {
-                                        tree.quit(0);
-                                    }
-                                };
-                                0
-                            }
-                            Command::Radar(_) => {
-                                let radars = unsafe {
-                                    caller
-                                        .data()
-                                        .ext
-                                        .base
-                                        .assume_safe()
-                                        .get_tree()
-                                        .unwrap()
-                                        .assume_safe()
-                                }
-                                .get_nodes_in_group(groups::RADAR);
-                                // TODO: maybe more radars
-                                let result = unsafe {
-                                    radars
-                                        .get(0)
-                                        .call("detected", &[])
-                                        .unwrap()
-                                        .to::<String>()
-                                        .unwrap()
-                                };
-                                zf_runtime::write_string_with_caller(&mut caller, result)
-                            }
-                            cmd => {
-                                fire_and_forget(&mut caller.data_mut().ext, cmd);
-                                0
-                            }
-                        }
-                    },
-                )?;
-
-                Ok(())
-            })
-            .unwrap(),
-        )
+        self.runtime = Some(vm_data.into());
     }
 
     #[method]
@@ -200,4 +125,83 @@ fn run(base: &Node, result_buffer: &mut RefMut<ResultBuffer>, process: &mut Proc
         base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(cmd)]);
     }
     Some(())
+}
+
+impl Into<Runtime<VMData>> for VMData {
+    fn into(self) -> Runtime<VMData> {
+        Runtime::init(self, |linker| -> anyhow::Result<()> {
+            linker.func_wrap(
+                "zf",
+                "zf_cmd",
+                |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| -> i64 {
+                    let cmd = cmd_args_from_caller(&mut caller, tag).into_command();
+                    godot_dbg!(&cmd);
+                    match cmd {
+                        Command::Mission(m) => match m {
+                            MissionCommand::Info => zf_runtime::write_string_with_caller(
+                                &mut caller,
+                                Mission::dummy().summary(),
+                            ),
+                            _ => 0,
+                        },
+                        Command::Game(g) => {
+                            let tree = unsafe {
+                                caller
+                                    .data()
+                                    .ext
+                                    .base
+                                    .assume_safe()
+                                    .get_tree()
+                                    .unwrap()
+                                    .assume_safe()
+                            };
+                            match g {
+                                GameCommand::Start => {
+                                    // TODO: handle this error.
+                                    tree.change_scene(levels::SANDBOX).unwrap();
+                                }
+                                GameCommand::Menu => {
+                                    tree.change_scene(levels::START_MENU).unwrap();
+                                }
+                                GameCommand::End => {
+                                    tree.quit(0);
+                                }
+                            };
+                            0
+                        }
+                        Command::Radar(_) => {
+                            let radars = unsafe {
+                                caller
+                                    .data()
+                                    .ext
+                                    .base
+                                    .assume_safe()
+                                    .get_tree()
+                                    .unwrap()
+                                    .assume_safe()
+                            }
+                            .get_nodes_in_group(groups::RADAR);
+                            // TODO: maybe more radars
+                            let result = unsafe {
+                                radars
+                                    .get(0)
+                                    .call("detected", &[])
+                                    .unwrap()
+                                    .to::<String>()
+                                    .unwrap()
+                            };
+                            zf_runtime::write_string_with_caller(&mut caller, result)
+                        }
+                        cmd => {
+                            fire_and_forget(&mut caller.data_mut().ext, cmd);
+                            0
+                        }
+                    }
+                },
+            )?;
+
+            Ok(())
+        })
+        .unwrap()
+    }
 }

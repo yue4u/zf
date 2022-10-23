@@ -1,0 +1,38 @@
+[gd_resource type="Theme" load_steps=8 format=2]
+
+[ext_resource path="res://assets/3rd/JetBrains_Mono/static/JetBrainsMono-Regular.ttf" type="DynamicFontData" id=1]
+
+[sub_resource type="StyleBoxEmpty" id=5]
+
+[sub_resource type="StyleBoxEmpty" id=6]
+
+[sub_resource type="DynamicFont" id=4]
+size = 24
+font_data = ExtResource( 1 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 0.6, 0.6, 0.6, 0.117647 )
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id=2]
+
+[sub_resource type="DynamicFont" id=1]
+size = 14
+extra_spacing_char = 2
+font_data = ExtResource( 1 )
+
+[resource]
+default_font = SubResource( 1 )
+ItemList/styles/bg = SubResource( 5 )
+ItemList/styles/bg_focus = SubResource( 6 )
+LineEdit/colors/cursor_color = Color( 0, 0.905882, 1, 1 )
+LineEdit/colors/selection_color = Color( 0, 0.905882, 1, 1 )
+LineEdit/constants/minimum_spaces = 12
+LineEdit/fonts/font = SubResource( 4 )
+LineEdit/icons/clear = null
+LineEdit/styles/focus = SubResource( 3 )
+LineEdit/styles/normal = SubResource( 2 )
+LineEdit/styles/read_only = null

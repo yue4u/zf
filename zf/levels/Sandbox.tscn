@@ -1,0 +1,99 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scripts/player.gdns" type="Script" id=2]
+[ext_resource path="res://scripts/GangutSpaceHub.gdns" type="Script" id=3]
+[ext_resource path="res://assets/3rd/mjolnir/scene.gltf" type="PackedScene" id=4]
+[ext_resource path="res://assets/3rd/gangut_space_hub/scene.gltf" type="PackedScene" id=5]
+[ext_resource path="res://scenes/T-Dummy.tscn" type="PackedScene" id=6]
+[ext_resource path="res://scenes/Radar.tscn" type="PackedScene" id=7]
+
+[sub_resource type="Curve3D" id=1]
+_data = {
+"points": PoolVector3Array( -14.8819, 56.0771, -178.328, 14.8819, -56.0771, 178.328, -0.257652, -12.8017, 28.2155, -386.472, -83.7216, -241.965, 386.472, 83.7216, 241.965, 519.996, -198.657, 410.229, -214.832, -7.70972, 120.807, 214.832, 7.70972, -120.807, 1363.28, -163.77, 379.417, 45.7496, -122.548, 134.22, -45.7496, 122.548, -134.22, 1871.35, 49.5703, 131.883, 326.086, 11.1027, 193.84, -326.086, -11.1027, -193.84, 1230.65, 211.027, -303.277, 171.421, 116.314, -12.1331, -171.421, -116.314, 12.1331, 204.711, 159.283, -313.367, 2.38455, 2.09718, -7.38764, -2.38455, -2.09718, 7.38764, 3.20841, 0.307525, -0.627677, 0, 0, 0, 0, 0, 0, -0.257652, -12.8017, 28.2155 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0 )
+}
+
+[sub_resource type="SphereShape" id=2]
+radius = 50.0
+
+[sub_resource type="SpatialMaterial" id=3]
+flags_transparent = true
+flags_unshaded = true
+albedo_color = Color( 0.321569, 0.972549, 1, 0.101961 )
+
+[node name="Scene" instance=ExtResource( 1 )]
+
+[node name="t-gangut_space_hub" parent="Level" index="0" instance=ExtResource( 5 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 900, 0, 0 )
+script = ExtResource( 3 )
+
+[node name="Path" type="Path" parent="Level" index="1"]
+curve = SubResource( 1 )
+
+[node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
+transform = Transform( 0.996521, 0.0249548, 0.079539, 0, 0.954142, -0.299352, -0.0833624, 0.298312, 0.950816, -0.257652, -12.8017, 28.2155 )
+rotation_mode = 4
+
+[node name="t-mjolnir" parent="Level/Path/PathFollow" index="0" instance=ExtResource( 4 )]
+transform = Transform( -10, 1.43051e-06, -2.14577e-06, 7.15256e-07, 10, -4.76837e-07, 5.96046e-07, -4.76837e-07, -9.99999, 2.38419e-07, 1.78814e-07, 8.9407e-08 )
+script = ExtResource( 2 )
+
+[node name="Camera" type="Camera" parent="Level/Path/PathFollow/t-mjolnir" index="1"]
+transform = Transform( 0.0999998, -6.18929e-08, 1.6531e-08, 3.63798e-11, 0.0999999, -6.51926e-09, -2.32831e-10, 1.16415e-10, 0.1, 0, 3, 10 )
+current = true
+far = 2000.0
+
+[node name="RadarArea" type="Area" parent="Level/Path/PathFollow/t-mjolnir" index="2"]
+transform = Transform( 1, -1.86265e-09, -1.66534e-16, 1.86265e-09, 1, 8.9407e-08, 0, -8.9407e-08, 1, 0, 0, 0 )
+
+[node name="CollisionShape" type="CollisionShape" parent="Level/Path/PathFollow/t-mjolnir/RadarArea" index="0"]
+shape = SubResource( 2 )
+
+[node name="Projectiles" type="Spatial" parent="Level/Path/PathFollow/t-mjolnir" index="3"]
+
+[node name="CSGPolygon" type="CSGPolygon" parent="Level/Path" index="1"]
+material_override = SubResource( 3 )
+snap = 0.0001
+polygon = PoolVector2Array( -5, 0, 5, 0, 0, 0 )
+mode = 2
+path_node = NodePath("..")
+path_interval_type = 0
+path_interval = 10.0
+path_simplify_angle = 0.0
+path_rotation = 2
+path_local = false
+path_continuous_u = true
+path_u_distance = 10.0
+path_joined = true
+smooth_faces = true
+
+[node name="EnemyCluster" type="Node" parent="Level" index="2"]
+
+[node name="t-dummy3" parent="Level/EnemyCluster" index="0" instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 232.85, -115.683, 386.604 )
+
+[node name="t-dummy4" parent="Level/EnemyCluster" index="1" instance=ExtResource( 6 )]
+transform = Transform( -0.133156, 0, 0.991095, -0.381416, -0.922982, -0.0512442, 0.914763, -0.384843, 0.122901, 1537.95, 169.063, -253.345 )
+
+[node name="t-dummy6" parent="Level/EnemyCluster" index="2" instance=ExtResource( 6 )]
+transform = Transform( -0.133156, 0, 0.991095, -0.381416, -0.922982, -0.0512442, 0.914763, -0.384843, 0.122901, 1388.29, -81.7464, 480.798 )
+
+[node name="t-dummy5" parent="Level/EnemyCluster" index="3" instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 362.201, 262.592, -334.042 )
+
+[node name="t-dummy2" parent="Level/EnemyCluster" index="4" instance=ExtResource( 6 )]
+transform = Transform( 0.918571, 0, 0.395257, 0, 1, 0, -0.395257, 0, 0.918571, 9.73321, -53.8456, 259.526 )
+
+[node name="Terminal" parent="UI/MarginContainer/Control/TerminalWrap" index="0"]
+modulate = Color( 1, 1, 1, 0.501961 )
+
+[node name="Radar" parent="UI/MarginContainer/UIExtra" index="0" instance=ExtResource( 7 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 30.0
+margin_top = 30.0
+margin_right = 994.0
+margin_bottom = 570.0
+
+[node name="UIExtra" type="CanvasLayer" parent="UI" index="1"]

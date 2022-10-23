@@ -1,0 +1,264 @@
+use nu_engine::CallExt;
+use nu_protocol::ast::Call;
+use nu_protocol::ast::CellPath;
+use nu_protocol::engine::{Command, EngineState, Stack};
+use nu_protocol::Category;
+use nu_protocol::{
+    Example, PipelineData, ShellError, Signature, Span, Spanned, SyntaxShape, Value,
+};
+
+#[derive(Clone)]
+pub struct SubCommand;
+
+impl Command for SubCommand {
+    fn name(&self) -> &str {
+        "str contains"
+    }
+
+    fn signature(&self) -> Signature {
+        Signature::build("str contains")
+            .required("string", SyntaxShape::String, "the string to find")
+            .rest(
+                "rest",
+                SyntaxShape::CellPath,
+                "optionally check if input contains string by column paths",
+            )
+            .switch("insensitive", "search is case insensitive", Some('i'))
+            .switch("not", "does not contain", Some('n'))
+            .category(Category::Strings)
+    }
+
+    fn usage(&self) -> &str {
+        "Checks if input contains string"
+    }
+
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["substring", "match", "find", "search"]
+    }
+
+    fn run(
+        &self,
+        engine_state: &EngineState,
+        stack: &mut Stack,
+        call: &Call,
+        input: PipelineData,
+    ) -> Result<PipelineData, ShellError> {
+        operate(engine_state, stack, call, input)
+    }
+
+    fn examples(&self) -> Vec<Example> {
+        vec![
+            Example {
+                description: "Check if input contains string",
+                example: "'my_library.rb' | str contains '.rb'",
+                result: Some(Value::Bool {
+                    val: true,
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Check if input contains string case insensitive",
+                example: "'my_library.rb' | str contains -i '.RB'",
+                result: Some(Value::Bool {
+                    val: true,
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Check if input contains string in a table",
+                example: " [[ColA ColB]; [test 100]] | str contains 'e' ColA",
+                result: Some(Value::List {
+                    vals: vec![Value::Record {
+                        cols: vec!["ColA".to_string(), "ColB".to_string()],
+                        vals: vec![
+                            Value::Bool {
+                                val: true,
+                                span: Span::test_data(),
+                            },
+                            Value::test_int(100),
+                        ],
+                        span: Span::test_data(),
+                    }],
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Check if input contains string in a table",
+                example: " [[ColA ColB]; [test 100]] | str contains -i 'E' ColA",
+                result: Some(Value::List {
+                    vals: vec![Value::Record {
+                        cols: vec!["ColA".to_string(), "ColB".to_string()],
+                        vals: vec![
+                            Value::Bool {
+                                val: true,
+                                span: Span::test_data(),
+                            },
+                            Value::test_int(100),
+                        ],
+                        span: Span::test_data(),
+                    }],
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Check if input contains string in a table",
+                example: " [[ColA ColB]; [test hello]] | str contains 'e' ColA ColB",
+                result: Some(Value::List {
+                    vals: vec![Value::Record {
+                        cols: vec!["ColA".to_string(), "ColB".to_string()],
+                        vals: vec![
+                            Value::Bool {
+                                val: true,
+                                span: Span::test_data(),
+                            },
+                            Value::Bool {
+                                val: true,
+                                span: Span::test_data(),
+                            },
+                        ],
+                        span: Span::test_data(),
+                    }],
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Check if input string contains 'banana'",
+                example: "'hello' | str contains 'banana'",
+                result: Some(Value::Bool {
+                    val: false,
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Check if list contains string",
+                example: "[one two three] | str contains o",
+                result: Some(Value::List {
+                    vals: vec![
+                        Value::Bool {
+                            val: true,
+                            span: Span::test_data(),
+                        },
+                        Value::Bool {
+                            val: true,
+                            span: Span::test_data(),
+                        },
+                        Value::Bool {
+                            val: false,
+                            span: Span::test_data(),
+                        },
+                    ],
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Check if list does not contain string",
+                example: "[one two three] | str contains -n o",
+                result: Some(Value::List {
+                    vals: vec![
+                        Value::Bool {
+                            val: false,
+                            span: Span::test_data(),
+                        },
+                        Value::Bool {
+                            val: false,
+                            span: Span::test_data(),
+                        },
+                        Value::Bool {
+                            val: true,
+                            span: Span::test_data(),
+                        },
+                    ],
+                    span: Span::test_data(),
+                }),
+            },
+        ]
+    }
+}
+
+fn operate(
+    engine_state: &EngineState,
+    stack: &mut Stack,
+    call: &Call,
+    input: PipelineData,
+) -> Result<PipelineData, ShellError> {
+    let head = call.head;
+    let substring: Spanned<String> = call.req(engine_state, stack, 0)?;
+    let column_paths: Vec<CellPath> = call.rest(engine_state, stack, 1)?;
+    let case_insensitive = call.has_flag("insensitive");
+    let not_contain = call.has_flag("not");
+
+    input.map(
+        move |v| {
+            if column_paths.is_empty() {
+                action(&v, case_insensitive, not_contain, &substring.item, head)
+            } else {
+                let mut ret = v;
+                for path in &column_paths {
+                    let p = substring.item.clone();
+                    let r = ret.update_cell_path(
+                        &path.members,
+                        Box::new(move |old| action(old, case_insensitive, not_contain, &p, head)),
+                    );
+                    if let Err(error) = r {
+                        return Value::Error { error };
+                    }
+                }
+                ret
+            }
+        },
+        engine_state.ctrlc.clone(),
+    )
+}
+
+fn action(
+    input: &Value,
+    case_insensitive: bool,
+    not_contain: bool,
+    substring: &str,
+    head: Span,
+) -> Value {
+    match input {
+        Value::String { val, .. } => Value::Bool {
+            val: match case_insensitive {
+                true => {
+                    if not_contain {
+                        !val.to_lowercase()
+                            .contains(substring.to_lowercase().as_str())
+                    } else {
+                        val.to_lowercase()
+                            .contains(substring.to_lowercase().as_str())
+                    }
+                }
+                false => {
+                    if not_contain {
+                        !val.contains(substring)
+                    } else {
+                        val.contains(substring)
+                    }
+                }
+            },
+            span: head,
+        },
+        other => Value::Error {
+            error: ShellError::UnsupportedInput(
+                format!(
+                    "Input's type is {}. This command only works with strings.",
+                    other.get_type()
+                ),
+                head,
+            ),
+        },
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_examples() {
+        use crate::test_examples;
+
+        test_examples(SubCommand {})
+    }
+}

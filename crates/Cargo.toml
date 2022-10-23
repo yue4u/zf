@@ -1,0 +1,14 @@
+[workspace]
+
+members = [
+    "zf",
+    "zf-x",
+    "zf-shell",
+    'zf-bridge',
+    "zf-runtime",
+]
+
+exclude = ["nushell"]
+
+[workspace.dependencies]
+anyhow = "1.0.65"

@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://assets/3rd/SpaceHDR/Crab Nebula/hdr.png" type="Texture" id=1]
+[ext_resource path="res://scripts/env.gdns" type="Script" id=4]
+
+[sub_resource type="PanoramaSky" id=1]
+panorama = ExtResource( 1 )
+
+[sub_resource type="Environment" id=2]
+background_mode = 2
+background_sky = SubResource( 1 )
+background_sky_orientation = Basis( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08 )
+ambient_light_color = Color( 1, 1, 1, 1 )
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 1.2
+glow_strength = 0.8
+glow_blend_mode = 0
+glow_hdr_threshold = 0.0
+glow_hdr_luminance_cap = 1.0
+glow_hdr_scale = 1.5
+glow_high_quality = true
+
+[node name="Environment" type="Node"]
+
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
+transform = Transform( -0.0218671, 0.56476, 0.824965, -0.910018, -0.352936, 0.217493, 0.413991, -0.745978, 0.52166, 0, 86.2598, 0 )
+light_energy = 5.0
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 2 )
+script = ExtResource( 4 )

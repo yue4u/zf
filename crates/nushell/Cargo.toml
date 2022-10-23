@@ -1,0 +1,128 @@
+[package]
+authors = ["The Nushell Project Developers"]
+default-run = "nu"
+description = "A new type of shell"
+documentation = "https://www.nushell.sh/book/"
+edition = "2018"
+exclude = ["images"]
+homepage = "https://www.nushell.sh"
+license = "MIT"
+name = "nu"
+repository = "https://github.com/nushell/nushell"
+rust-version = "1.60"
+version = "0.69.2"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+members = [
+	"crates/nu-cli",
+	"crates/nu-engine",
+	"crates/nu-parser",
+	"crates/nu-system",
+	"crates/nu-command",
+	"crates/nu-protocol",
+	"crates/nu-plugin",
+	"crates/nu_plugin_inc",
+	"crates/nu_plugin_gstat",
+	"crates/nu_plugin_example",
+	"crates/nu_plugin_query",
+	"crates/nu_plugin_custom_values",
+	"crates/nu-utils",
+]
+
+[dependencies]
+chrono = { version = "0.4.21", features = ["serde"] }
+crossterm = "0.24.0"
+ctrlc = "3.2.1"
+log = "0.4"
+miette = "5.1.0"
+nu-ansi-term = "0.46.0"
+nu-cli = { path="./crates/nu-cli", version = "0.69.2"  }
+nu-color-config = { path = "./crates/nu-color-config", version = "0.69.2"  }
+nu-command = { path="./crates/nu-command", version = "0.69.2"  }
+nu-engine = { path="./crates/nu-engine", version = "0.69.2"  }
+nu-json = { path="./crates/nu-json", version = "0.69.2"  }
+nu-parser = { path="./crates/nu-parser", version = "0.69.2"  }
+nu-path = { path="./crates/nu-path", version = "0.69.2"  }
+nu-plugin = { path = "./crates/nu-plugin", optional = true, version = "0.69.2"  }
+nu-pretty-hex = { path = "./crates/nu-pretty-hex", version = "0.69.2"  }
+nu-protocol = { path = "./crates/nu-protocol", version = "0.69.2"  }
+nu-system = { path = "./crates/nu-system", version = "0.69.2" }
+nu-table = { path = "./crates/nu-table", version = "0.69.2"  }
+nu-term-grid = { path = "./crates/nu-term-grid", version = "0.69.2"  }
+nu-utils = { path = "./crates/nu-utils", version = "0.69.2"  }
+reedline = { version = "0.12.0", features = ["bashisms", "sqlite"]}
+
+rayon = "1.5.1"
+is_executable = "1.0.1"
+simplelog = "0.12.0"
+time = "0.3.12"
+
+[target.'cfg(not(target_os = "windows"))'.dependencies]
+# Our dependencies don't use OpenSSL on Windows
+openssl = { version = "0.10.38", features = ["vendored"], optional = true }
+signal-hook = { version = "0.3.14", default-features = false }
+
+[dev-dependencies]
+nu-test-support = { path="./crates/nu-test-support", version = "0.69.2"  }
+tempfile = "3.2.0"
+assert_cmd = "2.0.2"
+pretty_assertions = "1.0.0"
+serial_test = "0.8.0"
+hamcrest2 = "0.3.0"
+rstest = {version = "0.15.0", default-features = false}
+itertools = "0.10.3"
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
+
+[features]
+plugin = ["nu-plugin", "nu-cli/plugin", "nu-parser/plugin", "nu-command/plugin", "nu-protocol/plugin", "nu-engine/plugin"]
+extra = ["default", "dataframe", "database"]
+default = ["plugin", "which-support", "trash-support"]
+stable = ["default"]
+wasi = []
+# Enable to statically link OpenSSL; otherwise the system version will be used. Not enabled by default because it takes a while to build
+static-link-openssl = ["dep:openssl"]
+
+# Stable (Default)
+which-support = ["nu-command/which-support"]
+trash-support = ["nu-command/trash-support"]
+
+# Extra
+
+# Dataframe feature for nushell
+dataframe = ["nu-command/dataframe"]
+
+# Database commands for nushell
+database = ["nu-command/database"]
+
+[profile.release]
+opt-level = "s" # Optimize for size
+strip = "debuginfo"
+lto = "thin"
+
+# build with `cargo build --profile profiling`
+# to analyze performance with tooling like linux perf
+[profile.profiling]
+inherits = "release"
+strip = false
+debug = true
+
+# build with `cargo build --profile ci`
+# to analyze performance with tooling like linux perf
+[profile.ci]
+inherits = "dev"
+strip = false
+debug = false
+
+# Main nu binary
+[[bin]]
+name = "nu"
+path = "src/main.rs"
+
+[target.'cfg(target_family = "unix")'.dependencies]
+nix = "0.24"
+atty = "0.2"
+

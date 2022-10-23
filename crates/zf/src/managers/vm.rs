@@ -2,6 +2,8 @@ use gdnative::prelude::*;
 use std::{
     cell::{RefCell, RefMut},
     collections::HashMap,
+    thread::JoinHandle,
+    time::Duration,
 };
 
 use crate::{
@@ -20,7 +22,6 @@ use zf_runtime::{cmd_args_from_caller, Caller, ExtendedStore, Runtime};
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
 pub struct VMManager {
-    process_buffer: RefCell<Vec<Process>>,
     result_buffer: RefCell<ResultBuffer>,
     // TODO: more pts
     runtime: Option<Runtime<VMData>>,
@@ -30,14 +31,24 @@ type ResultBuffer = HashMap<u32, CommandResult>;
 
 struct VMData {
     cmd_id: u32,
+    thead_handlers: HashMap<String, JoinHandle<()>>,
     base: Ref<Node>,
+}
+
+impl VMData {
+    fn from_base(base: Ref<Node>) -> Self {
+        Self {
+            cmd_id: 0,
+            thead_handlers: HashMap::new(),
+            base,
+        }
+    }
 }
 
 #[methods]
 impl VMManager {
     pub(crate) fn new(_base: &Node) -> Self {
         VMManager {
-            process_buffer: RefCell::new(vec![]),
             result_buffer: RefCell::new(HashMap::new()),
             runtime: None,
         }
@@ -53,12 +64,7 @@ impl VMManager {
     pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
         godot_print!("vm host ready");
 
-        let vm_data = VMData {
-            cmd_id: 0,
-            base: base.claim(),
-        };
-
-        self.runtime = Some(vm_data.into());
+        self.runtime = Some(VMData::from_base(base.claim()).into());
     }
 
     #[method]
@@ -85,10 +91,6 @@ impl VMManager {
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
         result_buffer.insert(result.id, result);
 
-        for process in self.process_buffer.borrow_mut().iter_mut() {
-            run(base, &mut result_buffer, process);
-        }
-
         Some(())
     }
 }
@@ -105,28 +107,6 @@ fn fire_and_forget(vm_data: &VMData, cmd: Command) {
     );
 }
 
-fn run(base: &Node, result_buffer: &mut RefMut<ResultBuffer>, process: &mut Process) -> Option<()> {
-    let waiting = process.cmds.len();
-    process.cmds = process
-        .cmds
-        .clone()
-        .into_iter()
-        .skip_while(|cmd| {
-            if let Some(_res) = result_buffer.get(&cmd.id) {
-                process.active_id += 1;
-                return true;
-            }
-            false
-        })
-        .collect();
-
-    if process.cmds.len() < waiting {
-        let cmd = process.cmds.first()?;
-        base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(cmd)]);
-    }
-    Some(())
-}
-
 impl Into<Runtime<VMData>> for VMData {
     fn into(self) -> Runtime<VMData> {
         Runtime::init(self, |linker| -> anyhow::Result<()> {
@@ -137,6 +117,37 @@ impl Into<Runtime<VMData>> for VMData {
                     let cmd = cmd_args_from_caller(&mut caller, tag).into_command();
                     godot_dbg!(&cmd);
                     match cmd {
+                        Command::Task(task) => {
+                            let ret = match task {
+                                crate::vm::TaskCommand::Start(input) => {
+                                    let base = caller.data_mut().ext.base;
+                                    let name = input.clone();
+                                    let handler = std::thread::spawn(move || {
+                                        let mut runtime: Runtime<VMData> =
+                                            VMData::from_base(base).into();
+                                        let ret = runtime.eval(input);
+                                        godot_dbg!(ret);
+                                    });
+                                    let id = handler.thread().id();
+                                    caller.data_mut().ext.thead_handlers.insert(name, handler);
+                                    format!("start task: `{:?}`", id)
+                                }
+                                crate::vm::TaskCommand::Stop(input) => {
+                                    format!("stop task: `{}`", input)
+                                }
+                                crate::vm::TaskCommand::Status => caller
+                                    .data_mut()
+                                    .ext
+                                    .thead_handlers
+                                    .iter()
+                                    .map(|(name, handler)| {
+                                        format!("{}: {:?}", name, handler.thread().id())
+                                    })
+                                    .collect::<String>(),
+                            };
+                            godot_dbg!(&ret);
+                            zf_runtime::write_string_with_caller(&mut caller, ret)
+                        }
                         Command::Mission(m) => match m {
                             MissionCommand::Info => zf_runtime::write_string_with_caller(
                                 &mut caller,

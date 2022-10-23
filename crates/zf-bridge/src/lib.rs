@@ -6,6 +6,7 @@ pub enum CommandBridge {
     Game(GameCommand),
     Mission(MissionCommand),
     Engine(EngineCommand),
+    Task(TaskCommand),
     // Autopilot(AutopilotCommand),
     Fire(FireCommand),
     Radar(RadarCommand),
@@ -19,6 +20,13 @@ pub enum GameCommand {
     Start,
     Menu,
     End,
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+pub enum TaskCommand {
+    Run(String),
+    Stop(String),
+    Status,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

@@ -7,6 +7,7 @@ mod mystery;
 mod radar;
 mod ui;
 mod zf_call;
+mod task;
 
 pub(crate) use engine::*;
 pub(crate) use fire::*;
@@ -16,6 +17,7 @@ pub(crate) use mission::*;
 pub(crate) use mystery::*;
 pub(crate) use radar::*;
 pub(crate) use ui::*;
+pub(crate) use task::*;
 
 use nu_engine::CallExt;
 

@@ -1,6 +1,6 @@
 use crate::commands::{
     Engine, EngineOff, EngineOn, EngineThruster, Fire, Game, GameEnd, GameMenu, GameStart, Hi,
-    Mission, Mystery, Radar, UI,
+    Mission, Mystery, Radar, Task, TaskRun, TaskStop, UI,
 };
 use anyhow::Result;
 use nu_command::*;
@@ -46,6 +46,10 @@ impl ShellState {
             EngineOn,
             EngineOff,
             EngineThruster,
+
+            Task,
+            TaskRun,
+            TaskStop,
 
             UI,
 
@@ -313,7 +317,7 @@ impl ShellState {
             //     Ansi,
             //     AnsiGradient,
             //     AnsiStrip,
-            //     Clear,
+                Clear,
             //     Du,
             //     KeybindingsDefault,
             //     Input,
@@ -321,7 +325,7 @@ impl ShellState {
             //     Keybindings,
             //     Kill,
             //     KeybindingsList,
-            //     Sleep,
+                Sleep,
             //     TermSize,
             // };
 

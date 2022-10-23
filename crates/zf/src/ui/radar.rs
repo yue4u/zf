@@ -16,6 +16,8 @@ use serde_json::Result;
 #[derive(NativeClass, Default)]
 #[inherit(Node)]
 #[register_with(register_vm_signal)]
+// https://docs.rs/gdnative/latest/gdnative/export/user_data/index.html#choosing-a-wrapper-type
+#[user_data(gdnative::export::user_data::MutexData<Radar>)]
 pub struct Radar {
     detected: RefCell<HashMap<GodotString, Ref<Area>>>,
 }
@@ -69,7 +71,7 @@ impl Radar {
     }
 
     #[method]
-    fn detected(&self, #[base] base: TRef<Node>) -> String {
+    fn detected(&self) -> String {
         let mut radar_result = RadarResult(Vec::new());
         self.detected.borrow().iter().for_each(|(name, area)| {
             let pos = unsafe { area.assume_safe() }.global_transform().origin;

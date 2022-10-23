@@ -31,6 +31,7 @@ pub enum Command {
     Game(GameCommand),
     Mission(MissionCommand),
     Engine(EngineCommand),
+    Task(TaskCommand),
     // Autopilot(AutopilotCommand),
     Unkonwn(String),
     Fire(FireCommand),
@@ -90,6 +91,14 @@ pub struct UICommand {
     pub action: UIAction,
 }
 
+#[derive(Debug, FromVariant, ToVariant, Clone)]
+pub enum TaskCommand {
+    Start(String),
+    Stop(String),
+    Status,
+}
+
+
 pub trait IntoCommand {
     fn into_command(self) -> Command;
 }
@@ -123,6 +132,11 @@ impl IntoCommand for CommandBridge {
                 target,
                 pos: pos.map(|[x,y,z]| Vector3{x,y,z})
             }),
+            Arg::Task(task) => match task {
+                bridge::TaskCommand::Run(name) => Command::Task(TaskCommand::Start(name)),
+                bridge::TaskCommand::Stop(name) => Command::Task(TaskCommand::Stop(name)),
+                bridge::TaskCommand::Status => Command::Task(TaskCommand::Status),
+            },
             Arg::Mystery => Command::Invalid,
         }
     }

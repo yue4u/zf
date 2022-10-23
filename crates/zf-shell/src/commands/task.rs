@@ -1,0 +1,93 @@
+use nu_engine::CallExt;
+use nu_protocol::{
+    ast::Call,
+    engine::{Command, EngineState, Stack},
+    IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
+};
+use zf_bridge::{CommandBridge, TaskCommand};
+
+use super::zf_call;
+use crate::imports;
+
+zf_call::proxy_command!(
+    Task,
+    name: "task",
+    usage: "manage background tasks",
+    arg: CommandBridge::Task(TaskCommand::Status)
+);
+
+#[derive(Clone)]
+pub(crate) struct TaskRun;
+
+impl Command for TaskRun {
+    fn name(&self) -> &str {
+        "task run"
+    }
+
+    fn signature(&self) -> nu_protocol::Signature {
+        Signature::build(self.name()).required(
+            "cmd", //
+            SyntaxShape::String,
+            "cmd to run",
+        )
+    }
+
+    fn usage(&self) -> &str {
+        "Run a cmd in background"
+    }
+
+    fn run(
+        &self,
+        engine_state: &EngineState,
+        stack: &mut Stack,
+        call: &Call,
+        _input: PipelineData,
+    ) -> Result<PipelineData, ShellError> {
+        let cmd: String = call.req(engine_state, stack, 0)?;
+        let args = CommandBridge::Task(TaskCommand::Run(cmd));
+        let val = imports::zf_call(args);
+        Ok(Value::String {
+            val,
+            span: call.head,
+        }
+        .into_pipeline_data())
+    }
+}
+
+#[derive(Clone)]
+pub(crate) struct TaskStop;
+
+impl Command for TaskStop {
+    fn name(&self) -> &str {
+        "task stop"
+    }
+
+    fn signature(&self) -> nu_protocol::Signature {
+        Signature::build(self.name()).required(
+            "cmd", //
+            SyntaxShape::String,
+            "cmd to stop",
+        )
+    }
+
+    fn usage(&self) -> &str {
+        "Stop a cmd in background"
+    }
+
+    fn run(
+        &self,
+        engine_state: &EngineState,
+        stack: &mut Stack,
+        call: &Call,
+        _input: PipelineData,
+    ) -> Result<PipelineData, ShellError> {
+        let cmd: String = call.req(engine_state, stack, 0)?;
+        let args = CommandBridge::Task(TaskCommand::Stop(cmd));
+        let val = imports::zf_call(args);
+        Ok(Value::String {
+            val,
+            span: call.head,
+        }
+        .into_pipeline_data())
+    }
+}

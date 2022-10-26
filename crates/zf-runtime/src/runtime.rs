@@ -16,8 +16,14 @@ pub struct Runtime<S> {
     _stderr: WritePipe<Cursor<Vec<u8>>>,
 }
 
-pub const ZF_SHELL_MODULE: &'static str = "zf-shell";
+pub const SHELL_MODULE: &'static str = "zf-shell";
 pub const SHELL_WASM: &[u8] = include_bytes!("../../target/wasm32-wasi/release/zf-shell.wasm");
+
+// TODO: make this dynamic
+pub const SHELL_PRELOAD: &'static str = r#"
+alias e = engine;
+alias f = fire;
+"#;
 
 pub struct ExtendedStore<T> {
     pub ext: T,
@@ -53,7 +59,7 @@ impl<S> Runtime<S> {
 
         let instance = linker.instantiate(&mut store, &zf_shell_module)?;
 
-        linker.instance(&mut store, ZF_SHELL_MODULE, instance)?;
+        linker.instance(&mut store, SHELL_MODULE, instance)?;
 
         Ok(Runtime {
             linker,
@@ -76,7 +82,7 @@ impl<S> Runtime<S> {
             memory::write_string_outside(self.instance, &mut self.store, &memory, input.into());
         let tag = self
             .linker
-            .get(&mut self.store, ZF_SHELL_MODULE, "eval")
+            .get(&mut self.store, SHELL_MODULE, "eval")
             .expect("expect eval function exist")
             .into_func()
             .expect("expect eval function ok")

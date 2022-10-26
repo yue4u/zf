@@ -2,7 +2,12 @@ use gdnative::prelude::*;
 use std::{
     cell::{RefCell, RefMut},
     collections::HashMap,
-    thread::JoinHandle,
+    fmt::Display,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    thread::{self, JoinHandle},
     time::Duration,
 };
 
@@ -28,10 +33,22 @@ pub struct VMManager {
 }
 
 type ResultBuffer = HashMap<u32, CommandResult>;
+struct TaskRunner {
+    id: usize,
+    stop: Arc<AtomicBool>,
+    cmd: String,
+    handle: JoinHandle<()>,
+}
+
+impl Display for TaskRunner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("task: `{}` ({})", self.id, self.cmd))
+    }
+}
 
 struct VMData {
     cmd_id: u32,
-    thead_handlers: HashMap<String, JoinHandle<()>>,
+    thead_handlers: HashMap<usize, TaskRunner>,
     base: Ref<Node>,
 }
 
@@ -63,8 +80,9 @@ impl VMManager {
     #[method]
     pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
         godot_print!("vm host ready");
-
-        self.runtime = Some(VMData::from_base(base.claim()).into());
+        let mut runtime: Runtime<VMData> = VMData::from_base(base.claim()).into();
+        runtime.eval(zf_runtime::SHELL_PRELOAD);
+        self.runtime = Some(runtime);
     }
 
     #[method]
@@ -119,30 +137,60 @@ impl Into<Runtime<VMData>> for VMData {
                     match cmd {
                         Command::Task(task) => {
                             let ret = match task {
-                                crate::vm::TaskCommand::Start(input) => {
-                                    let base = caller.data_mut().ext.base;
+                                crate::vm::TaskCommand::Run { cmd: input, every } => {
+                                    let store = caller.data_mut();
+                                    let base = store.ext.base;
+                                    let stop = Arc::new(AtomicBool::new(false));
+                                    let stop_clone = stop.clone();
                                     let name = input.clone();
-                                    let handler = std::thread::spawn(move || {
+                                    let handle = std::thread::spawn(move || {
                                         let mut runtime: Runtime<VMData> =
                                             VMData::from_base(base).into();
-                                        let ret = runtime.eval(input);
+                                        let ret = runtime.eval(&input);
                                         godot_dbg!(ret);
+
+                                        if let Some(dur) = every {
+                                            while true {
+                                                if stop_clone.load(Ordering::Relaxed) {
+                                                    godot_dbg!(format!("stop `{}` done!", &input));
+                                                    break;
+                                                }
+                                                std::thread::sleep(Duration::from_nanos(dur));
+                                                let ret = runtime.eval(&input);
+                                                godot_dbg!(ret);
+                                            }
+                                        }
                                     });
-                                    let id = handler.thread().id();
-                                    caller.data_mut().ext.thead_handlers.insert(name, handler);
-                                    format!("start task: `{:?}`", id)
+                                    let task_id = caller.data_mut().ext.thead_handlers.len() + 1;
+                                    let task = TaskRunner {
+                                        id: task_id,
+                                        stop,
+                                        cmd: name,
+                                        handle,
+                                    };
+                                    let start_info = format!("start {}", &task);
+                                    caller.data_mut().ext.thead_handlers.insert(task_id, task);
+
+                                    start_info
                                 }
-                                crate::vm::TaskCommand::Stop(input) => {
-                                    format!("stop task: `{}`", input)
-                                }
+                                crate::vm::TaskCommand::Stop(id) => (|| {
+                                    if let Ok(id) = id.parse() {
+                                        if let Some(task_runner) =
+                                            caller.data_mut().ext.thead_handlers.remove(&id)
+                                        {
+                                            task_runner.stop.store(true, Ordering::Relaxed);
+                                            return format!("stop {}", task_runner);
+                                        };
+                                    }
+                                    format!("no task`{}` found", id)
+                                })(
+                                ),
                                 crate::vm::TaskCommand::Status => caller
                                     .data_mut()
                                     .ext
                                     .thead_handlers
-                                    .iter()
-                                    .map(|(name, handler)| {
-                                        format!("{}: {:?}", name, handler.thread().id())
-                                    })
+                                    .values()
+                                    .map(|(task_runner)| format!("{}", task_runner))
                                     .collect::<String>(),
                             };
                             godot_dbg!(&ret);

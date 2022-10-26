@@ -1,9 +1,9 @@
-use anyhow::Result;
+use anyhow::{Ok, Result};
 mod memory;
 mod runtime;
 
 use memory::cmd_args_from_caller;
-use runtime::test_runtime;
+use runtime::{test_runtime, SHELL_PRELOAD};
 
 fn main() -> Result<()> {
     let mut runtime = test_runtime()?;
@@ -89,6 +89,14 @@ fn filters() -> anyhow::Result<()> {
 "
         .to_string()
     );
+
+    Ok(())
+}
+
+#[test]
+fn preload() -> anyhow::Result<()> {
+    let mut runtime = test_runtime()?;
+    runtime.eval(SHELL_PRELOAD).unwrap();
 
     Ok(())
 }

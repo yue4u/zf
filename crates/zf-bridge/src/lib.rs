@@ -24,7 +24,7 @@ pub enum GameCommand {
 
 #[derive(Decode, Encode, Debug, PartialEq)]
 pub enum TaskCommand {
-    Run(String),
+    Run { cmd: String, every: Option<u64> },
     Stop(String),
     Status,
 }

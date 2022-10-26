@@ -93,7 +93,10 @@ pub struct UICommand {
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum TaskCommand {
-    Start(String),
+    Run {
+        cmd: String,
+        every: Option<u64>,
+    },
     Stop(String),
     Status,
 }
@@ -133,7 +136,12 @@ impl IntoCommand for CommandBridge {
                 pos: pos.map(|[x,y,z]| Vector3{x,y,z})
             }),
             Arg::Task(task) => match task {
-                bridge::TaskCommand::Run(name) => Command::Task(TaskCommand::Start(name)),
+                bridge::TaskCommand::Run{
+                    cmd,
+                    every
+                } => Command::Task(TaskCommand::Run{
+                    cmd, every
+                }),
                 bridge::TaskCommand::Stop(name) => Command::Task(TaskCommand::Stop(name)),
                 bridge::TaskCommand::Status => Command::Task(TaskCommand::Status),
             },

@@ -18,6 +18,7 @@ pub struct Runtime<S> {
 
 pub const ZF_SHELL_MODULE: &'static str = "zf-shell";
 pub const SHELL_WASM: &[u8] = include_bytes!("../../target/wasm32-wasi/release/zf-shell.wasm");
+
 pub struct ExtendedStore<T> {
     pub ext: T,
     pub wasi: WasiCtx,
@@ -73,7 +74,7 @@ impl<S> Runtime<S> {
 
         let input =
             memory::write_string_outside(self.instance, &mut self.store, &memory, input.into());
-        let out = self
+        let tag = self
             .linker
             .get(&mut self.store, ZF_SHELL_MODULE, "eval")
             .expect("expect eval function exist")
@@ -82,7 +83,7 @@ impl<S> Runtime<S> {
             .typed::<i64, i64, _>(&self.store)?
             .call(&mut self.store, input)?;
 
-        let out = memory::read_string_outside(&self.store, &memory, out);
+        let out = memory::read_string_outside(&self.store, &memory, tag);
 
         // let Runtime {
         //     store,

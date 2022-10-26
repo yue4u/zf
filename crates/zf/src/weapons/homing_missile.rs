@@ -18,8 +18,6 @@ impl HomingMissile {
 
     #[method]
     fn _ready(&self, #[base] base: TRef<Spatial>) {
-        base.set_scale(Vector3::new(0.05, 0.05, 0.05));
-
         unsafe {
             base.get_node("Area")
                 .expect("child Area should exist")
@@ -33,6 +31,14 @@ impl HomingMissile {
             0,
         )
         .expect("failed to connect area_entered");
+
+        unsafe {
+            base.get_node("Timer")
+                .expect("child Timer should exist")
+                .assume_safe()
+        }
+        .connect("timeout", base, "on_timeout", VariantArray::new_shared(), 0)
+        .expect("failed to connect area_entered");
     }
 
     #[method]
@@ -42,6 +48,8 @@ impl HomingMissile {
         if let Some(target_pos) = self.target_pos {
             let mut t = base.global_transform();
             t.origin = t.origin.move_toward(target_pos, delta);
+
+            base.look_at(target_pos, Vector3::UP);
             base.set_global_transform(t);
         } else {
             base.translate(Vector3::new(0.0, 0.0, -delta));
@@ -62,5 +70,11 @@ impl HomingMissile {
             .unwrap();
         base.queue_free();
         Some(())
+    }
+
+    #[method]
+    fn on_timeout(&self, #[base] base: &Spatial) {
+        godot_dbg!("HomingMissile queue_free");
+        base.queue_free()
     }
 }

@@ -1,5 +1,9 @@
 use crate::imports;
-use nu_protocol::{engine::{Command, EngineState, Stack}, IntoPipelineData, ShellError, Signature, Value, ast::Call, PipelineData};
+use nu_protocol::{
+    ast::Call,
+    engine::{Command, EngineState, Stack},
+    IntoPipelineData, PipelineData, ShellError, Signature, Value,
+};
 use zf_bridge::CommandBridge;
 
 #[derive(Clone)]

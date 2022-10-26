@@ -28,15 +28,14 @@ impl CommandPalette {
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
         let vm_manager = find_ref::<VMManager, Node>(as_node)?;
-        base
-            .connect(
-                "text_entered",
-                vm_manager,
-                VMSignal::OnCmdEntered,
-                VariantArray::new_shared(),
-                ConnectFlags::DEFERRED.into(),
-            )
-            .expect(&format!("failed to connect vm {}", ""));
+        base.connect(
+            "text_entered",
+            vm_manager,
+            VMSignal::OnCmdEntered,
+            VariantArray::new_shared(),
+            ConnectFlags::DEFERRED.into(),
+        )
+        .expect(&format!("failed to connect vm {}", ""));
 
         base.grab_focus();
 

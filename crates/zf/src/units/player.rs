@@ -64,7 +64,7 @@ impl Player {
                 let missile = common::load_as::<Spatial>(scenes::HOMING_MISSILE)
                     .unwrap()
                     .cast_instance::<HomingMissile>()
-                .unwrap();
+                    .unwrap();
 
                 missile.map_mut(|m, _| m.target_pos = fire.pos).unwrap();
 

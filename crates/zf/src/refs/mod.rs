@@ -2,8 +2,8 @@ use crate::managers::VMManager;
 use crate::ui::CommandPalette;
 use crate::units::Player;
 
-pub mod path;
 pub mod groups;
+pub mod path;
 
 pub trait HasPath {
     fn path() -> &'static str;

@@ -1,4 +1,7 @@
-use gdnative::{derive::{FromVariant, ToVariant}, prelude::Vector3};
+use gdnative::{
+    derive::{FromVariant, ToVariant},
+    prelude::Vector3,
+};
 
 use crate::vm::CommandInput;
 use zf_bridge::CommandBridge;
@@ -93,26 +96,21 @@ pub struct UICommand {
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum TaskCommand {
-    Run {
-        cmd: String,
-        every: Option<u64>,
-    },
+    Run { cmd: String, every: Option<u64> },
     Stop(String),
     Status,
 }
-
 
 pub trait IntoCommand {
     fn into_command(self) -> Command;
 }
 
 impl IntoCommand for CommandBridge {
-
     #[rustfmt::skip]
     fn into_command(self) -> Command {
         use zf_bridge as bridge;
         use zf_bridge::CommandBridge as Arg;
-        
+
         match self {
             Arg::Game(bridge::GameCommand::Start) => Command::Game(GameCommand::Start),
             Arg::Game(bridge::GameCommand::End) => Command::Game(GameCommand::End),

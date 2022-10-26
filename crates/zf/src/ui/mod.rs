@@ -6,8 +6,8 @@ mod perf_label;
 mod player_status;
 mod radar;
 mod result;
-mod tips;
 mod terminal_wrap;
+mod tips;
 
 pub use env::*;
 pub use hello::*;
@@ -17,5 +17,5 @@ pub use perf_label::*;
 pub use player_status::*;
 pub use radar::*;
 pub use result::*;
-pub use tips::*;
 pub use terminal_wrap::*;
+pub use tips::*;

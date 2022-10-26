@@ -121,4 +121,3 @@ pub mod sandbox {
     pub const LABEL: &str = "/root/Scene/UI/MarginContainer/Control/HBoxContainer/CommandPalette/Label";
     pub const LINE_EDIT: &str = "/root/Scene/UI/MarginContainer/Control/HBoxContainer/CommandPalette/LineEdit";
 }
-

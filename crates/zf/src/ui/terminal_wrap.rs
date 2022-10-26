@@ -1,5 +1,5 @@
 use gdnative::{
-    api::{object::ConnectFlags, GlobalConstants},
+    api::{object::ConnectFlags, GlobalConstants, OS},
     prelude::*,
 };
 
@@ -123,6 +123,16 @@ impl TerminalWrap {
                     }
                 }
                 self.buffer = "".to_string();
+            }
+            GlobalConstants::KEY_CONTROL | GlobalConstants::KEY_V => {
+                let clipboard = OS::godot_singleton().clipboard().to_string();
+                let clipboard_str = clipboard.as_str();
+                self.buffer.push_str(clipboard_str);
+                self.write(clipboard_str);
+            }
+            GlobalConstants::KEY_CONTROL | GlobalConstants::KEY_C => {
+                self.buffer.clear();
+                self.prompt();
             }
             GlobalConstants::KEY_BACKSPACE => {
                 if !self.buffer.is_empty() {

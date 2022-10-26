@@ -124,13 +124,13 @@ impl TerminalWrap {
                 }
                 self.buffer = "".to_string();
             }
-            GlobalConstants::KEY_CONTROL | GlobalConstants::KEY_V => {
+            GlobalConstants::KEY_V if event.control() => {
                 let clipboard = OS::godot_singleton().clipboard().to_string();
                 let clipboard_str = clipboard.as_str();
                 self.buffer.push_str(clipboard_str);
                 self.write(clipboard_str);
             }
-            GlobalConstants::KEY_CONTROL | GlobalConstants::KEY_C => {
+            GlobalConstants::KEY_C if event.control() => {
                 self.buffer.clear();
                 self.prompt();
             }

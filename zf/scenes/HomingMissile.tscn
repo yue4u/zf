@@ -21,7 +21,6 @@ emission_shape = 2
 emission_box_extents = Vector3( 3, 3, 0 )
 
 [sub_resource type="QuadMesh" id=3]
-size = Vector2( 3, 3 )
 
 [node name="HomingMissile" type="Spatial"]
 transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 0 )

@@ -1,4 +1,5 @@
 use gdnative::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::{
     cell::{RefCell, RefMut},
     collections::HashMap,
@@ -33,12 +34,31 @@ pub struct VMManager {
 }
 
 type ResultBuffer = HashMap<u32, CommandResult>;
+
 struct TaskRunner {
     id: usize,
-    stop: Arc<AtomicBool>,
     cmd: String,
+    stop: Arc<AtomicBool>,
     handle: JoinHandle<()>,
 }
+
+impl TaskRunner {
+    fn info(&self) -> TaskRunnerInfo {
+        TaskRunnerInfo {
+            id: self.id,
+            cmd: self.cmd.clone(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct TaskRunnerInfo {
+    id: usize,
+    cmd: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TaskRunnerInfoVec(Vec<TaskRunnerInfo>);
 
 impl Display for TaskRunner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -48,7 +68,7 @@ impl Display for TaskRunner {
 
 struct VMData {
     cmd_id: u32,
-    thead_handlers: HashMap<usize, TaskRunner>,
+    thead_handles: HashMap<usize, TaskRunner>,
     base: Ref<Node>,
 }
 
@@ -56,7 +76,7 @@ impl VMData {
     fn from_base(base: Ref<Node>) -> Self {
         Self {
             cmd_id: 0,
-            thead_handlers: HashMap::new(),
+            thead_handles: HashMap::new(),
             base,
         }
     }
@@ -161,7 +181,7 @@ impl Into<Runtime<VMData>> for VMData {
                                             }
                                         }
                                     });
-                                    let task_id = caller.data_mut().ext.thead_handlers.len() + 1;
+                                    let task_id = caller.data_mut().ext.thead_handles.len() + 1;
                                     let task = TaskRunner {
                                         id: task_id,
                                         stop,
@@ -169,14 +189,14 @@ impl Into<Runtime<VMData>> for VMData {
                                         handle,
                                     };
                                     let start_info = format!("start {}", &task);
-                                    caller.data_mut().ext.thead_handlers.insert(task_id, task);
+                                    caller.data_mut().ext.thead_handles.insert(task_id, task);
 
                                     start_info
                                 }
                                 crate::vm::TaskCommand::Stop(id) => (|| {
                                     if let Ok(id) = id.parse() {
                                         if let Some(task_runner) =
-                                            caller.data_mut().ext.thead_handlers.remove(&id)
+                                            caller.data_mut().ext.thead_handles.remove(&id)
                                         {
                                             task_runner.stop.store(true, Ordering::Relaxed);
                                             return format!("stop {}", task_runner);
@@ -185,13 +205,20 @@ impl Into<Runtime<VMData>> for VMData {
                                     format!("no task`{}` found", id)
                                 })(
                                 ),
-                                crate::vm::TaskCommand::Status => caller
-                                    .data_mut()
-                                    .ext
-                                    .thead_handlers
-                                    .values()
-                                    .map(|(task_runner)| format!("{}", task_runner))
-                                    .collect::<String>(),
+                                crate::vm::TaskCommand::Status => {
+                                    let handles = &mut caller.data_mut().ext.thead_handles;
+
+                                    // clear finished task
+                                    handles
+                                        .retain(|_, task_runner| !task_runner.handle.is_finished());
+
+                                    let info = handles
+                                        .values()
+                                        .map(|h| h.info())
+                                        .collect::<Vec<TaskRunnerInfo>>();
+                                    serde_json::to_string(&TaskRunnerInfoVec(info))
+                                        .expect("fail to serialize task runner info")
+                                }
                             };
                             godot_dbg!(&ret);
                             zf_runtime::write_string_with_caller(&mut caller, ret)

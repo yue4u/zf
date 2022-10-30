@@ -1,6 +1,6 @@
 use crate::commands::{
-    Engine, EngineOff, EngineOn, EngineThruster, Fire, Game, GameEnd, GameMenu, GameStart, Hi,
-    Mission, Mystery, Radar, Task, TaskRun, TaskStop, UI,
+    Engine, EngineOff, EngineOn, EngineThruster, EngineThrusterShort, Fire, Game, GameEnd,
+    GameMenu, GameStart, Hi, Mission, Mystery, Radar, Task, TaskRun, TaskStop, UI,
 };
 use anyhow::Result;
 use nu_command::*;
@@ -46,6 +46,7 @@ impl ShellState {
             EngineOn,
             EngineOff,
             EngineThruster,
+            EngineThrusterShort,
 
             Task,
             TaskRun,

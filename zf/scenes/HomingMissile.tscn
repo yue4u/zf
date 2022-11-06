@@ -10,17 +10,16 @@ extents = Vector3( 5, 5, 20 )
 flags_transparent = true
 flags_unshaded = true
 params_cull_mode = 2
-params_billboard_mode = 3
-particles_anim_h_frames = 1
-particles_anim_v_frames = 1
-particles_anim_loop = false
+params_billboard_mode = 1
 albedo_color = Color( 0.231373, 0.941176, 0.921569, 0.352941 )
 
 [sub_resource type="ParticlesMaterial" id=2]
 emission_shape = 2
 emission_box_extents = Vector3( 3, 3, 0 )
+gravity = Vector3( 0, 0, 5 )
 
 [sub_resource type="QuadMesh" id=3]
+size = Vector2( 2, 2 )
 
 [node name="HomingMissile" type="Spatial"]
 transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 0 )
@@ -38,9 +37,11 @@ shape = SubResource( 1 )
 transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, -19.2804 )
 material_override = SubResource( 4 )
 cast_shadow = 0
+generate_lightmap = false
 amount = 12
 lifetime = 3.0
 speed_scale = 2.0
+local_coords = false
 process_material = SubResource( 2 )
 draw_pass_1 = SubResource( 3 )
 

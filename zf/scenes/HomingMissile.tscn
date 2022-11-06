@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://scripts/HomingMissile.gdns" type="Script" id=1]
 [ext_resource path="res://assets/3rd/missiles (1)/source/missiles.glb" type="PackedScene" id=2]
@@ -9,14 +9,30 @@ extents = Vector3( 5, 5, 20 )
 [sub_resource type="SpatialMaterial" id=4]
 flags_transparent = true
 flags_unshaded = true
+vertex_color_use_as_albedo = true
 params_cull_mode = 2
 params_billboard_mode = 1
 albedo_color = Color( 0.231373, 0.941176, 0.921569, 0.352941 )
+
+[sub_resource type="Gradient" id=7]
+colors = PoolColorArray( 1, 1, 1, 1, 0.324219, 0, 1, 0.301961 )
+
+[sub_resource type="GradientTexture" id=8]
+gradient = SubResource( 7 )
+
+[sub_resource type="Curve" id=5]
+max_value = 20.0
+_data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 1, 20 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=6]
+curve = SubResource( 5 )
 
 [sub_resource type="ParticlesMaterial" id=2]
 emission_shape = 2
 emission_box_extents = Vector3( 3, 3, 0 )
 gravity = Vector3( 0, 0, 5 )
+scale_curve = SubResource( 6 )
+color_ramp = SubResource( 8 )
 
 [sub_resource type="QuadMesh" id=3]
 size = Vector2( 2, 2 )

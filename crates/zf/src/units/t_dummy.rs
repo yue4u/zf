@@ -39,7 +39,7 @@ impl TDummy {
 
     #[method]
     fn _process(&self, #[base] base: TRef<Spatial>, delta: f64) -> Option<()> {
-        base.look_at_player()
+        base.try_look_at_player()
     }
 
     #[method]

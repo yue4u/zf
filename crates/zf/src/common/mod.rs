@@ -37,15 +37,13 @@ where
 }
 
 pub(crate) trait LookAtPlauer {
-    fn look_at_player(&self) -> Option<()>;
+    fn try_look_at_player(&self) -> Option<()>;
 }
 
 impl LookAtPlauer for TRef<'_, Spatial> {
-    fn look_at_player(&self) -> Option<()> {
-        let transform =
-            find_ref::<Player, Spatial>(unsafe { self.get_node(".").unwrap().assume_safe() })
-                .unwrap()
-                .global_transform();
+    fn try_look_at_player(&self) -> Option<()> {
+        let transform = find_ref::<Player, Spatial>(unsafe { self.get_node(".")?.assume_safe() })?
+            .global_transform();
         self.look_at(transform.origin, Vector3::UP);
         Some(())
     }

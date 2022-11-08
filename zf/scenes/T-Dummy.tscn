@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://assets/3rd/spaceships/t-dummy.glb" type="PackedScene" id=1]
 [ext_resource path="res://scenes/HealthBar3D.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scripts/T-Dummy.gdns" type="Script" id=3]
+[ext_resource path="res://scripts/Launcher.gdns" type="Script" id=4]
 
 [sub_resource type="CapsuleShape" id=1]
 margin = 0.001
@@ -24,3 +25,6 @@ shape = SubResource( 1 )
 
 [node name="HP" parent="." index="2" instance=ExtResource( 2 )]
 transform = Transform( 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 8.61353, 0 )
+
+[node name="Launcher" type="Node" parent="." index="3"]
+script = ExtResource( 4 )

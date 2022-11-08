@@ -5,7 +5,10 @@ use gdnative::{
 
 use crate::{
     common::{self, find_ref},
-    refs::path::scenes,
+    refs::{
+        groups::Group,
+        path::{self, scenes},
+    },
     units::Player,
 };
 
@@ -72,22 +75,37 @@ impl Launcher {
 
     #[method]
     fn trigger(&self, #[base] base: TRef<Node>) {
-        let missile = common::load_as::<Spatial>(
+        let obj = common::load_as::<Spatial>(
             self.emit_obj_path
                 .as_deref()
                 .unwrap_or(scenes::HOMING_MISSILE),
         )
-        .unwrap()
-        .cast_instance::<HomingMissile>()
         .unwrap();
+        obj.set_global_transform(
+            unsafe { base.get_parent().unwrap().assume_safe() }
+                .cast::<Spatial>()
+                .unwrap()
+                .global_transform(),
+        );
+        let missile = obj.cast_instance::<HomingMissile>().unwrap();
         let player_pos = find_ref::<Player, Spatial>(base)
             .unwrap()
             .global_transform()
             .origin;
         missile
-            .map_mut(|m, _| m.target_pos = Some(player_pos))
+            .map_mut(|m, _| {
+                if self.target_player {
+                    m.group = Group::ENEMY;
+                }
+                m.target_pos = Some(player_pos)
+            })
             .unwrap();
 
-        unsafe { base.get_node("Projectiles").unwrap().assume_safe() }.add_child(missile, true);
+        unsafe {
+            base.get_node(path::base_level::PROJECTILES)
+                .unwrap()
+                .assume_safe()
+        }
+        .add_child(missile, false);
     }
 }

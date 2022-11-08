@@ -1,19 +1,25 @@
 use gdnative::api::*;
 use gdnative::prelude::*;
 
+use crate::refs::groups::Group;
+use crate::units::Player;
 use crate::units::TDummy;
 
 #[derive(NativeClass)]
 #[inherit(Spatial)]
 pub struct HomingMissile {
     pub target_pos: Option<Vector3>,
+    pub group: Group,
 }
 
 #[methods]
 impl HomingMissile {
     fn new(_base: &Spatial) -> Self {
         godot_print!("prepare HomingMissile");
-        HomingMissile { target_pos: None }
+        HomingMissile {
+            target_pos: None,
+            group: Group::ENEMY,
+        }
     }
 
     #[method]
@@ -43,7 +49,7 @@ impl HomingMissile {
 
     #[method]
     fn _process(&self, #[base] base: &Spatial, delta: f64) -> Option<()> {
-        let delta = (delta as f32) * 500.0;
+        let delta = (delta as f32) * 300.0;
 
         if let Some(target_pos) = self.target_pos {
             let mut t = base.global_transform();
@@ -59,15 +65,29 @@ impl HomingMissile {
 
     #[method]
     unsafe fn on_detected(&self, #[base] base: &Spatial, area: Ref<Area>) -> Option<()> {
-        area.assume_safe()
+        let spatial = area
+            .assume_safe()
             .get_parent()?
             .assume_safe()
-            .cast::<Spatial>()?
-            .cast_instance::<TDummy>()?
-            .map(|d, _| {
-                d.damage();
-            })
-            .unwrap();
+            .cast::<Spatial>()?;
+        match self.group {
+            Group::PLAYER => {
+                spatial
+                    .cast_instance::<TDummy>()?
+                    .map(|d, _| {
+                        d.damage();
+                    })
+                    .unwrap();
+            }
+            Group::ENEMY => {
+                spatial
+                    .cast_instance::<Player>()?
+                    .map(|p, _| {
+                        p.damage();
+                    })
+                    .unwrap();
+            }
+        }
         base.queue_free();
         Some(())
     }

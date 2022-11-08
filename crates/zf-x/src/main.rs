@@ -95,7 +95,7 @@ pub fn main() -> io::Result<()> {
         .collect::<io::Result<String>>()?;
     code.push_str(&mods);
 
-    fs::write("./zf/src/path/path.rs", code).unwrap();
+    fs::write("./zf/src/refs/path.rs", code).unwrap();
     Ok(())
 }
 

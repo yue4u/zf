@@ -4,7 +4,10 @@ use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
-    refs::{groups, path::scenes},
+    refs::{
+        groups::{self, Group},
+        path::scenes,
+    },
     vm::{register_vm_signal, Command, CommandInput, EngineCommand, VMConnecter, VMSignal},
     weapons::HomingMissile,
 };
@@ -67,7 +70,12 @@ impl Player {
                     .cast_instance::<HomingMissile>()
                     .unwrap();
 
-                missile.map_mut(|m, _| m.target_pos = fire.pos).unwrap();
+                missile
+                    .map_mut(|m, _| {
+                        m.group = Group::PLAYER;
+                        m.target_pos = fire.pos
+                    })
+                    .unwrap();
 
                 unsafe { base.get_node("Projectiles").unwrap().assume_safe() }
                     .add_child(missile, true);
@@ -103,6 +111,11 @@ impl Player {
         let follow = unsafe { base.get_parent()?.assume_safe() }.cast::<PathFollow>()?;
         follow.set_unit_offset((follow.unit_offset() + speed * delta).fract());
         Some(())
+    }
+
+    #[method]
+    pub fn damage(&self) {
+        godot_dbg!("damage player!");
     }
 
     pub fn display(&self) -> String {

@@ -7,6 +7,8 @@
 
 [node name="Scene" instance=ExtResource( 1 )]
 
+[node name="Projectiles" type="Node" parent="Level" index="0"]
+
 [node name="Control" type="Control" parent="UI/MarginContainer" index="0"]
 margin_right = 964.0
 margin_bottom = 540.0

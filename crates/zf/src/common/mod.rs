@@ -1,4 +1,7 @@
-use crate::refs::{path, HasPath};
+use crate::{
+    refs::{path, HasPath},
+    units::Player,
+};
 use gdnative::{api::*, prelude::*};
 
 pub type Id = u32;
@@ -31,6 +34,21 @@ where
     R: SubClass<Node>,
 {
     unsafe { target.get_node(S::path())?.assume_safe() }.cast::<R>()
+}
+
+pub(crate) trait LookAtPlauer {
+    fn look_at_player(&self) -> Option<()>;
+}
+
+impl LookAtPlauer for TRef<'_, Spatial> {
+    fn look_at_player(&self) -> Option<()> {
+        let transform =
+            find_ref::<Player, Spatial>(unsafe { self.get_node(".").unwrap().assume_safe() })
+                .unwrap()
+                .global_transform();
+        self.look_at(transform.origin, Vector3::UP);
+        Some(())
+    }
 }
 
 pub fn get_tree<'a>(base: &'a Node) -> TRef<'a, SceneTree> {

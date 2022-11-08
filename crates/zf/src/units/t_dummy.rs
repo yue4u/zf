@@ -3,6 +3,8 @@ use gdnative::{
     prelude::*,
 };
 
+use crate::common::LookAtPlauer;
+
 #[derive(NativeClass)]
 #[inherit(Spatial)]
 pub struct TDummy {
@@ -32,6 +34,11 @@ impl TDummy {
         .claim();
         self.hp = Some(hp);
         Some(())
+    }
+
+    #[method]
+    fn _process(&self, #[base] base: TRef<Spatial>, delta: f64) -> Option<()> {
+        base.look_at_player()
     }
 
     #[method]

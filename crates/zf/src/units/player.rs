@@ -4,7 +4,7 @@ use gdnative::{api::PathFollow, prelude::*};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
-    refs::path::scenes,
+    refs::{groups, path::scenes},
     vm::{register_vm_signal, Command, CommandInput, EngineCommand, VMConnecter, VMSignal},
     weapons::HomingMissile,
 };
@@ -42,6 +42,7 @@ impl Player {
 
     #[method]
     fn _ready(&self, #[base] base: TRef<Spatial>) -> Option<()> {
+        base.add_to_group(groups::PLAYER, false);
         // FIXME: this is a hack to get it to work.
         let node = unsafe { base.get_node_as::<Node>(".")? };
         node.connect_vm_signal(VMSignal::OnCmdParsed.into());

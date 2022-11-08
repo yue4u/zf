@@ -112,17 +112,21 @@ impl Radar {
 
     #[method]
     fn on_detected(&self, #[base] base: &Node, area: Ref<Area>) -> Option<()> {
-        let id = unsafe { area.assume_safe().get_parent()?.assume_safe() }.name();
+        let enemy = unsafe { area.assume_safe().get_parent()?.assume_safe() };
+        if !enemy.is_in_group(groups::ENEMY) {
+            return None;
+        }
+        let id = enemy.name();
         self.detected.borrow_mut().insert(id.clone(), area);
-        let enemy = unsafe {
+        let enemy_chip = unsafe {
             base.get_node("D4")?
                 .assume_safe()
                 .duplicate(0)?
                 .assume_safe()
         };
-        enemy.set_name(id);
-        enemy.set("visible", true);
-        base.add_child(enemy, false);
+        enemy_chip.set_name(id);
+        enemy_chip.set("visible", true);
+        base.add_child(enemy_chip, false);
         Some(())
     }
 

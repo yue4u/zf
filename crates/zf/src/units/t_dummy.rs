@@ -3,7 +3,7 @@ use gdnative::{
     prelude::*,
 };
 
-use crate::common::LookAtPlauer;
+use crate::{common::LookAtPlauer, refs::groups};
 
 #[derive(NativeClass)]
 #[inherit(Spatial)]
@@ -16,6 +16,7 @@ pub struct TDummy {
 impl TDummy {
     fn new(base: TRef<Spatial>) -> Self {
         godot_print!("prepare TDummy");
+        base.add_to_group(groups::ENEMY, false);
         TDummy {
             hp: None,
             base_ref: base.claim(),

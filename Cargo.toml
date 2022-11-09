@@ -1,0 +1,16 @@
+[workspace]
+
+members = [
+    "crates/zf",
+    "crates/zf-x",
+    "crates/zf-shell",
+    "crates/zf-bridge",
+    "crates/zf-runtime",
+]
+
+exclude = [
+    "crates/nushell"
+]
+
+[workspace.dependencies]
+anyhow = "1.0.65"

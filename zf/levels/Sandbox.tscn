@@ -46,6 +46,8 @@ far = 2000.0
 
 [node name="RadarArea" type="Area" parent="Level/Path/PathFollow/t-mjolnir" index="2"]
 transform = Transform( 1, -1.86265e-09, -1.66534e-16, 1.86265e-09, 1, 8.9407e-08, 0, -8.9407e-08, 1, 0, 0, 0 )
+collision_layer = 2
+collision_mask = 23
 
 [node name="CollisionShape" type="CollisionShape" parent="Level/Path/PathFollow/t-mjolnir/RadarArea" index="0"]
 shape = SubResource( 2 )

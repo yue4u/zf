@@ -22,6 +22,14 @@ enabled=PoolStringArray( "res://addons/godot_xterm/plugin.cfg" )
 
 thread=false
 
+[layer_names]
+
+3d_physics/layer_1="env"
+3d_physics/layer_2="player"
+3d_physics/layer_3="enemy"
+3d_physics/layer_4="player_fire"
+3d_physics/layer_5="enemy_fire"
+
 [logging]
 
 file_logging/enable_file_logging=true

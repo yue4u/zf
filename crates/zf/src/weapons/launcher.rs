@@ -1,12 +1,12 @@
 use gdnative::{
-    api::{RandomNumberGenerator, WorldEnvironment},
+    api::{Area, RandomNumberGenerator},
     prelude::*,
 };
 
 use crate::{
     common::{self, find_ref},
     refs::{
-        groups::Group,
+        groups::Layer,
         path::{self, scenes},
     },
     units::Player,
@@ -27,12 +27,12 @@ pub struct Launcher {
 
     emit_obj_path: Option<String>,
 
-    target_player: bool,
+    layer: Layer,
 }
 
 #[methods]
 impl Launcher {
-    fn new(base: &Node) -> Self {
+    fn new(_base: &Node) -> Self {
         // it looks we need duplicate defaults here 😐
         // https://github.com/godot-rust/godot-rust/blob/29b89b0eb3ab0e053dc9702f9b1ac29dca4ecf22/examples/dodge-the-creeps/src/mob.rs#L36-L41
         Launcher {
@@ -40,7 +40,7 @@ impl Launcher {
             wait_time_msec: 1000,
             timer: None,
             emit_obj_path: None,
-            target_player: true,
+            layer: Layer::ENEMY_FIRE,
         }
     }
 
@@ -48,7 +48,7 @@ impl Launcher {
     fn _ready(&mut self, #[base] base: TRef<Node>) {
         godot_dbg!("{:?}", &self);
 
-        let mut rng = RandomNumberGenerator::new();
+        let rng = RandomNumberGenerator::new();
         let start_time_msec = rng.randi_range(0, self.random_start_time_msec as i64);
         godot_dbg!("rng says {}", start_time_msec);
         let timer = unsafe { Timer::new().into_shared().assume_safe() };
@@ -81,24 +81,21 @@ impl Launcher {
                 .unwrap_or(scenes::HOMING_MISSILE),
         )
         .unwrap();
-        obj.set_global_transform(
-            unsafe { base.get_parent().unwrap().assume_safe() }
-                .cast::<Spatial>()
-                .unwrap()
-                .global_transform(),
-        );
+        let parent = unsafe { base.get_parent().unwrap().assume_safe() }
+            .cast::<Spatial>()
+            .unwrap();
+        obj.set_global_transform(parent.global_transform());
+
+        let area = unsafe { obj.get_node_as::<Area>("Area") }.unwrap();
+        self.layer.prepare_collision_for(area);
+
         let missile = obj.cast_instance::<HomingMissile>().unwrap();
         let player_pos = find_ref::<Player, Spatial>(base)
             .unwrap()
             .global_transform()
             .origin;
         missile
-            .map_mut(|m, _| {
-                if self.target_player {
-                    m.group = Group::ENEMY;
-                }
-                m.target_pos = Some(player_pos)
-            })
+            .map_mut(|m, _| m.target_pos = Some(player_pos))
             .unwrap();
 
         unsafe {

@@ -1,11 +1,14 @@
 use std::cell::RefCell;
 
-use gdnative::{api::PathFollow, prelude::*};
+use gdnative::{
+    api::{Area, PathFollow},
+    prelude::*,
+};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
     refs::{
-        groups::{self, Group},
+        groups::{self, Layer},
         path::scenes,
     },
     vm::{register_vm_signal, Command, CommandInput, EngineCommand, VMConnecter, VMSignal},
@@ -65,17 +68,12 @@ impl Player {
             Command::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
             Command::Fire(fire) => {
                 godot_print!("fire: {:?}", fire);
-                let missile = common::load_as::<Spatial>(scenes::HOMING_MISSILE)
-                    .unwrap()
-                    .cast_instance::<HomingMissile>()
-                    .unwrap();
+                let weapon = common::load_as::<Spatial>(scenes::HOMING_MISSILE).unwrap();
+                let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
+                Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
+                let missile = weapon.cast_instance::<HomingMissile>().unwrap();
 
-                missile
-                    .map_mut(|m, _| {
-                        m.group = Group::PLAYER;
-                        m.target_pos = fire.pos
-                    })
-                    .unwrap();
+                missile.map_mut(|m, _| m.target_pos = fire.pos).unwrap();
 
                 unsafe { base.get_node("Projectiles").unwrap().assume_safe() }
                     .add_child(missile, true);

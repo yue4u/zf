@@ -1,7 +1,4 @@
-use gdnative::{
-    api::{Area, TextureProgress},
-    prelude::*,
-};
+use gdnative::{api::TextureProgress, prelude::*};
 
 use crate::{common::LookAtPlauer, refs::groups};
 
@@ -38,7 +35,7 @@ impl TDummy {
     }
 
     #[method]
-    fn _process(&self, #[base] base: TRef<Spatial>, delta: f64) -> Option<()> {
+    fn _process(&self, #[base] base: TRef<Spatial>, _delta: f64) -> Option<()> {
         base.try_look_at_player()
     }
 

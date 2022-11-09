@@ -43,8 +43,6 @@ pub enum Command {
     Invalid,
 }
 
-use Command::*;
-
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub enum GameCommand {
     Start,

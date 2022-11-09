@@ -144,7 +144,7 @@ fn render_marker(
     player: TRef<Spatial>,
     (id, area): (&GodotString, &Ref<Area>),
 ) -> Option<()> {
-    let node = base.get_node(id.to_owned())?;
+    let node = base.get_node_or_null(id.to_owned())?;
 
     if let Some(ret) = unsafe { node.assume_safe() }.cast::<TextureRect>() {
         let vec = (unsafe { area.assume_safe() }.global_transform().origin

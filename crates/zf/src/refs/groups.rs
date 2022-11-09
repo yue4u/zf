@@ -5,6 +5,7 @@ pub const ENEMY: &'static str = "enemy";
 pub const RADAR: &'static str = "radar";
 
 #[derive(Debug)]
+#[allow(dead_code, non_camel_case_types)]
 pub enum Layer {
     ENV,
     PLAYER,

@@ -1,24 +1,22 @@
 use gdnative::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::{
-    cell::{RefCell, RefMut},
+    cell::RefCell,
     collections::HashMap,
     fmt::Display,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
-    thread::{self, JoinHandle},
+    thread::JoinHandle,
     time::Duration,
 };
 
 use crate::{
-    common::get_tree,
     entities::Mission,
     refs::{groups, path::levels},
     vm::{
-        Command, CommandInput, CommandResult, GameCommand, IntoCommand, MissionCommand, Process,
-        VMSignal,
+        Command, CommandInput, CommandResult, GameCommand, IntoCommand, MissionCommand, VMSignal,
     },
 };
 
@@ -101,7 +99,7 @@ impl VMManager {
     pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
         godot_print!("vm host ready");
         let mut runtime: Runtime<VMData> = VMData::from_base(base.claim()).into();
-        runtime.eval(zf_runtime::SHELL_PRELOAD);
+        runtime.eval(zf_runtime::SHELL_PRELOAD).unwrap();
         self.runtime = Some(runtime);
     }
 
@@ -167,17 +165,17 @@ impl Into<Runtime<VMData>> for VMData {
                                         let mut runtime: Runtime<VMData> =
                                             VMData::from_base(base).into();
                                         let ret = runtime.eval(&input);
-                                        godot_dbg!(ret);
+                                        _ = godot_dbg!(ret);
 
                                         if let Some(dur) = every {
-                                            while true {
+                                            loop {
                                                 if stop_clone.load(Ordering::Relaxed) {
                                                     godot_dbg!(format!("stop `{}` done!", &input));
                                                     break;
                                                 }
                                                 std::thread::sleep(Duration::from_nanos(dur));
                                                 let ret = runtime.eval(&input);
-                                                godot_dbg!(ret);
+                                                _ = godot_dbg!(ret);
                                             }
                                         }
                                     });
@@ -228,7 +226,6 @@ impl Into<Runtime<VMData>> for VMData {
                                 &mut caller,
                                 Mission::dummy().summary(),
                             ),
-                            _ => 0,
                         },
                         Command::Game(g) => {
                             let tree = unsafe {

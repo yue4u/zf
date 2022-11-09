@@ -24,7 +24,6 @@ pub const SHELL_WASM: &[u8] = include_bytes!(concat!(
     "target/wasm32-wasi/release/zf-shell.wasm"
 ));
 
-// TODO: make this dynamic
 pub const SHELL_PRELOAD: &'static str = r#"
 alias e = engine;
 alias f = fire;

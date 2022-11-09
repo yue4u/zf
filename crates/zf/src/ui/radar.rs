@@ -11,7 +11,6 @@ use crate::{
     vm::{register_vm_signal, Command, CommandInput, UIAction, UICommand, VMConnecter, VMSignal},
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Result;
 
 #[derive(NativeClass, Default)]
 #[inherit(Node)]
@@ -112,11 +111,11 @@ impl Radar {
 
     #[method]
     fn on_detected(&self, #[base] base: &Node, area: Ref<Area>) -> Option<()> {
-        let enemy = unsafe { area.assume_safe().get_parent()?.assume_safe() };
-        if !enemy.is_in_group(groups::ENEMY) {
+        let maybe_enemy = unsafe { area.assume_safe().get_parent()?.assume_safe() };
+        if maybe_enemy.is_in_group(groups::PLAYER) {
             return None;
         }
-        let id = enemy.name();
+        let id = maybe_enemy.name();
         self.detected.borrow_mut().insert(id.clone(), area);
         let enemy_chip = unsafe {
             base.get_node("D4")?
@@ -134,7 +133,7 @@ impl Radar {
     fn on_lost(&self, #[base] base: &Node, area: Ref<Area>) -> Option<()> {
         let id = unsafe { area.assume_safe().get_parent()?.assume_safe() }.name();
         self.detected.borrow_mut().remove(&id);
-        base.remove_child(base.get_node(id)?);
+        base.remove_child(base.get_node_or_null(id)?);
         Some(())
     }
 }

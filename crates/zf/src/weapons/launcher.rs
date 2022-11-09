@@ -75,25 +75,29 @@ impl Launcher {
 
     #[method]
     fn trigger(&self, #[base] base: TRef<Node>) {
-        let obj = common::load_as::<Spatial>(
+        let weapon = common::load_as::<Spatial>(
             self.emit_obj_path
                 .as_deref()
                 .unwrap_or(scenes::HOMING_MISSILE),
         )
         .unwrap();
-        let parent = unsafe { base.get_parent().unwrap().assume_safe() }
-            .cast::<Spatial>()
-            .unwrap();
-        obj.set_global_transform(parent.global_transform());
-
-        let area = unsafe { obj.get_node_as::<Area>("Area") }.unwrap();
+        let area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
         self.layer.prepare_collision_for(area);
 
-        let missile = obj.cast_instance::<HomingMissile>().unwrap();
+        let missile = weapon.cast_instance::<HomingMissile>().unwrap();
         let player_pos = find_ref::<Player, Spatial>(base)
             .unwrap()
             .global_transform()
             .origin;
+
+        let parent = unsafe { base.get_parent().unwrap().assume_safe() }
+            .cast::<Spatial>()
+            .unwrap();
+        missile
+            .base()
+            .set_global_transform(parent.global_transform());
+        missile.base().set_as_toplevel(true);
+
         missile
             .map_mut(|m, _| m.target_pos = Some(player_pos))
             .unwrap();

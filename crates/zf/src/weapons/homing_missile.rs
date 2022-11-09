@@ -1,3 +1,4 @@
+use gdnative::api::object::ConnectFlags;
 use gdnative::api::*;
 use gdnative::prelude::*;
 
@@ -15,7 +16,7 @@ impl HomingMissile {
     }
 
     #[method]
-    fn _ready(&self, #[base] base: TRef<Spatial>) {
+    fn _ready(&mut self, #[base] base: TRef<Spatial>) {
         unsafe {
             base.get_node("Area")
                 .expect("child Area should exist")
@@ -26,7 +27,7 @@ impl HomingMissile {
             base,
             "on_detected",
             VariantArray::new_shared(),
-            0,
+            ConnectFlags::DEFERRED.into(),
         )
         .expect("failed to connect area_entered");
 
@@ -47,7 +48,9 @@ impl HomingMissile {
             let mut t = base.global_transform();
             t.origin = t.origin.move_toward(target_pos, delta);
 
-            base.look_at(target_pos, Vector3::UP);
+            if t.origin.distance_to(target_pos) > 0.1 {
+                base.look_at(target_pos, Vector3::UP);
+            }
             base.set_global_transform(t);
         } else {
             base.translate(Vector3::new(0.0, 0.0, -delta));
@@ -57,11 +60,13 @@ impl HomingMissile {
 
     #[method]
     unsafe fn on_detected(&self, #[base] base: &Spatial, area: Ref<Area>) -> Option<()> {
-        let spatial = area
-            .assume_safe()
-            .get_parent()?
-            .assume_safe()
-            .cast::<Spatial>()?;
+        let area = unsafe { area.assume_safe() };
+        if area.collision_layer() == 0 {
+            // godot_dbg!("does not have collision layer");
+            return None;
+        }
+
+        let spatial = area.get_parent()?.assume_safe().cast::<Spatial>()?;
 
         if !spatial.has_method("damage") {
             return None;

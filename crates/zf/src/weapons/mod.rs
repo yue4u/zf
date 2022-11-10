@@ -2,6 +2,7 @@ mod beam;
 mod homing_missile;
 mod launcher;
 
+pub use beam::Beam;
 use gdnative::api::object::ConnectFlags;
 use gdnative::api::*;
 use gdnative::prelude::*;

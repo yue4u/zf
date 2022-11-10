@@ -34,7 +34,7 @@ impl Beam {
     fn _process(&self, #[base] base: &Spatial, delta: f64) {
         let delta = (delta as f32) * 300.0;
 
-        base.translate(
+        base.global_translate(
             self.direction
                 .map(|d| d * delta)
                 .unwrap_or_else(|| Vector3::new(0.0, 0.0, -delta)),

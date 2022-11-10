@@ -24,6 +24,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<units::TDummy>();
     handle.add_class::<weapons::Launcher>();
     handle.add_class::<weapons::HomingMissile>();
+    handle.add_class::<weapons::Beam>();
     handle.add_class::<managers::VMManager>();
     handle.add_class::<managers::AnimationManager>();
 }

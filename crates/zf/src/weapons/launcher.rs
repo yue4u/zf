@@ -15,17 +15,17 @@ use crate::{
 
 impl Launcher {
     pub fn load_with_weapon(base: TRef<Spatial>, weapon_path: impl ToString) {
-        let node = common::load_as::<Node>(refs::path::scenes::LAUNCHER).expect("load ok");
+        let node = common::load_as::<Node>(refs::path::scenes::LAUNCHER).expect("load failed");
         let launcher = node
             .cast_instance::<Launcher>()
-            .expect("cast_instance ok")
+            .expect("cast_instance failed")
             .into_shared();
 
         unsafe { launcher.assume_safe() }
             .map_mut(|l, _| {
                 l.weapon_path = Some(weapon_path.to_string());
             })
-            .expect("update weapon_path ok");
+            .expect("update weapon_path failed");
 
         base.add_child(launcher.base(), false);
     }
@@ -37,7 +37,7 @@ pub struct Launcher {
     #[property(default = 1000)]
     random_start_time_msec: i32,
 
-    #[property(default = 1000)]
+    #[property(default = 300)]
     wait_time_msec: i32,
 
     timer: Option<Ref<Timer>>,
@@ -54,7 +54,7 @@ impl Launcher {
         // https://github.com/godot-rust/godot-rust/blob/29b89b0eb3ab0e053dc9702f9b1ac29dca4ecf22/examples/dodge-the-creeps/src/mob.rs#L36-L41
         Launcher {
             random_start_time_msec: 1000,
-            wait_time_msec: 1000,
+            wait_time_msec: 300,
             timer: None,
             weapon_path: None,
             layer: Layer::ENEMY_FIRE,
@@ -64,6 +64,7 @@ impl Launcher {
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Node>) {
         let rng = RandomNumberGenerator::new();
+        rng.randomize();
         let start_time_msec = rng.randi_range(0, self.random_start_time_msec as i64);
         godot_dbg!("rng says {}", start_time_msec);
         let timer = unsafe { Timer::new().into_shared().assume_safe() };
@@ -90,13 +91,15 @@ impl Launcher {
 
     #[method]
     fn trigger(&self, #[base] base: TRef<Node>) {
-        godot_dbg!("trigger launcher");
         let weapon = common::load_as::<Spatial>(
             self.weapon_path
                 .as_deref()
                 .unwrap_or(scenes::HOMING_MISSILE),
         )
         .unwrap();
+
+        godot_print!("trigger launcher with {:?}", weapon.name());
+
         let area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
         self.layer.prepare_collision_for(area);
 

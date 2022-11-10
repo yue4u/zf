@@ -6,13 +6,30 @@ use gdnative::{
 use crate::{
     common::{self, find_ref},
     refs::{
+        self,
         groups::Layer,
         path::{self, scenes},
     },
     units::Player,
 };
 
-use super::HomingMissile;
+impl Launcher {
+    pub fn load_with_weapon(base: TRef<Spatial>, weapon_path: impl ToString) {
+        let node = common::load_as::<Node>(refs::path::scenes::LAUNCHER).expect("load ok");
+        let launcher = node
+            .cast_instance::<Launcher>()
+            .expect("cast_instance ok")
+            .into_shared();
+
+        unsafe { launcher.assume_safe() }
+            .map_mut(|l, _| {
+                l.weapon_path = Some(weapon_path.to_string());
+            })
+            .expect("update weapon_path ok");
+
+        base.add_child(launcher.base(), false);
+    }
+}
 
 #[derive(NativeClass, Debug)]
 #[inherit(Node)]
@@ -25,7 +42,7 @@ pub struct Launcher {
 
     timer: Option<Ref<Timer>>,
 
-    emit_obj_path: Option<String>,
+    pub weapon_path: Option<String>,
 
     layer: Layer,
 }
@@ -33,21 +50,19 @@ pub struct Launcher {
 #[methods]
 impl Launcher {
     fn new(_base: &Node) -> Self {
-        // it looks we need duplicate defaults here 😐
+        // it looks we need to duplicate the defaults here 😐
         // https://github.com/godot-rust/godot-rust/blob/29b89b0eb3ab0e053dc9702f9b1ac29dca4ecf22/examples/dodge-the-creeps/src/mob.rs#L36-L41
         Launcher {
             random_start_time_msec: 1000,
             wait_time_msec: 1000,
             timer: None,
-            emit_obj_path: None,
+            weapon_path: None,
             layer: Layer::ENEMY_FIRE,
         }
     }
 
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Node>) {
-        godot_dbg!("{:?}", &self);
-
         let rng = RandomNumberGenerator::new();
         let start_time_msec = rng.randi_range(0, self.random_start_time_msec as i64);
         godot_dbg!("rng says {}", start_time_msec);
@@ -75,8 +90,9 @@ impl Launcher {
 
     #[method]
     fn trigger(&self, #[base] base: TRef<Node>) {
+        godot_dbg!("trigger launcher");
         let weapon = common::load_as::<Spatial>(
-            self.emit_obj_path
+            self.weapon_path
                 .as_deref()
                 .unwrap_or(scenes::HOMING_MISSILE),
         )
@@ -84,7 +100,6 @@ impl Launcher {
         let area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
         self.layer.prepare_collision_for(area);
 
-        let missile = weapon.cast_instance::<HomingMissile>().unwrap();
         let player_pos = find_ref::<Player, Spatial>(base)
             .unwrap()
             .global_transform()
@@ -93,20 +108,17 @@ impl Launcher {
         let parent = unsafe { base.get_parent().unwrap().assume_safe() }
             .cast::<Spatial>()
             .unwrap();
-        missile
-            .base()
-            .set_global_transform(parent.global_transform());
-        missile.base().set_as_toplevel(true);
 
-        missile
-            .map_mut(|m, _| m.target_pos = Some(player_pos))
-            .unwrap();
+        weapon.set_global_transform(parent.global_transform());
+        weapon.set_as_toplevel(true);
+        weapon.set("target_pos", Some(player_pos));
 
         unsafe {
             base.get_node(path::base_level::PROJECTILES)
                 .unwrap()
                 .assume_safe()
         }
-        .add_child(missile, false);
+        .add_child(weapon, false);
+        godot_dbg!("add_child done");
     }
 }

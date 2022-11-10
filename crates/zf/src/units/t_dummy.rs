@@ -1,6 +1,10 @@
 use gdnative::{api::TextureProgress, prelude::*};
 
-use crate::{common::LookAtPlauer, refs::groups};
+use crate::{
+    common::LookAtPlauer,
+    refs::{groups, path},
+    weapons::Launcher,
+};
 
 #[derive(NativeClass)]
 #[inherit(Spatial)]
@@ -14,6 +18,8 @@ impl TDummy {
     fn new(base: TRef<Spatial>) -> Self {
         godot_print!("prepare TDummy");
         base.add_to_group(groups::ENEMY, false);
+        Launcher::load_with_weapon(base, path::scenes::HOMING_MISSILE);
+
         TDummy {
             hp: None,
             base_ref: base.claim(),

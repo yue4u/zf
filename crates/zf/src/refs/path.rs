@@ -6,7 +6,9 @@ pub mod scenes {
     pub const BASE: &str = "res://scenes/Base.tscn";
     pub const RADAR: &str = "res://scenes/Radar.tscn";
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
+    pub const BEAM: &str = "res://scenes/Beam.tscn";
     pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
+    pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
 }
@@ -72,12 +74,25 @@ pub mod health_bar_2_d {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod beam {
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+    pub const CSG_MESH: &str = "/root/Scene/Area/CSGMesh";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod t_dummy {
     pub const SKETCHFAB_MODEL: &str = "/root/Scene/Sketchfab_model";
     pub const AREA: &str = "/root/Scene/Area";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
     pub const HP: &str = "/root/Scene/HP";
-    pub const LAUNCHER: &str = "/root/Scene/Launcher";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod launcher {
+
 }
 
 #[rustfmt::skip]
@@ -121,6 +136,8 @@ pub mod sandbox {
     pub const RADAR_AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea/CollisionShape";
     pub const PROJECTILES: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Projectiles";
+    pub const AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area";
+    pub const COLLISION_SHAPE_1: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area/CollisionShape";
     pub const CSG_POLYGON: &str = "/root/Scene/Level/Path/CSGPolygon";
     pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
     pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";

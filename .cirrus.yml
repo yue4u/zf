@@ -1,0 +1,19 @@
+freebsd_instance:
+  image: freebsd-12-1-release-amd64
+  cpu: 4
+  memory: 8G
+
+task:
+  name: freebsd-12
+  stateful: false
+  only_if: "changesInclude('**.toml', '**.rs', '.gitmodules', '.cirrus.yml', 'get-deps', 'Cargo.lock')"
+  setup_script:
+    - pkg install -y bash
+    - curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
+    - chmod +x /tmp/rustup.sh
+    - RUSTUP_IO_THREADS=1 /tmp/rustup.sh -y -q
+    - env PATH=$HOME/.cargo/bin:$PATH bash get-deps
+    - mkdir -p /run/sshd
+  test_script:
+    - env PATH=$HOME/.cargo/bin:$PATH cargo build --all --release
+    - env PATH=$HOME/.cargo/bin:$PATH cargo test --all --release

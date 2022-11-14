@@ -1,0 +1,70 @@
+name: pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - "ci/build-docs.sh"
+      - "ci/generate-docs.py"
+      - "ci/subst-release-info.py"
+      - ".github/workflows/pages.yml"
+      - ".github/ISSUE_TEMPLATE/*"
+  schedule:
+    - cron: "50 * * * *"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: "Install Rust"
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: "minimal"
+          # pinned on 1.63 because of breakage:
+          # https://github.com/rust-lang/mdBook/issues/1860
+          # https://github.com/badboy/mdbook-mermaid/pull/23
+          # https://github.com/Michael-F-Bryan/mdbook-linkcheck/issues/73
+          toolchain: "1.63.0"
+          default: true
+          override: true
+          components: "rustfmt"
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: "true"
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-mdbook-${{ hashFiles('.github/workflows/pages.yml') }}
+      - name: Install mdBook
+        run: |
+          (test -x ~/.cargo/bin/mdbook || (cd && cargo install mdbook --no-default-features --features search --vers "0.4.21" --locked))
+      - name: Install mdBook linkcheck
+        run: |
+         (test -x ~/.cargo/bin/mdbook-linkcheck || (cd && cargo install mdbook-linkcheck --locked))
+      - name: Install mdBook mermaid
+        run: |
+          (test -x ~/.cargo/bin/mdbook-mermaid || (cd && cargo install mdbook-mermaid --locked))
+      - name: Install gelatyx
+        run: |
+          (test -x ~/.cargo/bin/gelatyx || (cd && cargo install gelatyx --locked))
+      - name: Build
+        run: |
+          source $HOME/.cargo/env
+          ./ci/build-docs.sh
+      - name: Deploy
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v3
+        with:
+          target_branch: gh-pages
+          build_dir: gh_pages/html
+          keep_history: true
+          allow_empty_commit: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

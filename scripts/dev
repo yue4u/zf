@@ -3,5 +3,4 @@ cd zf
 godot -e & disown
 cd -
 
-cd crates
 cargo watch -x 'b -p zf --release' -d 1

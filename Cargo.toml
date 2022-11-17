@@ -6,11 +6,14 @@ members = [
     "crates/zf-shell",
     "crates/zf-bridge",
     "crates/zf-runtime",
+    "crates/zf-term",
 ]
 
 exclude = [
-    "crates/nushell"
+    "crates/nushell",
+    "crates/wezterm",
 ]
 
 [workspace.dependencies]
 anyhow = "1.0.65"
+gdnative = { git = "https://github.com/Bromeon/godot-rust.git" }

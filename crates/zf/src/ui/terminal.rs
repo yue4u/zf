@@ -1,5 +1,5 @@
 use gdnative::{
-    api::{object::ConnectFlags, DynamicFont, Font, GlobalConstants, OS},
+    api::{object::ConnectFlags, DynamicFont, GlobalConstants},
     prelude::*,
 };
 use zf_term::{TerminalSize, ZFTerm, ZF};
@@ -15,7 +15,7 @@ use crate::{
 #[inherit(Control)]
 #[register_with(Self::register_signals)]
 pub struct Terminal {
-    seqno: usize,
+    // seqno: usize,
     state: ZFTerm,
     buffer: String,
     font: Ref<DynamicFont>,
@@ -25,7 +25,7 @@ pub struct Terminal {
 const ENTER_SIGNAL: &'static str = "signal";
 
 struct TerminalWriter {
-    base: Ref<Control>,
+    // base: Ref<Control>,
 }
 
 impl TerminalWriter {
@@ -43,24 +43,23 @@ impl TerminalWriter {
 
 impl std::io::Write for TerminalWriter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        // FIXME: we should send data "here"
+
         // FIXME: we should not converting back to string here again
-        let buffer = String::from_utf8_lossy(buf).to_string();
-        match buffer.as_str() {
-            // "clear" => {
-            //     self.write(&"\n".repeat(20));
-            //     self.prompt()
-            // }
-            lines => {
-                godot_dbg!("lines: {}", lines);
-                unsafe { self.base.assume_safe() }.emit_signal(
-                    ENTER_SIGNAL,
-                    &[String::from_utf8_lossy(buf).to_string().to_variant()],
-                );
-                // self.state = ProcessState::Running;
-                // self.buffer = "".to_string();
-            }
-        }
-        // self.buffer = "".to_string();
+        // let buffer = String::from_utf8(buf.to_vec()).unwrap();
+        // match buffer.as_str() {
+        //     // "clear" => {
+        //     //     self.write(&"\n".repeat(20));
+        //     //     self.prompt()
+        //     // }
+        //     lines => {
+        //         godot_print!("send: {}", lines);
+        //         unsafe { self.base.assume_safe() }.emit_signal(ENTER_SIGNAL, &[lines.to_variant()]);
+        //         // self.state = ProcessState::Running;
+        //         // self.buffer = "".to_string();
+        //     }
+        // }
+        // // self.buffer = "".to_string();
         Ok(buf.len())
     }
 
@@ -88,7 +87,7 @@ impl Terminal {
         });
 
         Terminal {
-            seqno: 0,
+            // seqno: 0,
             font,
             buffer: String::new(),
             state: ZFTerm::new(
@@ -128,7 +127,7 @@ impl Terminal {
             VariantArray::new_shared(),
             ConnectFlags::DEFERRED.into(),
         )
-        .expect(&format!("failed to connect vm {}", ""));
+        .expect("failed to connect vm {}");
 
         vm_manager
             .connect(
@@ -138,7 +137,7 @@ impl Terminal {
                 VariantArray::new_shared(),
                 ConnectFlags::DEFERRED.into(),
             )
-            .expect(&format!("failed to connect vm {}", ""));
+            .expect("failed to connect vm {}");
 
         self.write(ZF);
         // self.prompt();
@@ -167,7 +166,7 @@ impl Terminal {
             GlobalConstants::KEY_ENTER => {
                 match self.buffer.as_str() {
                     "clear" => {
-                        self.write("\033c");
+                        self.write("\033[2J");
                         self.prompt()
                     }
                     lines => {
@@ -175,10 +174,13 @@ impl Terminal {
                         // base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
                         // self.state = ProcessState::Running;
                         // let buffer: String = self.buffer.drain(..).collect();
-                        self.state
-                            .term
-                            .send_paste(&lines)
-                            .expect("failed to send_paste");
+                        godot_dbg!(lines);
+                        base.emit_signal(ENTER_SIGNAL, &[lines.to_variant()]);
+
+                        // self.state
+                        //     .term
+                        //     .send_paste(&lines)
+                        //     .expect("failed to send_paste");
                         // self.buffer = "".to_string();
                     }
                 }
@@ -201,11 +203,14 @@ impl Terminal {
                 }
             }
             _ => {
-                let char = event.unicode() as u8 as char;
-                // self.state.term.send_paste(&String::from(char));
-                self.buffer.push(char);
-                self.write(&char.to_string());
-                // self.state.term.wr
+                let ch = event.unicode() as u8 as char;
+                if ch != '\0' && ch != '\r' {
+                    godot_dbg!(&ch);
+                    // self.state.term.send_paste(&String::from(ch));
+                    self.buffer.push(ch);
+                    self.write(&ch.to_string());
+                    // self.state.term.wr
+                }
             }
         }
         base.update();
@@ -214,13 +219,8 @@ impl Terminal {
 
     #[method]
     fn _draw(&mut self, #[base] base: &Control) {
-        base.draw_rect(
-            base.get_rect(),
-            Color::from_rgba(0., 0., 0., 0.5),
-            true,
-            -1.,
-            false,
-        );
+        let rect = base.get_rect();
+        base.draw_rect(rect, Color::from_rgba(0., 0., 0., 0.5), true, -1., false);
         self.state
             .term
             .screen_mut()
@@ -230,8 +230,8 @@ impl Terminal {
                     base.draw_string(
                         &self.font,
                         Vector2 {
-                            x: (x + 1) as f32 * 20.,
-                            y: (y + 1) as f32 * 20.,
+                            x: rect.position.x + (x + 1) as f32 * 20.,
+                            y: rect.position.y + (y + 1) as f32 * 20.,
                         },
                         cell.str(),
                         Color::from_rgba(1., 1., 1., 1.),
@@ -254,7 +254,7 @@ impl Terminal {
     }
 
     #[method]
-    fn on_cmd_result(&mut self, result: CommandResult) -> Option<()> {
+    fn on_cmd_result(&mut self, #[base] base: &Control, result: CommandResult) -> Option<()> {
         let result = match result.result {
             Ok(result) => {
                 // self.state = ProcessState::Idle;
@@ -269,6 +269,7 @@ impl Terminal {
         self.write("\n");
         self.write(&result);
         self.prompt();
+        base.update();
         Some(())
     }
 }

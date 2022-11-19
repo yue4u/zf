@@ -14,11 +14,19 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+#[cfg(test)]
+use expect_test::{expect, Expect};
+
+#[cfg(test)]
+fn check(actual: impl ToString, expect: Expect) {
+    expect.assert_eq(&actual.to_string());
+}
+
 #[test]
 fn sanity() -> anyhow::Result<()> {
     let mut runtime = test_runtime()?;
 
-    assert_eq!(runtime.eval("[1 2 3] | math sum").unwrap(), "6".to_string());
+    check(runtime.eval("[1 2 3] | math sum").unwrap(), expect!["6"]);
     Ok(())
 }
 
@@ -40,13 +48,11 @@ fn call() -> anyhow::Result<()> {
 fn mystery() -> anyhow::Result<()> {
     let mut runtime = test_runtime()?;
 
-    assert_eq!(
-        runtime.eval("mystery").unwrap(),
-        "🌈 it works!!".to_string()
-    );
-    assert_eq!(
+    check(runtime.eval("mystery").unwrap(), expect!["🌈 it works!!"]);
+
+    check(
         runtime.eval("mystery | str contains 🌈").unwrap(),
-        "true".to_string()
+        expect!["true"],
     );
 
     Ok(())
@@ -56,21 +62,20 @@ fn mystery() -> anyhow::Result<()> {
 fn viewers() -> anyhow::Result<()> {
     let mut runtime = test_runtime()?;
 
-    assert_eq!(
+    check(
         runtime.eval("[1 2 3] | table").unwrap(),
-        r#"
-╭───┬───╮
-│ 0 │ 1 │
-│ 1 │ 2 │
-│ 2 │ 3 │
-╰───┴───╯"#
-            .trim()
+        expect![[r#"
+        ╭───┬───╮
+        │ 0 │ 1 │
+        │ 1 │ 2 │
+        │ 2 │ 3 │
+        ╰───┴───╯"#]],
     );
-    assert_eq!(
+    check(
         runtime.eval("[a b c] | grid").unwrap(),
-        "a │ b │ c
-"
-        .to_string()
+        expect![[r#"
+        a │ b │ c
+    "#]],
     );
 
     Ok(())
@@ -80,15 +85,15 @@ fn viewers() -> anyhow::Result<()> {
 fn filters() -> anyhow::Result<()> {
     let mut runtime = test_runtime()?;
 
-    assert_eq!(
+    check(
         runtime.eval("{ project: zf } | get project").unwrap(),
-        "zf".to_string()
+        expect!["zf"],
     );
-    assert_eq!(
+    check(
         runtime.eval("[a b c] | grid").unwrap(),
-        "a │ b │ c
-"
-        .to_string()
+        expect![[r#"
+        a │ b │ c
+    "#]],
     );
 
     Ok(())
@@ -98,6 +103,28 @@ fn filters() -> anyhow::Result<()> {
 fn preload() -> anyhow::Result<()> {
     let mut runtime = test_runtime()?;
     runtime.eval(SHELL_PRELOAD).unwrap();
+
+    check(
+        String::from_utf8_lossy(
+            &strip_ansi_escapes::strip(runtime.eval("e --help").unwrap()).unwrap(),
+        ),
+        expect![[r#"
+            engine
+
+            Usage:
+              > engine 
+
+            Subcommands:
+              engine off - Turn off engine
+              engine on - Turn on engine
+              engine t - Set engine thruster
+              engine thruster - Set engine thruster
+
+            Flags:
+              -h, --help - Display this help message
+
+        "#]],
+    );
 
     Ok(())
 }

@@ -16,4 +16,5 @@ exclude = [
 
 [workspace.dependencies]
 anyhow = "1.0.65"
+expect-test = "1.4.0"
 gdnative = { git = "https://github.com/Bromeon/godot-rust.git" }

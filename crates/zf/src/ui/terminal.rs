@@ -2,7 +2,7 @@ use gdnative::{
     api::{object::ConnectFlags, GlobalConstants, OS},
     prelude::*,
 };
-use zf_term::ZFTermState;
+use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
     common::find_ref,
@@ -14,21 +14,12 @@ use crate::{
 #[inherit(Control)]
 #[register_with(Self::register_signals)]
 pub struct Terminal {
-    state: ZFTermState,
+    state: ZFTerm,
     buffer: String,
     // term: Option<Ref<Node>>,
 }
 
 const ENTER_SIGNAL: &'static str = "signal";
-const ZF: &'static str = r#"
-___          _        _     _______
-| _ \_ _ ___ (_)___ __| |_  |_  / __|
-|  _/ '_/ _ \| / -_) _|  _|  / /| _|
-|_| |_| \___// \___\__|\__| /___|_|
-           |__/
-
-Weclome to zf console!
-"#;
 
 struct TerminalWriter {
     // buffer: String,
@@ -75,7 +66,13 @@ impl Terminal {
 
         Terminal {
             buffer: String::new(),
-            state: ZFTermState::new(writer),
+            state: ZFTerm::new(
+                writer,
+                TerminalSize {
+                    rows: 40,
+                    ..Default::default()
+                },
+            ),
         }
     }
 
@@ -150,11 +147,9 @@ impl Terminal {
         self.state
             .term
             .screen_mut()
-            .for_each_phys_line_mut(|_, line| {
+            .for_each_phys_line_mut(|_idx, line| {
                 for cell in line.cells_mut() {
-                    if cell.str() != " " {
-                        buf.push_str(cell.str());
-                    }
+                    buf.push_str(cell.str());
 
                     // if !cell.str()
                     // base.draw_char(font, position, cell.text, next, modulate)
@@ -162,21 +157,11 @@ impl Terminal {
                 buf.push_str("\n");
             });
         godot_print!("{}", buf);
-        // let env = base.cast::<WorldEnvironment>()?.environment()?;
-        // let env = unsafe { env.assume_safe() };
-        // let mut degrees = env.sky_rotation_degrees();
-        // degrees.y -= delta as f32;
-        // env.set_sky_rotation_degrees(degrees);
         Some(())
     }
 
     #[method]
-    fn on_key_pressed(
-        &mut self,
-        #[base] _base: &Control,
-        // _data: Variant,
-        event: Ref<InputEvent>,
-    ) -> Option<()> {
+    fn on_key_pressed(&mut self, #[base] _base: &Control, event: Ref<InputEvent>) -> Option<()> {
         // godot_dbg!("on_key_pressed", event);
 
         let event = unsafe { event.assume_safe() }.cast::<InputEventKey>()?;

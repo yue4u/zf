@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 wezterm-term = { path = "../wezterm/term" }
+termwiz = { path = "../wezterm/termwiz" }
+expect-test = { workspace = true }

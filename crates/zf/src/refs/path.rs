@@ -5,11 +5,13 @@ pub mod scenes {
     pub const ENVIRONMENT: &str = "res://scenes/Environment.tscn";
     pub const BASE: &str = "res://scenes/Base.tscn";
     pub const RADAR: &str = "res://scenes/Radar.tscn";
+    pub const TERMINAL: &str = "res://scenes/Terminal.tscn";
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
     pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
     pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
+    pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
 }
 
@@ -68,6 +70,12 @@ pub mod radar {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod terminal {
+
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod health_bar_2_d {
 
 }
@@ -77,7 +85,7 @@ pub mod health_bar_2_d {
 pub mod beam {
     pub const AREA: &str = "/root/Scene/Area";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
-    pub const CSG_MESH: &str = "/root/Scene/Area/CSGMesh";
+    pub const MESH_INSTANCE: &str = "/root/Scene/Area/MeshInstance";
 }
 
 #[rustfmt::skip]
@@ -106,12 +114,17 @@ pub mod base_level {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod terminal_sandbox {
+    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Terminal";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod homing_missile {
     pub const AREA: &str = "/root/Scene/Area";
     pub const MISSILES: &str = "/root/Scene/Area/missiles";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
     pub const PARTICLES: &str = "/root/Scene/Area/Particles";
-    pub const TIMER: &str = "/root/Scene/Timer";
 }
 
 #[rustfmt::skip]
@@ -148,5 +161,17 @@ pub mod sandbox {
     pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/TerminalWrap/Terminal";
     pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod assets {
+    pub const T_DUMMY_TSCN: &str = "res://assets/self-made/t-dummy.tscn";
+    pub const JET_BRAINS_MONO_TRES: &str = "res://assets/self-made/JetBrains_Mono.tres";
+    pub const BAR_PROGRESS_PNG: &str = "res://assets/self-made/bar_progress.png";
+    pub const THEME_TRANSPARENT_TRES: &str = "res://assets/self-made/theme_transparent.tres";
+    pub const BAR_UNDER_PNG: &str = "res://assets/self-made/bar_under.png";
+    pub const T_DUMMY_TRES: &str = "res://assets/self-made/t-dummy.tres";
+    pub const CODE_THEME_TRES: &str = "res://assets/self-made/code_theme.tres";
 }
 

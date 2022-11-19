@@ -1,5 +1,5 @@
 use gdnative::{
-    api::{object::ConnectFlags, GlobalConstants, OS},
+    api::{object::ConnectFlags, DynamicFont, Font, GlobalConstants, OS},
     prelude::*,
 };
 use zf_term::{TerminalSize, ZFTerm, ZF};
@@ -7,46 +7,59 @@ use zf_term::{TerminalSize, ZFTerm, ZF};
 use crate::{
     common::find_ref,
     managers::VMManager,
-    vm::{CommandResult, ProcessState, VMSignal},
+    refs,
+    vm::{CommandResult, VMSignal},
 };
 
 #[derive(NativeClass)]
 #[inherit(Control)]
 #[register_with(Self::register_signals)]
 pub struct Terminal {
+    seqno: usize,
     state: ZFTerm,
     buffer: String,
-    // term: Option<Ref<Node>>,
+    font: Ref<DynamicFont>,
+    // font: Ref<Font>,
 }
 
 const ENTER_SIGNAL: &'static str = "signal";
 
 struct TerminalWriter {
-    // buffer: String,
     base: Ref<Control>,
+}
+
+impl TerminalWriter {
+    // fn prompt(&mut self) {
+    //     use nu_ansi_term::Color::*;
+    //     // let err = match self.state {
+    //     //     ProcessState::Idle => "",
+    //     //     ProcessState::Error => "[error]",
+    //     //     _ => "",
+    //     // };
+    //     // self.write(&format!("\n{}{}", Red.paint(err), Cyan.paint("> ")));
+    //     self.write(&format!("\n{}", Cyan.paint("> ")));
+    // }
 }
 
 impl std::io::Write for TerminalWriter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        // dbg!(buf);
-        // Ok(buf.len())
-
-        // match self.buffer.as_str() {
-        // "clear" => {
-        //     self.write(&"\n".repeat(20));
-        //     self.prompt()
-        // }
-        // lines => {
-        // godot_dbg!("lines: {}", lines);
-        unsafe { self.base.assume_safe() }.emit_signal(
-            ENTER_SIGNAL,
-            // FIXME: String should not be used here
-            &[String::from_utf8_lossy(buf).to_string().to_variant()],
-        );
-        // self.state = ProcessState::Running;
-        // self.buffer = "".to_string();
-        //     }
-        // };
+        // FIXME: we should not converting back to string here again
+        let buffer = String::from_utf8_lossy(buf).to_string();
+        match buffer.as_str() {
+            // "clear" => {
+            //     self.write(&"\n".repeat(20));
+            //     self.prompt()
+            // }
+            lines => {
+                godot_dbg!("lines: {}", lines);
+                unsafe { self.base.assume_safe() }.emit_signal(
+                    ENTER_SIGNAL,
+                    &[String::from_utf8_lossy(buf).to_string().to_variant()],
+                );
+                // self.state = ProcessState::Running;
+                // self.buffer = "".to_string();
+            }
+        }
         // self.buffer = "".to_string();
         Ok(buf.len())
     }
@@ -59,12 +72,24 @@ impl std::io::Write for TerminalWriter {
 #[methods]
 impl Terminal {
     fn new(base: TRef<Control>) -> Self {
+        let font = ResourceLoader::godot_singleton()
+            .load(
+                refs::path::assets::JET_BRAINS_MONO_TRES,
+                "DynamicFont",
+                false,
+            )
+            .unwrap()
+            .cast::<DynamicFont>()
+            .unwrap();
+        // let font = base.get_font("", "").unwrap();
         let writer = Box::new(TerminalWriter {
             // buffer: String::new(),
             base: base.claim(),
         });
 
         Terminal {
+            seqno: 0,
+            font,
             buffer: String::new(),
             state: ZFTerm::new(
                 writer,
@@ -82,20 +107,16 @@ impl Terminal {
 
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Control>) -> Option<()> {
-        // let term = unsafe { base.get_node("./Terminal")?.assume_safe() };
+        base.grab_focus();
 
         base.connect(
             "gui_input",
             base,
-            "on_key_pressed",
+            "on_gui_input",
             VariantArray::new_shared(),
             0,
         )
-        .expect("failed to connect on_key_pressed");
-
-        // unsafe {
-        //     term.call_deferred("grab_focus", &[]);
-        // }
+        .expect("failed to connect on_gui_input");
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
         let vm_manager = find_ref::<VMManager, Node>(as_node)?;
@@ -119,8 +140,6 @@ impl Terminal {
             )
             .expect(&format!("failed to connect vm {}", ""));
 
-        // self.term = Some(term.claim());
-
         self.write(ZF);
         // self.prompt();
         // // TODO: size_changed
@@ -128,43 +147,17 @@ impl Terminal {
     }
 
     fn write(&mut self, data: &str) {
-        // unsafe {
         self.state.term.advance_bytes(data);
-        // .expect("term should be ready")
-        // .assume_safe()
-        // .call("write", &[data.replace("\n", "\r\n").to_variant()]);
-        // }
-    }
-
-    // fn _process(&mut self, #[base] base: TRef<Control>, delta: f64) -> Option<()> {
-
-    #[method]
-    fn draw(
-        &mut self,
-        // #[base] _base: TRef<Control>
-    ) -> Option<()> {
-        let mut buf = String::new();
-        self.state
-            .term
-            .screen_mut()
-            .for_each_phys_line_mut(|_idx, line| {
-                for cell in line.cells_mut() {
-                    buf.push_str(cell.str());
-
-                    // if !cell.str()
-                    // base.draw_char(font, position, cell.text, next, modulate)
-                }
-                buf.push_str("\n");
-            });
-        godot_print!("{}", buf);
-        Some(())
     }
 
     #[method]
-    fn on_key_pressed(&mut self, #[base] _base: &Control, event: Ref<InputEvent>) -> Option<()> {
-        // godot_dbg!("on_key_pressed", event);
-
+    fn on_gui_input(&mut self, #[base] base: &Control, event: Ref<InputEvent>) -> Option<()> {
         let event = unsafe { event.assume_safe() }.cast::<InputEventKey>()?;
+
+        // skip if not pressed
+        if !event.is_pressed() {
+            return Some(());
+        }
 
         // if self.state == ProcessState::Running {
         //     return None;
@@ -173,10 +166,10 @@ impl Terminal {
         match event.scancode() {
             GlobalConstants::KEY_ENTER => {
                 match self.buffer.as_str() {
-                    // "clear" => {
-                    //     self.write(&"\n".repeat(20));
-                    //     self.prompt()
-                    // }
+                    "clear" => {
+                        self.write("\033c");
+                        self.prompt()
+                    }
                     lines => {
                         // godot_dbg!("lines: {}", lines);
                         // base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
@@ -201,12 +194,12 @@ impl Terminal {
             //     self.buffer.clear();
             //     self.prompt();
             // }
-            // GlobalConstants::KEY_BACKSPACE => {
-            //     if !self.buffer.is_empty() {
-            //         self.buffer = self.buffer[..self.buffer.len() - 1].to_string();
-            //         self.write("\x08 \x08");
-            //     }
-            // }
+            GlobalConstants::KEY_BACKSPACE => {
+                if !self.buffer.is_empty() {
+                    self.buffer = self.buffer[..self.buffer.len() - 1].to_string();
+                    self.write("\x08 \x08");
+                }
+            }
             _ => {
                 let char = event.unicode() as u8 as char;
                 // self.state.term.send_paste(&String::from(char));
@@ -215,8 +208,38 @@ impl Terminal {
                 // self.state.term.wr
             }
         }
-        self.draw();
+        base.update();
         Some(())
+    }
+
+    #[method]
+    fn _draw(&mut self, #[base] base: &Control) {
+        base.draw_rect(
+            base.get_rect(),
+            Color::from_rgba(0., 0., 0., 0.5),
+            true,
+            -1.,
+            false,
+        );
+        self.state
+            .term
+            .screen_mut()
+            .for_each_phys_line_mut(|y, line| {
+                let mut x = 0;
+                for cell in line.cells_mut() {
+                    base.draw_string(
+                        &self.font,
+                        Vector2 {
+                            x: (x + 1) as f32 * 20.,
+                            y: (y + 1) as f32 * 20.,
+                        },
+                        cell.str(),
+                        Color::from_rgba(1., 1., 1., 1.),
+                        -1,
+                    );
+                    x += cell.width();
+                }
+            });
     }
 
     fn prompt(&mut self) {

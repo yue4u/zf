@@ -8,11 +8,13 @@ use std::{
 
 pub fn main() -> io::Result<()> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let gd_dir = manifest_dir.join("../../zf/").canonicalize()?;
     let mut code = "".to_owned();
+
     let mods = ["scenes", "levels"]
         .iter()
         .flat_map(|&dir_name| {
-            let dir_path = &manifest_dir.join("../../zf/").join(dir_name);
+            let dir_path = &gd_dir.join(dir_name);
             let entries = fs::read_dir(dir_path)
                 .expect(&format!("failed to read dir {dir_name}"))
                 .filter_map(|entry| {
@@ -36,7 +38,7 @@ pub fn main() -> io::Result<()> {
                         .to_str()
                         .unwrap()
                         .replace(dir_path.to_str().unwrap(), &format!("res://{dir_name}"));
-                    format!(r#"    pub const {scene}: &str = "{scene_path}";"#)
+                    fmt_path(scene, &scene_path)
                 })
                 .collect::<Vec<String>>()
                 .join("\n");
@@ -77,7 +79,7 @@ pub fn main() -> io::Result<()> {
                         } else {
                             name
                         };
-                        let line = format!(r#"    pub const {name}: &str = "{path}";"#);
+                        let line = fmt_path(name, &path);
                         return Some(line);
                     }
                     None
@@ -95,8 +97,36 @@ pub fn main() -> io::Result<()> {
         .collect::<io::Result<String>>()?;
     code.push_str(&mods);
 
+    assets(&mut code, &gd_dir, &gd_dir.join("assets/self-made/"));
+
     fs::write(manifest_dir.join("../zf/src/refs/path.rs"), code).unwrap();
     Ok(())
+}
+
+fn assets(code: &mut String, gd_dir: &PathBuf, assets_dir: &PathBuf) {
+    let inner = fs::read_dir(assets_dir)
+        .expect("failed to read assets dir")
+        .filter_map(|entry| {
+            let path = entry.ok()?.path();
+            if path.is_dir() || OsStr::new("import") == path.extension()? {
+                return None;
+            };
+            let name = path.file_name().unwrap().to_string_lossy();
+            let path = path
+                .to_string_lossy()
+                .replace(&gd_dir.to_string_lossy().to_string(), "res:/");
+            Some(fmt_path(name, &path))
+        })
+        .collect::<Vec<String>>();
+    code.push_str(&fmt_mod("assets", &inner.join("\n")));
+}
+
+fn fmt_path(name: impl ToString, path: &str) -> String {
+    let name = name
+        .to_string()
+        .replace('.', "_")
+        .to_case(Case::ScreamingSnake);
+    format!(r#"    pub const {name}: &str = "{path}";"#)
 }
 
 fn fmt_mod(mod_name: &str, inner: &str) -> String {

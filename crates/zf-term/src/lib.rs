@@ -2,7 +2,8 @@ use std::sync::Arc;
 use termwiz::escape::csi::{Mode, TerminalMode, TerminalModeCode, CSI};
 use wezterm_term::Terminal;
 // re-exporting building components from wezterm_term
-pub use wezterm_term::{color::ColorPalette, TerminalConfiguration, TerminalSize};
+pub use wezterm_color_types::*;
+pub use wezterm_term::{color::*, *};
 
 #[derive(Debug)]
 struct ZFTermConfig {
@@ -14,9 +15,61 @@ impl TerminalConfiguration for ZFTermConfig {
     }
 
     fn color_palette(&self) -> ColorPalette {
-        ColorPalette::default()
+        ColorPalette {
+            foreground: SrgbaTuple(1., 1., 1., 1.),
+            ..Default::default()
+        }
     }
 }
+
+pub struct Color;
+
+impl Color {
+    pub fn resolve_cell_fg_color(cell: &Cell, palette: &color::ColorPalette) -> LinearRgba {
+        let attrs = cell.attrs();
+        let fg = cell.attrs().foreground();
+        match fg {
+            color::ColorAttribute::Default => palette.resolve_fg(attrs.foreground()),
+            color::ColorAttribute::PaletteIndex(idx) if idx < 8 => {
+                // For compatibility purposes, switch to a brighter version
+                // of one of the standard ANSI colors when Bold is enabled.
+                // This lifts black to dark grey.
+                let idx = if attrs.intensity() == Intensity::Bold {
+                    idx + 8
+                } else {
+                    idx
+                };
+
+                palette.resolve_fg(color::ColorAttribute::PaletteIndex(idx))
+            }
+            _ => palette.resolve_fg(fg),
+        }
+        .to_linear()
+    }
+
+    pub fn resolve_cell_bg_color(cell: &Cell, palette: &color::ColorPalette) -> LinearRgba {
+        let attrs = cell.attrs();
+        let fg = cell.attrs().background();
+        match fg {
+            color::ColorAttribute::Default => palette.resolve_bg(attrs.background()),
+            color::ColorAttribute::PaletteIndex(idx) if idx < 8 => {
+                // For compatibility purposes, switch to a brighter version
+                // of one of the standard ANSI colors when Bold is enabled.
+                // This lifts black to dark grey.
+                let idx = if attrs.intensity() == Intensity::Bold {
+                    idx + 8
+                } else {
+                    idx
+                };
+
+                palette.resolve_bg(color::ColorAttribute::PaletteIndex(idx))
+            }
+            _ => palette.resolve_bg(fg),
+        }
+        .to_linear()
+    }
+}
+
 pub struct ZFTerm {
     // pub writer: Box<ZFTermWriter>,
     pub term: Terminal,

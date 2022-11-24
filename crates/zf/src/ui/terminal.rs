@@ -76,7 +76,7 @@ impl std::io::Write for TerminalWriter {
 
 #[methods]
 impl Terminal {
-    fn new(base: TRef<Control>) -> Self {
+    fn new(_base: TRef<Control>) -> Self {
         let font = ResourceLoader::godot_singleton()
             .load(
                 refs::path::assets::JET_BRAINS_MONO_TRES,
@@ -226,21 +226,30 @@ impl Terminal {
     #[method]
     fn _draw(&mut self, #[base] base: &Control) {
         let rect = base.get_rect();
+        let color_palette = &self.state.term.get_config().color_palette();
+
         base.draw_rect(rect, Color::from_rgba(0., 0., 0., 0.5), true, -1., false);
+
         self.state
             .term
             .screen_mut()
             .for_each_phys_line_mut(|y, line| {
                 let mut x = 0;
                 for cell in line.cells_mut() {
+                    // cell.attrs().foreground()
+                    let fg = zf_term::Color::resolve_cell_fg_color(cell, color_palette);
+                    // let bg = zf_term::Color::resolve_cell_bg_color(cell, color_palette);
+                    let position = Vector2 {
+                        x: rect.position.x + (x + 1) as f32 * self.cell_size.x,
+                        y: rect.position.y + (y + 1) as f32 * self.cell_size.y,
+                    };
+                    // let size =
+                    // base.draw_rect(Rect2 { position, size: Vector2 { x: (), y: () } }, bg, true, -1, false);
                     base.draw_string(
                         &self.font,
-                        Vector2 {
-                            x: rect.position.x + (x + 1) as f32 * self.cell_size.x,
-                            y: rect.position.y + (y + 1) as f32 * self.cell_size.y,
-                        },
+                        position,
                         cell.str(),
-                        Color::from_rgba(1., 1., 1., 1.),
+                        Color::from_rgba(fg.0, fg.1, fg.2, fg.3),
                         -1,
                     );
                     x += cell.width();

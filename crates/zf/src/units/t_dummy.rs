@@ -16,7 +16,7 @@ pub struct TDummy {
 #[methods]
 impl TDummy {
     fn new(base: TRef<Spatial>) -> Self {
-        godot_print!("prepare TDummy");
+        // godot_print!("prepare TDummy");
         base.add_to_group(groups::ENEMY, false);
         // Launcher::load_with_weapon(base, path::scenes::HOMING_MISSILE);
         Launcher::load_with_weapon(base, path::scenes::BEAM);

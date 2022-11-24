@@ -15,7 +15,7 @@ pub struct Beam {
 #[methods]
 impl Beam {
     fn new(_base: &Spatial) -> Self {
-        godot_print!("prepare Beam");
+        // godot_print!("prepare Beam");
         Beam {
             target_pos: None,
             direction: None,
@@ -50,7 +50,7 @@ impl Beam {
 
     #[method]
     fn on_timeout_queue_free(&self, #[base] base: &Spatial) {
-        godot_dbg!("Beam queue_free");
+        // godot_dbg!("Beam queue_free");
         base.queue_free()
     }
 }

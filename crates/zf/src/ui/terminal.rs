@@ -114,7 +114,6 @@ impl Terminal {
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Control>) -> Option<()> {
         self.resize(base);
-        godot_dbg!(self.state.term.get_size());
 
         base.grab_focus();
 
@@ -153,8 +152,8 @@ impl Terminal {
             .expect("failed to connect vm {}");
 
         self.write(ZF);
-        // self.prompt();
-        // // TODO: size_changed
+        self.prompt();
+
         Some(())
     }
 
@@ -179,7 +178,7 @@ impl Terminal {
             GlobalConstants::KEY_ENTER => {
                 match self.buffer.as_str() {
                     "clear" => {
-                        self.write("\033[2J");
+                        self.write("\x1b[2J");
                         self.prompt()
                     }
                     lines => {
@@ -187,7 +186,7 @@ impl Terminal {
                         // base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
                         // self.state = ProcessState::Running;
                         // let buffer: String = self.buffer.drain(..).collect();
-                        godot_dbg!(lines);
+                        // godot_dbg!(lines);
                         base.emit_signal(ENTER_SIGNAL, &[lines.to_variant()]);
 
                         // self.state
@@ -218,7 +217,7 @@ impl Terminal {
             _ => {
                 let ch = event.unicode() as u8 as char;
                 if ch != '\0' && ch != '\r' {
-                    godot_dbg!(&ch);
+                    // godot_dbg!(&ch);
                     // self.state.term.send_paste(&String::from(ch));
                     self.buffer.push(ch);
                     self.write(&ch.to_string());
@@ -230,13 +229,27 @@ impl Terminal {
         Some(())
     }
 
+    // #[method]
+    // fn _process(&self, #[base] base: TRef<Control>, _delta: f64) {
+    //     base.update();
+    // }
+
     #[method]
     fn _draw(&mut self, #[base] base: &Control) {
         let rect = base.get_rect();
-        godot_dbg!(rect);
+        // godot_dbg!(rect);
         let color_palette = &self.state.term.get_config().color_palette();
-
-        base.draw_rect(rect, Color::from_rgba(0., 0., 0., 0.5), true, -1., false);
+        let anchor = Vector2 { x: 0., y: 0. };
+        base.draw_rect(
+            Rect2 {
+                position: anchor,
+                size: rect.size,
+            },
+            Color::from_rgba(0., 0., 0., 0.5),
+            true,
+            -1.,
+            false,
+        );
 
         let screen = self.state.term.screen_mut();
 
@@ -244,7 +257,10 @@ impl Terminal {
         let mut lines = Vec::new();
 
         screen.for_each_phys_line_mut(|_y, line| {
+            // if !line.as_str().is_empty() {
+            // godot_print!("{}{}", _y, "push");
             lines.push(line.clone());
+            // }
         });
 
         let lines_len = lines.len();
@@ -258,9 +274,9 @@ impl Terminal {
                     let fg = zf_term::Color::resolve_cell_fg_color(cell, color_palette);
                     // let bg = zf_term::Color::resolve_cell_bg_color(cell, color_palette);
                     let position = Vector2 {
-                        x: TERM_PADDING + rect.position.x + x as f32 * self.cell_size.x,
+                        x: TERM_PADDING + x as f32 * self.cell_size.x,
                         // position uses bottom-left so 2x here
-                        y: 2. * TERM_PADDING + rect.position.y + y as f32 * self.cell_size.y,
+                        y: 2. * TERM_PADDING + y as f32 * self.cell_size.y,
                     };
                     // let size =
                     // base.draw_rect(Rect2 { position, size: Vector2 { x: (), y: () } }, bg, true, -1, false);
@@ -299,7 +315,7 @@ impl Terminal {
                 format!("{:?}", result)
             }
         };
-        godot_dbg!(&result);
+        // godot_dbg!(&result);
         self.write("\n");
         self.write(&result);
         self.prompt();
@@ -309,8 +325,9 @@ impl Terminal {
 }
 
 fn calc_terminal_size(base: TRef<Control>, cell_size: Vector2) -> TerminalSize {
-    let rows = ((base.get_rect().size.y - TERM_PADDING * 2.) / cell_size.y).floor() as usize;
-    let cols = ((base.get_rect().size.x - TERM_PADDING * 2.) / cell_size.x).floor() as usize;
+    let rect = base.get_rect();
+    let rows = ((rect.size.y - TERM_PADDING * 2.) / cell_size.y).floor() as usize;
+    let cols = ((rect.size.x - TERM_PADDING * 2.) / cell_size.x).floor() as usize;
 
     TerminalSize {
         rows,

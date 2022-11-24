@@ -14,7 +14,7 @@ pub struct HomingMissile {
 #[methods]
 impl HomingMissile {
     fn new(_base: &Spatial) -> Self {
-        godot_print!("prepare HomingMissile");
+        // godot_print!("prepare HomingMissile");
         HomingMissile { target_pos: None }
     }
 
@@ -49,7 +49,7 @@ impl HomingMissile {
 
     #[method]
     fn on_timeout_queue_free(&self, #[base] base: &Spatial) {
-        godot_dbg!("HomingMissile queue_free");
+        // godot_dbg!("HomingMissile queue_free");
         base.queue_free()
     }
 }

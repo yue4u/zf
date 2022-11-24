@@ -94,12 +94,12 @@ struct TestWriter;
 #[cfg(test)]
 impl std::io::Write for TestWriter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        dbg!(buf);
+        // dbg!(buf);
         Ok(buf.len())
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        dbg!("flush");
+        // dbg!("flush");
         Ok(())
     }
 }

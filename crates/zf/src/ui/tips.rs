@@ -16,7 +16,7 @@ impl Tips {
 
     #[method]
     fn _ready(&self, #[base] base: &RichTextLabel) -> Option<()> {
-        godot_print!("tips ready");
+        // godot_print!("tips ready");
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
         as_node.connect_vm_signal(VMSignal::OnCmdParsed.to_options().bidirectional(false));
         let text = match current_scene(&as_node) {

@@ -42,7 +42,7 @@ const MAX_SPEED: f64 = 1. / 30.;
 #[methods]
 impl Player {
     fn new(_base: &Spatial) -> Self {
-        godot_print!("prepare Player");
+        // godot_print!("prepare Player");
         Player::default()
     }
 
@@ -57,7 +57,7 @@ impl Player {
 
     #[method]
     fn on_cmd_parsed(&self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
-        godot_dbg!(&input);
+        // godot_dbg!(&input);
         let current_status = self.engine.borrow();
         let next_status = match &input.cmd {
             Command::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
@@ -67,7 +67,7 @@ impl Player {
             },
             Command::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
             Command::Fire(fire) => {
-                godot_print!("fire: {:?}", fire);
+                // godot_print!("fire: {:?}", fire);
                 let weapon = common::load_as::<Spatial>(scenes::HOMING_MISSILE).unwrap();
                 let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
                 Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
@@ -82,7 +82,7 @@ impl Player {
             _ => None,
         }?;
 
-        godot_dbg!(&next_status);
+        // godot_dbg!(&next_status);
 
         let speed = match next_status {
             EngineStatus::On(percent) => MAX_SPEED * (percent as f64) / 100.,
@@ -113,7 +113,7 @@ impl Player {
 
     #[method]
     pub fn damage(&self) {
-        godot_dbg!("damage player!");
+        // godot_dbg!("damage player!");
     }
 
     pub fn display(&self) -> String {

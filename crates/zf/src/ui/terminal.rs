@@ -28,6 +28,7 @@ pub struct Terminal {
     // font: Ref<Font>,
 }
 
+const TERM_PADDING: f32 = 10.;
 const ENTER_SIGNAL: &'static str = "signal";
 
 struct TerminalWriter {
@@ -96,14 +97,13 @@ impl Terminal {
             font,
             buffer: String::new(),
             cell_size,
-            state: ZFTerm::new(
-                writer,
-                TerminalSize {
-                    rows: 40,
-                    ..Default::default()
-                },
-            ),
+            state: ZFTerm::new(writer, TerminalSize::default()),
         }
+    }
+
+    fn update_size(&mut self, base: TRef<Control>) {
+        let term_size = calc_terminal_size(base, self.cell_size);
+        self.state.term.resize(term_size);
     }
 
     pub(crate) fn register_signals(builder: &ClassBuilder<Self>) {
@@ -112,6 +112,9 @@ impl Terminal {
 
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Control>) -> Option<()> {
+        self.update_size(base);
+        godot_dbg!(self.state.term.get_size());
+
         base.grab_focus();
 
         base.connect(
@@ -226,22 +229,34 @@ impl Terminal {
     #[method]
     fn _draw(&mut self, #[base] base: &Control) {
         let rect = base.get_rect();
+        godot_dbg!(rect);
         let color_palette = &self.state.term.get_config().color_palette();
 
         base.draw_rect(rect, Color::from_rgba(0., 0., 0., 0.5), true, -1., false);
 
-        self.state
-            .term
-            .screen_mut()
-            .for_each_phys_line_mut(|y, line| {
+        let screen = self.state.term.screen_mut();
+
+        // TODO: this is very wrong and better to use index api
+        let mut lines = Vec::new();
+
+        screen.for_each_phys_line_mut(|_y, line| {
+            lines.push(line.clone());
+        });
+
+        let lines_len = lines.len();
+        lines
+            .iter_mut()
+            .skip(lines_len.saturating_sub(screen.physical_rows))
+            .enumerate()
+            .for_each(|(y, line)| {
                 let mut x = 0;
                 for cell in line.cells_mut() {
-                    // cell.attrs().foreground()
                     let fg = zf_term::Color::resolve_cell_fg_color(cell, color_palette);
                     // let bg = zf_term::Color::resolve_cell_bg_color(cell, color_palette);
                     let position = Vector2 {
-                        x: rect.position.x + (x + 1) as f32 * self.cell_size.x,
-                        y: rect.position.y + (y + 1) as f32 * self.cell_size.y,
+                        x: TERM_PADDING + rect.position.x + x as f32 * self.cell_size.x,
+                        // position uses bottom-left so 2x here
+                        y: 2. * TERM_PADDING + rect.position.y + y as f32 * self.cell_size.y,
                     };
                     // let size =
                     // base.draw_rect(Rect2 { position, size: Vector2 { x: (), y: () } }, bg, true, -1, false);
@@ -254,7 +269,7 @@ impl Terminal {
                     );
                     x += cell.width();
                 }
-            });
+            })
     }
 
     fn prompt(&mut self) {
@@ -286,5 +301,16 @@ impl Terminal {
         self.prompt();
         base.update();
         Some(())
+    }
+}
+
+fn calc_terminal_size(base: TRef<Control>, cell_size: Vector2) -> TerminalSize {
+    let rows = ((base.get_rect().size.y - TERM_PADDING * 2.) / cell_size.y).floor() as usize;
+    let cols = ((base.get_rect().size.x - TERM_PADDING * 2.) / cell_size.x).floor() as usize;
+
+    TerminalSize {
+        rows,
+        cols,
+        ..Default::default()
     }
 }

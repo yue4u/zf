@@ -6,9 +6,3 @@
 [node name="Scene" instance=ExtResource( 1 )]
 
 [node name="Terminal" parent="UI/MarginContainer/UIExtra" index="0" instance=ExtResource( 2 )]
-anchor_right = 0.0
-anchor_bottom = 0.0
-margin_left = 30.0
-margin_top = 30.0
-margin_right = 994.0
-margin_bottom = 570.0

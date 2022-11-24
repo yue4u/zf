@@ -101,7 +101,8 @@ impl Terminal {
         }
     }
 
-    fn update_size(&mut self, base: TRef<Control>) {
+    #[method]
+    fn resize(&mut self, #[base] base: TRef<Control>) {
         let term_size = calc_terminal_size(base, self.cell_size);
         self.state.term.resize(term_size);
     }
@@ -112,7 +113,7 @@ impl Terminal {
 
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Control>) -> Option<()> {
-        self.update_size(base);
+        self.resize(base);
         godot_dbg!(self.state.term.get_size());
 
         base.grab_focus();
@@ -125,6 +126,9 @@ impl Terminal {
             0,
         )
         .expect("failed to connect on_gui_input");
+
+        base.connect("resized", base, "resize", VariantArray::new_shared(), 0)
+            .expect("failed to connect resize");
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
         let vm_manager = find_ref::<VMManager, Node>(as_node)?;

@@ -1,5 +1,10 @@
 use gdnative::{
-    api::{object::ConnectFlags, DynamicFont, GlobalConstants},
+    api::{
+        object::ConnectFlags,
+        // Font,
+        DynamicFont,
+        GlobalConstants,
+    },
     prelude::*,
 };
 use zf_term::{TerminalSize, ZFTerm, ZF};
@@ -19,6 +24,7 @@ pub struct Terminal {
     state: ZFTerm,
     buffer: String,
     font: Ref<DynamicFont>,
+    cell_size: Vector2,
     // font: Ref<Font>,
 }
 
@@ -80,16 +86,16 @@ impl Terminal {
             .unwrap()
             .cast::<DynamicFont>()
             .unwrap();
-        // let font = base.get_font("", "").unwrap();
-        let writer = Box::new(TerminalWriter {
-            // buffer: String::new(),
-            base: base.claim(),
-        });
+
+        // let font = unsafe { base.get_font("", "").unwrap().assume_safe() }.claim();
+        let writer = Box::new(TerminalWriter {});
+        let cell_size = unsafe { font.assume_safe() }.get_string_size("W");
 
         Terminal {
             // seqno: 0,
             font,
             buffer: String::new(),
+            cell_size,
             state: ZFTerm::new(
                 writer,
                 TerminalSize {
@@ -230,8 +236,8 @@ impl Terminal {
                     base.draw_string(
                         &self.font,
                         Vector2 {
-                            x: rect.position.x + (x + 1) as f32 * 20.,
-                            y: rect.position.y + (y + 1) as f32 * 20.,
+                            x: rect.position.x + (x + 1) as f32 * self.cell_size.x,
+                            y: rect.position.y + (y + 1) as f32 * self.cell_size.y,
                         },
                         cell.str(),
                         Color::from_rgba(1., 1., 1., 1.),

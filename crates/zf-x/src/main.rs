@@ -97,7 +97,7 @@ pub fn main() -> io::Result<()> {
         .collect::<io::Result<String>>()?;
     code.push_str(&mods);
 
-    assets(&mut code, &gd_dir, &gd_dir.join("assets/self-made/"));
+    assets(&mut code, &gd_dir, &gd_dir.join("assets/"));
 
     fs::write(manifest_dir.join("../zf/src/refs/path.rs"), code).unwrap();
     Ok(())

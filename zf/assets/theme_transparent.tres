@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=3 format=2]
 
-[ext_resource path="res://assets/self-made/JetBrains_Mono.tres" type="DynamicFont" id=1]
+[ext_resource path="res://assets/JetBrains_Mono.tres" type="DynamicFont" id=1]
 
 [sub_resource type="StyleBoxEmpty" id=1]
 

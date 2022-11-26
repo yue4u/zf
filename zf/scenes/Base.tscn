@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=2]
 
-[ext_resource path="res://assets/self-made/code_theme.tres" type="Theme" id=1]
+[ext_resource path="res://assets/code_theme.tres" type="Theme" id=1]
 [ext_resource path="res://scripts/PerfLabel.gdns" type="Script" id=2]
 [ext_resource path="res://scripts/CommandPalette.gdns" type="Script" id=3]
 [ext_resource path="res://scripts/CommandHistory.gdns" type="Script" id=4]

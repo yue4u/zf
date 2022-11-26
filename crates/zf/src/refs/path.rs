@@ -108,8 +108,8 @@ pub mod launcher {
 pub mod base_level {
     pub const PROJECTILES: &str = "/root/Scene/Level/Projectiles";
     pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
-    pub const TERMINAL_WRAP: &str = "/root/Scene/UI/MarginContainer/Control/TerminalWrap";
-    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/TerminalWrap/Terminal";
+    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/Terminal";
+    pub const COLOR_RECT: &str = "/root/Scene/UI/MarginContainer/Control/ColorRect";
 }
 
 #[rustfmt::skip]
@@ -158,7 +158,6 @@ pub mod sandbox {
     pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
     pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
-    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/TerminalWrap/Terminal";
     pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
 }
@@ -166,12 +165,12 @@ pub mod sandbox {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod assets {
-    pub const T_DUMMY_TSCN: &str = "res://assets/self-made/t-dummy.tscn";
-    pub const JET_BRAINS_MONO_TRES: &str = "res://assets/self-made/JetBrains_Mono.tres";
-    pub const BAR_PROGRESS_PNG: &str = "res://assets/self-made/bar_progress.png";
-    pub const THEME_TRANSPARENT_TRES: &str = "res://assets/self-made/theme_transparent.tres";
-    pub const BAR_UNDER_PNG: &str = "res://assets/self-made/bar_under.png";
-    pub const T_DUMMY_TRES: &str = "res://assets/self-made/t-dummy.tres";
-    pub const CODE_THEME_TRES: &str = "res://assets/self-made/code_theme.tres";
+    pub const T_DUMMY_TSCN: &str = "res://assets/t-dummy.tscn";
+    pub const JET_BRAINS_MONO_TRES: &str = "res://assets/JetBrains_Mono.tres";
+    pub const BAR_PROGRESS_PNG: &str = "res://assets/bar_progress.png";
+    pub const THEME_TRANSPARENT_TRES: &str = "res://assets/theme_transparent.tres";
+    pub const BAR_UNDER_PNG: &str = "res://assets/bar_under.png";
+    pub const T_DUMMY_TRES: &str = "res://assets/t-dummy.tres";
+    pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
 }
 

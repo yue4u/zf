@@ -142,6 +142,15 @@ pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
                 ret
             },
         )?;
+
+        linker.func_wrap(
+            "zf",
+            "zf_terminal_size",
+            |mut _caller: Caller<'_, ExtendedStore<TestStore>>| -> i64 {
+                zf_bridge::Tag::into(80, 20)
+            },
+        )?;
+
         Ok(())
     })?;
 

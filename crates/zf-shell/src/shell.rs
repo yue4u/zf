@@ -327,7 +327,7 @@ impl ShellState {
             //     Kill,
             //     KeybindingsList,
                 Sleep,
-            //     TermSize,
+                TermSize,
             // };
 
             // // Date

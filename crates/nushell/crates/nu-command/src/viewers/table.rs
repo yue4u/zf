@@ -18,7 +18,7 @@ use std::{
     path::PathBuf,
     sync::atomic::{AtomicBool, Ordering},
 };
-// use terminal_size::{Height, Width};
+use terminal_size::{Height, Width};
 use url::Url;
 
 const STREAM_PAGE_SIZE: usize = 1000;
@@ -28,11 +28,9 @@ const INDEX_COLUMN_NAME: &str = "index";
 fn get_width_param(width_param: Option<i64>) -> usize {
     if let Some(col) = width_param {
         col as usize
-    }
-    // else if let Some((Width(w), Height(_))) = terminal_size::terminal_size() {
-    //     w as usize
-    // }
-    else {
+    } else if let Some((Width(w), Height(_))) = terminal_size::terminal_size() {
+        w as usize
+    } else {
         80
     }
 }

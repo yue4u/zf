@@ -3,6 +3,7 @@
 members = [
     "crates/zf",
     "crates/zf-x",
+    "crates/zf-ffi",
     "crates/zf-shell",
     "crates/zf-bridge",
     "crates/zf-runtime",

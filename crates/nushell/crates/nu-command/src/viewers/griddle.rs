@@ -13,7 +13,7 @@ use nu_protocol::{
 };
 use nu_term_grid::grid::{Alignment, Cell, Direction, Filling, Grid, GridOptions};
 use nu_utils::get_ls_colors;
-// use terminal_size::{Height, Width};
+use terminal_size::{Height, Width};
 #[derive(Clone)]
 pub struct Griddle;
 
@@ -212,9 +212,9 @@ fn create_grid_output(
     let cols = if let Some(col) = width_param {
         col as u16
     }
-    // else if let Some((Width(w), Height(_h))) = terminal_size::terminal_size() {
-    //     w
-    // }
+    else if let Some((Width(w), Height(_h))) = terminal_size::terminal_size() {
+        w
+    }
     else {
         80u16
     };

@@ -81,7 +81,7 @@ rayon = "1.5.1"
 # shadow-rs = { version = "0.16.1", default-features = false }
 strip-ansi-escapes = "0.1.1"
 # sysinfo = "0.26.2"
-# terminal_size = "0.2.1"
+terminal_size = { package = "zf-ffi", path = '../../../zf-ffi' }
 # thiserror = "1.0.31"
 titlecase = "2.0.0"
 # toml = "0.5.8"

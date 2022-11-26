@@ -128,3 +128,15 @@ fn preload() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn term_size() -> anyhow::Result<()> {
+    let mut runtime = test_runtime()?;
+
+    check(
+        runtime.eval("term size").unwrap(),
+        expect!["{columns: 0rows: 0}"],
+    );
+
+    Ok(())
+}

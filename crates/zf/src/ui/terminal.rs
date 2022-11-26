@@ -12,7 +12,7 @@ use zf_term::{TerminalSize, ZFTerm, ZF};
 use crate::{
     common::find_ref,
     managers::VMManager,
-    refs,
+    refs::{self, HasPath},
     vm::{CommandResult, ProcessState, VMSignal},
 };
 
@@ -21,12 +21,18 @@ use crate::{
 #[register_with(Self::register_signals)]
 pub struct Terminal {
     // seqno: usize,
-    state: ZFTerm,
+    pub state: ZFTerm,
     process_state: ProcessState,
     buffer: String,
     font: Ref<DynamicFont>,
     cell_size: Vector2,
     // font: Ref<Font>,
+}
+
+impl HasPath for Terminal {
+    fn path() -> &'static str {
+        refs::path::base_level::TERMINAL
+    }
 }
 
 const TERM_PADDING: f32 = 10.;

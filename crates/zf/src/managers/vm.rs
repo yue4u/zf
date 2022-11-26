@@ -11,10 +11,13 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
+use zf_bridge::Tag;
 
 use crate::{
+    common::find_ref,
     entities::Mission,
     refs::{groups, path::levels},
+    ui::Terminal,
     vm::{
         Command, CommandInput, CommandResult, GameCommand, IntoCommand, MissionCommand, VMSignal,
     },
@@ -174,6 +177,24 @@ fn fire_and_forget(vm_data: &VMData, cmd: Command) {
 impl Into<Runtime<VMData>> for VMData {
     fn into(self) -> Runtime<VMData> {
         Runtime::init(self, |linker| -> anyhow::Result<()> {
+            linker.func_wrap(
+                "zf",
+                "zf_terminal_size",
+                |caller: Caller<'_, ExtendedStore<VMData>>| -> i64 {
+                    let terminal = find_ref::<Terminal, Control>(unsafe {
+                        caller.data().ext.base.assume_safe()
+                    })
+                    .expect("find ref termial")
+                    .cast_instance::<Terminal>()
+                    .expect("cast instance termial");
+                    // terminal.state
+                    let size = terminal
+                        .map(|t, _| t.state.term.get_size())
+                        .expect("term.get_size");
+                    Tag::into(size.cols as i32, size.rows as i32)
+                },
+            )?;
+
             linker.func_wrap(
                 "zf",
                 "zf_cmd",

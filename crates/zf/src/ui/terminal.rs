@@ -13,7 +13,7 @@ use crate::{
     common::find_ref,
     managers::VMManager,
     refs,
-    vm::{CommandResult, VMSignal},
+    vm::{CommandResult, ProcessState, VMSignal},
 };
 
 #[derive(NativeClass)]
@@ -22,6 +22,7 @@ use crate::{
 pub struct Terminal {
     // seqno: usize,
     state: ZFTerm,
+    process_state: ProcessState,
     buffer: String,
     font: Ref<DynamicFont>,
     cell_size: Vector2,
@@ -95,6 +96,7 @@ impl Terminal {
         Terminal {
             // seqno: 0,
             font,
+            process_state: ProcessState::Idle,
             buffer: String::new(),
             cell_size,
             state: ZFTerm::new(writer, TerminalSize::default()),
@@ -170,9 +172,9 @@ impl Terminal {
             return Some(());
         }
 
-        // if self.state == ProcessState::Running {
-        //     return None;
-        // }
+        if self.process_state == ProcessState::Running {
+            return None;
+        }
 
         match event.scancode() {
             GlobalConstants::KEY_ENTER => {
@@ -217,22 +219,14 @@ impl Terminal {
             _ => {
                 let ch = event.unicode() as u8 as char;
                 if ch != '\0' && ch != '\r' {
-                    // godot_dbg!(&ch);
-                    // self.state.term.send_paste(&String::from(ch));
                     self.buffer.push(ch);
                     self.write(&ch.to_string());
-                    // self.state.term.wr
                 }
             }
         }
         base.update();
         Some(())
     }
-
-    // #[method]
-    // fn _process(&self, #[base] base: TRef<Control>, _delta: f64) {
-    //     base.update();
-    // }
 
     #[method]
     fn _draw(&mut self, #[base] base: &Control) {
@@ -257,13 +251,17 @@ impl Terminal {
         let mut lines = Vec::new();
 
         screen.for_each_phys_line_mut(|_y, line| {
-            // if !line.as_str().is_empty() {
-            // godot_print!("{}{}", _y, "push");
             lines.push(line.clone());
-            // }
         });
 
         let lines_len = lines.len();
+
+        let draw_pos = |x: f32, y: f32| Vector2 {
+            x: TERM_PADDING + x * self.cell_size.x,
+            // position uses bottom-left so 2x here
+            y: 2. * TERM_PADDING + y * self.cell_size.y,
+        };
+
         lines
             .iter_mut()
             .skip(lines_len.saturating_sub(screen.physical_rows))
@@ -272,50 +270,81 @@ impl Terminal {
                 let mut x = 0;
                 for cell in line.cells_mut() {
                     let fg = zf_term::Color::resolve_cell_fg_color(cell, color_palette);
-                    // let bg = zf_term::Color::resolve_cell_bg_color(cell, color_palette);
-                    let position = Vector2 {
-                        x: TERM_PADDING + x as f32 * self.cell_size.x,
-                        // position uses bottom-left so 2x here
-                        y: 2. * TERM_PADDING + y as f32 * self.cell_size.y,
-                    };
-                    // let size =
-                    // base.draw_rect(Rect2 { position, size: Vector2 { x: (), y: () } }, bg, true, -1, false);
+                    let bg = zf_term::Color::resolve_cell_bg_color(cell, color_palette);
+
+                    // base.draw_rect(
+                    //     Rect2 {
+                    //         position: Vector2 {
+                    //             x: (x as f32) * self.cell_size.x,
+                    //             y: (y as f32) * self.cell_size.y,
+                    //         },
+                    //         size: Vector2 {
+                    //             x: cell.width() as f32 * self.cell_size.x,
+                    //             y: self.cell_size.y,
+                    //         },
+                    //     },
+                    //     Color::from_rgba(bg.0, bg.1, bg.2, bg.3),
+                    //     true,
+                    //     -1.,
+                    //     false,
+                    // );
+
+                    // HACK: using draw_rect with draw_string has z index issues
                     base.draw_string(
                         &self.font,
-                        position,
+                        draw_pos(x as f32, y as f32),
+                        "█".repeat(cell.width()),
+                        Color::from_rgba(bg.0, bg.1, bg.2, bg.3),
+                        -1,
+                    );
+
+                    base.draw_string(
+                        &self.font,
+                        draw_pos(x as f32, y as f32),
                         cell.str(),
                         Color::from_rgba(fg.0, fg.1, fg.2, fg.3),
                         -1,
                     );
                     x += cell.width();
                 }
-            })
+            });
+
+        // cursor
+        let cursor_pos = self.state.term.cursor_pos();
+        base.draw_char(
+            &self.font,
+            draw_pos(cursor_pos.x as f32, cursor_pos.y as f32),
+            "_",
+            "",
+            Color::from_rgba(1., 1., 1., 1.),
+        );
     }
 
     fn prompt(&mut self) {
         use nu_ansi_term::Color::*;
-        // let err = match self.state {
-        //     ProcessState::Idle => "",
-        //     ProcessState::Error => "[error]",
-        //     _ => "",
-        // };
-        // self.write(&format!("\n{}{}", Red.paint(err), Cyan.paint("> ")));
-        self.write(&format!("\n{}", Cyan.paint("> ")));
+        match self.process_state {
+            ProcessState::Error => {
+                self.write(&format!("\n{}", White.on(Red).paint("[error]> ")));
+            }
+            _ => {
+                self.write(&format!("\n{} ", Black.on(LightCyan).paint(">")));
+            }
+        };
     }
 
     #[method]
     fn on_cmd_result(&mut self, #[base] base: &Control, result: CommandResult) -> Option<()> {
         let result = match result.result {
             Ok(result) => {
-                // self.state = ProcessState::Idle;
+                self.process_state = ProcessState::Idle;
                 result
             }
             Err(_) => {
-                // self.state = ProcessState::Error;
+                self.process_state = ProcessState::Error;
                 format!("{:?}", result)
             }
         };
-        // godot_dbg!(&result);
+
         self.write("\n");
         self.write(&result);
         self.prompt();

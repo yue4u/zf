@@ -17,6 +17,7 @@ impl TerminalConfiguration for ZFTermConfig {
     fn color_palette(&self) -> ColorPalette {
         ColorPalette {
             foreground: SrgbaTuple(1., 1., 1., 1.),
+            background: SrgbaTuple(0., 0., 0., 0.),
             ..Default::default()
         }
     }
@@ -49,8 +50,8 @@ impl Color {
 
     pub fn resolve_cell_bg_color(cell: &Cell, palette: &color::ColorPalette) -> LinearRgba {
         let attrs = cell.attrs();
-        let fg = cell.attrs().background();
-        match fg {
+        let bg = cell.attrs().background();
+        match bg {
             color::ColorAttribute::Default => palette.resolve_bg(attrs.background()),
             color::ColorAttribute::PaletteIndex(idx) if idx < 8 => {
                 // For compatibility purposes, switch to a brighter version
@@ -64,7 +65,7 @@ impl Color {
 
                 palette.resolve_bg(color::ColorAttribute::PaletteIndex(idx))
             }
-            _ => palette.resolve_bg(fg),
+            _ => palette.resolve_bg(bg),
         }
         .to_linear()
     }

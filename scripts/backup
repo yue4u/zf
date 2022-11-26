@@ -10,7 +10,7 @@ const ignore = [
   `devlog/dist`,
   `tmp`,
   `zf/\.import`,
-  `crates/target`,
+  `target`,
 ].join("|");
 
 $`gsutil -m rsync -d -r ${dry} -x ${ignore} . gs://zf.yue.rocks 2> >(rg -v "Skipping symlink")`;

@@ -5,8 +5,9 @@ use wasi_common::{pipe::WritePipe, WasiCtx};
 use wasmtime::*;
 pub use wasmtime::{Caller, Func, Store};
 use wasmtime_wasi::WasiCtxBuilder;
+use zf_bridge::CommandBridge;
 
-use crate::{cmd_args_from_caller, memory};
+use crate::{decode_from_caller, memory};
 
 pub struct Runtime<S> {
     linker: Linker<ExtendedStore<S>>,
@@ -83,7 +84,7 @@ impl<S> Runtime<S> {
             .unwrap();
 
         let input =
-            memory::write_string_outside(self.instance, &mut self.store, &memory, input.into());
+            memory::write_string_from_host(self.instance, &mut self.store, &memory, input.into());
         let tag = self
             .linker
             .get(&mut self.store, SHELL_MODULE, "eval")
@@ -93,7 +94,8 @@ impl<S> Runtime<S> {
             .typed::<i64, i64, _>(&self.store)?
             .call(&mut self.store, input)?;
 
-        let out = memory::read_string_outside(&self.store, &memory, tag);
+        memory::decode_from_host::<_, Result<String, String>>(&mut self.store, &memory, tag)
+            .map_err(|e| anyhow::Error::msg(e))
 
         // let Runtime {
         //     store,
@@ -113,7 +115,6 @@ impl<S> Runtime<S> {
         // let err = String::from_utf8(stderr)?.to_string();
 
         // dbg!(&out, &err);
-        Ok(out)
     }
 }
 
@@ -130,7 +131,7 @@ pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
             "zf",
             "zf_cmd",
             |mut caller: Caller<'_, ExtendedStore<TestStore>>, tag: i64| -> i64 {
-                let cmd = cmd_args_from_caller(&mut caller, tag);
+                let cmd: CommandBridge = decode_from_caller(&mut caller, tag);
                 dbg!(&cmd);
                 let ret = match &cmd {
                     &zf_bridge::CommandBridge::Mystery => {

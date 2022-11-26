@@ -2,7 +2,7 @@ use anyhow::{Ok, Result};
 mod memory;
 mod runtime;
 
-use memory::cmd_args_from_caller;
+use memory::*;
 use runtime::{test_runtime, SHELL_PRELOAD};
 
 fn main() -> Result<()> {
@@ -27,6 +27,31 @@ fn sanity() -> anyhow::Result<()> {
     let mut runtime = test_runtime()?;
 
     check(runtime.eval("[1 2 3] | math sum").unwrap(), expect!["6"]);
+    Ok(())
+}
+
+#[cfg(test)]
+fn strip_ansi(input: impl std::fmt::Display) -> String {
+    String::from_utf8_lossy(&strip_ansi_escapes::strip(input.to_string()).unwrap()).to_string()
+}
+
+#[test]
+fn error() -> anyhow::Result<()> {
+    let mut runtime = test_runtime()?;
+
+    check(
+        strip_ansi(runtime.eval("!").unwrap_err()),
+        expect![[r#"
+            Error: nu::shell::external_commands (link)
+
+              × Running external commands not supported
+               ╭─[line0:1:1]
+             1 │ !
+               · ┬
+               · ╰── external not supported
+               ╰────
+        "#]],
+    );
     Ok(())
 }
 
@@ -65,17 +90,17 @@ fn viewers() -> anyhow::Result<()> {
     check(
         runtime.eval("[1 2 3] | table").unwrap(),
         expect![[r#"
-        ╭───┬───╮
-        │ 0 │ 1 │
-        │ 1 │ 2 │
-        │ 2 │ 3 │
-        ╰───┴───╯"#]],
+            ╭───┬───╮
+            │ 0 │ 1 │
+            │ 1 │ 2 │
+            │ 2 │ 3 │
+            ╰───┴───╯"#]],
     );
     check(
         runtime.eval("[a b c] | grid").unwrap(),
         expect![[r#"
-        a │ b │ c
-    "#]],
+            a │ b │ c
+        "#]],
     );
 
     Ok(())
@@ -92,8 +117,8 @@ fn filters() -> anyhow::Result<()> {
     check(
         runtime.eval("[a b c] | grid").unwrap(),
         expect![[r#"
-        a │ b │ c
-    "#]],
+            a │ b │ c
+        "#]],
     );
 
     Ok(())
@@ -105,9 +130,7 @@ fn preload() -> anyhow::Result<()> {
     runtime.eval(SHELL_PRELOAD).unwrap();
 
     check(
-        String::from_utf8_lossy(
-            &strip_ansi_escapes::strip(runtime.eval("e --help").unwrap()).unwrap(),
-        ),
+        strip_ansi(runtime.eval("e --help").unwrap()),
         expect![[r#"
             engine
 
@@ -134,8 +157,12 @@ fn term_size() -> anyhow::Result<()> {
     let mut runtime = test_runtime()?;
 
     check(
-        runtime.eval("term size").unwrap(),
-        expect!["{columns: 0rows: 0}"],
+        runtime.eval("term size | table").unwrap(),
+        expect![[r#"
+            ╭─────────┬────╮
+            │ columns │ 80 │
+            │ rows    │ 20 │
+            ╰─────────┴────╯"#]],
     );
 
     Ok(())

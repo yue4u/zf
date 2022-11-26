@@ -21,7 +21,7 @@ use crate::{
 #[register_with(Self::register_signals)]
 pub struct Terminal {
     // seqno: usize,
-    pub state: ZFTerm,
+    state: ZFTerm,
     process_state: ProcessState,
     buffer: String,
     font: Ref<DynamicFont>,
@@ -107,6 +107,10 @@ impl Terminal {
             cell_size,
             state: ZFTerm::new(writer, TerminalSize::default()),
         }
+    }
+
+    pub fn get_size(&self) -> TerminalSize {
+        self.state.term.get_size()
     }
 
     #[method]
@@ -328,14 +332,11 @@ impl Terminal {
 
     fn prompt(&mut self) {
         use nu_ansi_term::Color::*;
-        match self.process_state {
-            ProcessState::Error => {
-                self.write(&format!("\n{}", White.on(Red).paint("[error]> ")));
-            }
-            _ => {
-                self.write(&format!("\n{} ", Black.on(LightCyan).paint(">")));
-            }
+        let before = match self.process_state {
+            ProcessState::Error => Black.on(LightRed).paint(" "),
+            _ /*     fmt     */ => Black.on(LightCyan).paint(" "),
         };
+        self.write(&format!("\n{} > ", before));
     }
 
     #[method]
@@ -345,9 +346,9 @@ impl Terminal {
                 self.process_state = ProcessState::Idle;
                 result
             }
-            Err(_) => {
+            Err(result) => {
                 self.process_state = ProcessState::Error;
-                format!("{:?}", result)
+                result
             }
         };
 

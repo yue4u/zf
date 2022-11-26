@@ -11,7 +11,7 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
-use zf_bridge::Tag;
+use zf_bridge::{CommandBridge, Tag};
 
 use crate::{
     common::find_ref,
@@ -23,7 +23,7 @@ use crate::{
     },
 };
 
-use zf_runtime::{cmd_args_from_caller, Caller, ExtendedStore, Runtime};
+use zf_runtime::{decode_from_caller, Caller, ExtendedStore, Runtime};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -188,9 +188,7 @@ impl Into<Runtime<VMData>> for VMData {
                     .cast_instance::<Terminal>()
                     .expect("cast instance termial");
                     // terminal.state
-                    let size = terminal
-                        .map(|t, _| t.state.term.get_size())
-                        .expect("term.get_size");
+                    let size = terminal.map(|t, _| t.get_size()).expect("term.get_size");
                     Tag::into(size.cols as i32, size.rows as i32)
                 },
             )?;
@@ -199,7 +197,8 @@ impl Into<Runtime<VMData>> for VMData {
                 "zf",
                 "zf_cmd",
                 |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| -> i64 {
-                    let cmd = cmd_args_from_caller(&mut caller, tag).into_command();
+                    let cmd =
+                        decode_from_caller::<_, CommandBridge>(&mut caller, tag).into_command();
                     godot_dbg!(&cmd);
                     match cmd {
                         Command::Task(task) => {

@@ -16,12 +16,9 @@ fn main() {
 #[no_mangle]
 pub fn eval(input: i64) -> i64 {
     let line = unsafe { memory::string_from(input) };
-    let result = shell::eval(line);
-    let out = match result {
-        Ok(inner) => format!("{}", inner),
-        Err(e) => format!("{:?}", e),
-    };
-    memory::alloc_string_inside(out)
+    let result = shell::eval(line).map_err(|e| format!("{:?}", e));
+
+    memory::alloc_encode(result)
 }
 
 #[test]

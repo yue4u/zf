@@ -30,7 +30,7 @@ impl Color {
         let attrs = cell.attrs();
         let fg = cell.attrs().foreground();
         match fg {
-            color::ColorAttribute::Default => palette.resolve_fg(attrs.foreground()),
+            color::ColorAttribute::Default => palette.resolve_fg(fg),
             color::ColorAttribute::PaletteIndex(idx) if idx < 8 => {
                 // For compatibility purposes, switch to a brighter version
                 // of one of the standard ANSI colors when Bold is enabled.
@@ -52,7 +52,7 @@ impl Color {
         let attrs = cell.attrs();
         let bg = cell.attrs().background();
         match bg {
-            color::ColorAttribute::Default => palette.resolve_bg(attrs.background()),
+            color::ColorAttribute::Default => palette.resolve_bg(bg),
             color::ColorAttribute::PaletteIndex(idx) if idx < 8 => {
                 // For compatibility purposes, switch to a brighter version
                 // of one of the standard ANSI colors when Bold is enabled.

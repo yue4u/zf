@@ -99,6 +99,6 @@ fn thruster(
     let t: f64 = call.req(engine_state, stack, 0)?;
 
     let args = CommandArgs::Engine(EngineCommand::Thruster(t as i8));
-    zf_ffi::zf_call(args);
+    zf_ffi::cmd(args);
     Ok(Value::Nothing { span: call.head }.into_pipeline_data())
 }

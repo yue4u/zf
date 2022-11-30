@@ -29,7 +29,7 @@ impl Command for Mystery {
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         let args = CommandArgs::Mystery;
-        let val = zf_ffi::zf_call(args);
+        let val = zf_ffi::cmd(args);
         Ok(Value::String {
             val,
             span: call.head,

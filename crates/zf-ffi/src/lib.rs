@@ -1,8 +1,8 @@
-pub mod bridge;
+pub mod commands;
 pub mod memory;
 
 pub use bincode::*;
-pub use bridge::*;
+pub use commands::*;
 pub use memory::*;
 
 #[link(wasm_import_module = "zf")]
@@ -28,7 +28,7 @@ pub fn terminal_size() -> Option<(Width, Height)> {
     Some((Width(w as u16), Height(h as u16)))
 }
 
-pub fn zf_call(args: bridge::CommandArgs) -> String {
+pub fn cmd(args: commands::CommandArgs) -> String {
     let tag_out = memory::alloc_encode(args);
     unsafe {
         let tag_in = zf_cmd(tag_out);

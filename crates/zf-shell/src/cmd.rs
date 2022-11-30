@@ -1,4 +1,4 @@
-macro_rules! empty_command {
+macro_rules! empty {
     ($_struct:ident, name: $name:literal, usage: $usage:literal ) => {
         #[derive(Clone)]
         pub(crate) struct $_struct;
@@ -29,7 +29,7 @@ macro_rules! empty_command {
     };
 }
 
-macro_rules! proxy_command {
+macro_rules! proxy {
     ($_struct:ident, name: $name:literal, usage: $usage:literal, arg: $arg:expr ) => {
         #[derive(Clone)]
         pub(crate) struct $_struct;
@@ -54,7 +54,7 @@ macro_rules! proxy_command {
                 call: &nu_protocol::ast::Call,
                 _input: nu_protocol::PipelineData,
             ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-                let val = crate::imports::zf_call($arg);
+                let val = zf_ffi::zf_call($arg);
                 // QUESTION: 1. use json or nu_json or nuon?
                 // QUESTION: 2. diff json result vs non json result?
                 match nu_command::try_convert_str_to_value(&val, call.head) {
@@ -70,5 +70,5 @@ macro_rules! proxy_command {
     };
 }
 
-pub(crate) use empty_command;
-pub(crate) use proxy_command;
+pub(crate) use empty;
+pub(crate) use proxy;

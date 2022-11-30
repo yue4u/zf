@@ -5,7 +5,6 @@ use nu_protocol::{
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
 
-use crate::imports;
 use zf_bridge::{CommandBridge, UIAction, UICommand};
 
 use super::expect_flag;
@@ -58,7 +57,7 @@ impl Command for UI {
             },
             label: expect_flag(engine_state, stack, call, "label")?,
         });
-        imports::zf_call(args);
+        zf_ffi::zf_call(args);
         // TODO: we may want to return true/false from here
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }

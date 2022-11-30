@@ -1,4 +1,3 @@
-use crate::imports;
 use nu_protocol::{
     ast::Call,
     engine::{Command, EngineState, Stack},
@@ -30,7 +29,7 @@ impl Command for Mystery {
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         let args = CommandBridge::Mystery;
-        let val = imports::zf_call(args);
+        let val = zf_ffi::zf_call(args);
         Ok(Value::String {
             val,
             span: call.head,

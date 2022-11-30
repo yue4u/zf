@@ -1,4 +1,3 @@
-use crate::imports;
 use nu_engine::CallExt;
 use nu_protocol::{
     ast::Call,
@@ -7,22 +6,22 @@ use nu_protocol::{
 };
 use zf_bridge::{CommandBridge, EngineCommand};
 
-use super::zf_call;
+use crate::cmd;
 
-zf_call::empty_command!(
+cmd::empty!(
     Engine,
     name: "engine",
     usage: "engine"
 );
 
-zf_call::proxy_command!(
+cmd::proxy!(
     EngineOn,
     name: "engine on",
     usage: "Turn on engine",
     arg: CommandBridge::Engine(EngineCommand::On)
 );
 
-zf_call::proxy_command!(
+cmd::proxy!(
     EngineOff,
     name: "engine off",
     usage: "Turn off engine",
@@ -100,6 +99,6 @@ fn thruster(
     let t: f64 = call.req(engine_state, stack, 0)?;
 
     let args = CommandBridge::Engine(EngineCommand::Thruster(t as i8));
-    imports::zf_call(args);
+    zf_ffi::zf_call(args);
     Ok(Value::Nothing { span: call.head }.into_pipeline_data())
 }

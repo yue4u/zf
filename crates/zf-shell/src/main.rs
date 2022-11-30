@@ -1,7 +1,7 @@
+mod cmd;
 mod commands;
-mod imports;
-mod memory;
 mod shell;
+use zf_ffi::memory;
 
 fn main() {
     let result = shell::eval_stateless(

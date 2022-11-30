@@ -4,7 +4,7 @@ use nu_protocol::{
     engine::{Command, EngineState, Stack},
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
-use zf_bridge::{CommandBridge, TaskCommand};
+use zf_ffi::{CommandArgs, TaskCommand};
 
 use crate::cmd;
 
@@ -12,7 +12,7 @@ cmd::proxy!(
     Task,
     name: "task",
     usage: "manage background tasks",
-    arg: CommandBridge::Task(TaskCommand::Status)
+    arg: CommandArgs::Task(TaskCommand::Status)
 );
 
 #[derive(Clone)]
@@ -62,7 +62,7 @@ impl Command for TaskRun {
             }
             _ => None,
         };
-        let args = CommandBridge::Task(TaskCommand::Run { every, cmd });
+        let args = CommandArgs::Task(TaskCommand::Run { every, cmd });
         let val = zf_ffi::zf_call(args);
         Ok(Value::String {
             val,
@@ -100,7 +100,7 @@ impl Command for TaskStop {
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         let cmd: String = call.req(engine_state, stack, 0)?;
-        let args = CommandBridge::Task(TaskCommand::Stop(cmd));
+        let args = CommandArgs::Task(TaskCommand::Stop(cmd));
         let val = zf_ffi::zf_call(args);
         Ok(Value::String {
             val,

@@ -1,5 +1,9 @@
+pub mod bridge;
 pub mod memory;
-use zf_bridge::{CommandBridge, Tag};
+
+pub use bincode::*;
+pub use bridge::*;
+pub use memory::*;
 
 #[link(wasm_import_module = "zf")]
 extern "C" {
@@ -20,11 +24,11 @@ pub struct Height(pub u16);
 
 pub fn terminal_size() -> Option<(Width, Height)> {
     let tag = unsafe { zf_terminal_size() };
-    let (w, h) = Tag::from(tag);
+    let (w, h) = memory::Tag::from(tag);
     Some((Width(w as u16), Height(h as u16)))
 }
 
-pub fn zf_call(args: CommandBridge) -> String {
+pub fn zf_call(args: bridge::CommandArgs) -> String {
     let tag_out = memory::alloc_encode(args);
     unsafe {
         let tag_in = zf_cmd(tag_out);

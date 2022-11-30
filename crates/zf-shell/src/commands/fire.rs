@@ -5,7 +5,7 @@ use nu_protocol::{
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
 
-use zf_bridge::{CommandBridge, FireCommand};
+use zf_ffi::{CommandArgs, FireCommand};
 
 #[derive(Clone)]
 pub(crate) struct Fire;
@@ -34,7 +34,7 @@ impl Command for Fire {
     ) -> Result<PipelineData, ShellError> {
         let value = input.into_value(call.head);
         let mut target: Option<String> = None;
-        let mut pos: Option<[f32; 3]> = None;
+        let mut pos: Option<(f32, f32, f32)> = None;
         if let Ok((cols, vals)) = value.as_record() {
             // TODO: skip iter if both found or use a hashmap
             for (col, val) in cols.iter().zip(vals.iter()) {
@@ -44,17 +44,17 @@ impl Command for Fire {
                     }
                     "pos" => {
                         let list = val.as_list()?;
-                        pos = Some([
+                        pos = Some((
                             list[0].as_f64()? as f32,
                             list[1].as_f64()? as f32,
                             list[2].as_f64()? as f32,
-                        ]);
+                        ));
                     }
                     _ => {}
                 }
             }
         }
-        let args = CommandBridge::Fire(FireCommand {
+        let args = CommandArgs::Fire(FireCommand {
             weapon: call.req::<String>(engine_state, stack, 0)?,
             target,
             pos,

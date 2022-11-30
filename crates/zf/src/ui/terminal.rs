@@ -13,8 +13,22 @@ use crate::{
     common::find_ref,
     managers::VMManager,
     refs::{self, HasPath},
-    vm::{CommandResult, ProcessState, VMSignal},
+    vm::{CommandResult, VMSignal},
 };
+
+#[derive(FromVariant, ToVariant, Clone, Debug, PartialEq)]
+pub enum ProcessState {
+    Idle,
+    Done,
+    Error,
+    Running,
+}
+
+impl Default for ProcessState {
+    fn default() -> Self {
+        ProcessState::Idle
+    }
+}
 
 #[derive(NativeClass)]
 #[inherit(Control)]

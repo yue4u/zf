@@ -18,4 +18,4 @@ wasmtime-wasi = "1.0.0"
 wasi-common = "1.0.1"
 strip-ansi-escapes = "0.1.1"
 
-zf-bridge = { path = "../zf-bridge" }
+zf-ffi = { path = "../zf-ffi" }

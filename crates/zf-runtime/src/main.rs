@@ -57,14 +57,14 @@ fn error() -> anyhow::Result<()> {
 
 #[test]
 fn call() -> anyhow::Result<()> {
-    use zf_bridge::{CommandBridge, GameCommand};
+    use zf_ffi::{CommandArgs, GameCommand};
 
     let mut runtime = test_runtime()?;
     runtime.eval("game start")?;
 
     assert_eq!(
         runtime.store.data().ext.last_cmd_call,
-        Some(CommandBridge::Game(GameCommand::Start))
+        Some(CommandArgs::Game(GameCommand::Start))
     );
     Ok(())
 }

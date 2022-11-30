@@ -5,7 +5,7 @@ use wasi_common::{pipe::WritePipe, WasiCtx};
 use wasmtime::*;
 pub use wasmtime::{Caller, Func, Store};
 use wasmtime_wasi::WasiCtxBuilder;
-use zf_bridge::CommandBridge;
+use zf_ffi::CommandArgs;
 
 use crate::{decode_from_caller, memory};
 
@@ -119,7 +119,7 @@ impl<S> Runtime<S> {
 }
 
 pub struct TestStore {
-    pub last_cmd_call: Option<zf_bridge::CommandBridge>,
+    pub last_cmd_call: Option<zf_ffi::CommandArgs>,
 }
 
 pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
@@ -131,10 +131,10 @@ pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
             "zf",
             "zf_cmd",
             |mut caller: Caller<'_, ExtendedStore<TestStore>>, tag: i64| -> i64 {
-                let cmd: CommandBridge = decode_from_caller(&mut caller, tag);
+                let cmd: CommandArgs = decode_from_caller(&mut caller, tag);
                 dbg!(&cmd);
                 let ret = match &cmd {
-                    &zf_bridge::CommandBridge::Mystery => {
+                    &zf_ffi::CommandArgs::Mystery => {
                         memory::write_string_with_caller(&mut caller, "🌈 it works!!".to_owned())
                     }
                     _ => 0,
@@ -148,7 +148,7 @@ pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
             "zf",
             "zf_terminal_size",
             |mut _caller: Caller<'_, ExtendedStore<TestStore>>| -> i64 {
-                zf_bridge::Tag::into(80, 20)
+                zf_ffi::Tag::into(80, 20)
             },
         )?;
 

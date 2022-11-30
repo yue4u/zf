@@ -5,7 +5,7 @@ use nu_protocol::{
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
 
-use zf_bridge::{CommandBridge, UIAction, UICommand};
+use zf_ffi::{CommandArgs, UIAction, UICommand};
 
 use super::expect_flag;
 
@@ -41,7 +41,7 @@ impl Command for UI {
             }
         };
 
-        let args = CommandBridge::UI(UICommand {
+        let args = CommandArgs::UI(UICommand {
             action: match action_val.as_str() {
                 "show" => UIAction::Show,
                 "hide" => UIAction::Hide,

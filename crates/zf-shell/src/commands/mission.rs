@@ -1,5 +1,5 @@
 use nu_protocol::{IntoPipelineData, Signature};
-use zf_bridge::{CommandBridge, MissionCommand};
+use zf_ffi::{CommandArgs, MissionCommand};
 
 use crate::cmd;
 
@@ -7,6 +7,6 @@ cmd::proxy!(
     Mission,
     name: "mission",
     usage: "Get current mission info",
-    arg: CommandBridge::Mission(MissionCommand::Info)
+    arg: CommandArgs::Mission(MissionCommand::Info)
 
 );

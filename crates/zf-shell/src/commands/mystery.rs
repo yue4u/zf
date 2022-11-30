@@ -3,7 +3,7 @@ use nu_protocol::{
     engine::{Command, EngineState, Stack},
     IntoPipelineData, PipelineData, ShellError, Signature, Value,
 };
-use zf_bridge::CommandBridge;
+use zf_ffi::CommandArgs;
 
 #[derive(Clone)]
 pub(crate) struct Mystery;
@@ -28,7 +28,7 @@ impl Command for Mystery {
         call: &Call,
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
-        let args = CommandBridge::Mystery;
+        let args = CommandArgs::Mystery;
         let val = zf_ffi::zf_call(args);
         Ok(Value::String {
             val,

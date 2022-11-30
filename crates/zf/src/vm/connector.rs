@@ -1,10 +1,11 @@
 use gdnative::{api::object::ConnectFlags, prelude::*};
+use zf_ffi::CommandArgs;
 
-use crate::{common::find_ref, managers::VMManager, vm::Command};
+use crate::{common::find_ref, managers::VMManager};
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct CommandInput {
-    pub cmd: Command,
+    pub cmd: CommandArgs,
     pub id: u32,
 }
 

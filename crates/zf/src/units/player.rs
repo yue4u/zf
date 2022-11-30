@@ -4,6 +4,7 @@ use gdnative::{
     api::{Area, PathFollow},
     prelude::*,
 };
+use zf_ffi::{CommandArgs, EngineCommand};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
@@ -11,7 +12,7 @@ use crate::{
         groups::{self, Layer},
         path::scenes,
     },
-    vm::{register_vm_signal, Command, CommandInput, EngineCommand, VMConnecter, VMSignal},
+    vm::{register_vm_signal, CommandInput, VMConnecter, VMSignal},
     weapons::HomingMissile,
 };
 
@@ -60,20 +61,22 @@ impl Player {
         // godot_dbg!(&input);
         let current_status = self.engine.borrow();
         let next_status = match &input.cmd {
-            Command::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
-            Command::Engine(EngineCommand::Thruster(percent)) => match &*current_status {
+            CommandArgs::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
+            CommandArgs::Engine(EngineCommand::Thruster(percent)) => match &*current_status {
                 EngineStatus::On(_) => Some(EngineStatus::On(*percent)),
                 _ => None,
             },
-            Command::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
-            Command::Fire(fire) => {
+            CommandArgs::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
+            CommandArgs::Fire(fire) => {
                 // godot_print!("fire: {:?}", fire);
                 let weapon = common::load_as::<Spatial>(scenes::HOMING_MISSILE).unwrap();
                 let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
                 Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
                 let missile = weapon.cast_instance::<HomingMissile>().unwrap();
 
-                missile.map_mut(|m, _| m.target_pos = fire.pos).unwrap();
+                missile
+                    .map_mut(|m, _| m.target_pos = fire.pos.map(|(x, y, z)| Vector3::new(x, y, z)))
+                    .unwrap();
 
                 unsafe { base.get_node("Projectiles").unwrap().assume_safe() }
                     .add_child(missile, true);

@@ -1,7 +1,11 @@
 pub use bincode::*;
 
+#[cfg(feature = "godot")]
+use gdnative::prelude::{FromVariant, ToVariant};
+
 #[derive(Decode, Encode, Debug, PartialEq)]
-pub enum CommandBridge {
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
+pub enum CommandArgs {
     // Help,
     Game(GameCommand),
     Mission(MissionCommand),
@@ -16,6 +20,7 @@ pub enum CommandBridge {
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum GameCommand {
     Start,
     Menu,
@@ -23,6 +28,7 @@ pub enum GameCommand {
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum TaskCommand {
     Run { cmd: String, every: Option<u64> },
     Stop(String),
@@ -30,6 +36,7 @@ pub enum TaskCommand {
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum EngineCommand {
     On,
     Off,
@@ -37,47 +44,35 @@ pub enum EngineCommand {
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum UIAction {
     Hide,
     Show,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub struct UICommand {
     pub label: String,
     pub action: UIAction,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum MissionCommand {
     Info,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub struct RadarCommand {
     // TODO: options
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub struct FireCommand {
     pub weapon: String,
     pub target: Option<String>,
-    pub pos: Option<[f32; 3]>,
-}
-
-pub struct Tag;
-
-// multi value wasm compilation does not work yet
-// so conbine two i32 to i64 and convert them back
-// https://github.com/rust-lang/rust/issues/73755
-impl Tag {
-    pub fn into(ptr: i32, len: i32) -> i64 {
-        (ptr as i64) << 32 | (len as i64)
-    }
-
-    pub fn from(tag: i64) -> (i32, i32) {
-        let len = tag as i32;
-        let ptr = (tag >> 32) as i32;
-        (ptr, len)
-    }
+    pub pos: Option<(f32, f32, f32)>,
 }

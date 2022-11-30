@@ -1,6 +1,23 @@
-use zf_bridge::{config, encode_to_vec, Tag};
+use bincode::{config, encode_to_vec};
 
-// use zf_bridge::CommandBridge;
+pub struct Tag;
+
+// multi value wasm compilation does not work yet
+// so conbine two i32 to i64 and convert them back
+// https://github.com/rust-lang/rust/issues/73755
+impl Tag {
+    pub fn into(ptr: i32, len: i32) -> i64 {
+        (ptr as i64) << 32 | (len as i64)
+    }
+
+    pub fn from(tag: i64) -> (i32, i32) {
+        let len = tag as i32;
+        let ptr = (tag >> 32) as i32;
+        (ptr, len)
+    }
+}
+
+// use zf_ffi::CommandBridge;
 
 /// https://radu-matei.com/blog/practical-guide-to-wasm-memory/
 #[no_mangle]
@@ -29,7 +46,7 @@ pub unsafe fn string_from(tag: i64) -> String {
     )
 }
 
-pub fn alloc_encode<T: zf_bridge::enc::Encode>(args: T) -> i64 {
+pub fn alloc_encode<T: bincode::enc::Encode>(args: T) -> i64 {
     let config = config::standard();
     let mut vec = encode_to_vec(args, config).unwrap();
     let ptr = vec.as_mut_ptr();

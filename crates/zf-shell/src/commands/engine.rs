@@ -4,7 +4,7 @@ use nu_protocol::{
     engine::{Command, EngineState, Stack},
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
-use zf_bridge::{CommandBridge, EngineCommand};
+use zf_ffi::{CommandArgs, EngineCommand};
 
 use crate::cmd;
 
@@ -18,14 +18,14 @@ cmd::proxy!(
     EngineOn,
     name: "engine on",
     usage: "Turn on engine",
-    arg: CommandBridge::Engine(EngineCommand::On)
+    arg: CommandArgs::Engine(EngineCommand::On)
 );
 
 cmd::proxy!(
     EngineOff,
     name: "engine off",
     usage: "Turn off engine",
-    arg: CommandBridge::Engine(EngineCommand::Off)
+    arg: CommandArgs::Engine(EngineCommand::Off)
 );
 
 #[derive(Clone)]
@@ -98,7 +98,7 @@ fn thruster(
 ) -> Result<PipelineData, ShellError> {
     let t: f64 = call.req(engine_state, stack, 0)?;
 
-    let args = CommandBridge::Engine(EngineCommand::Thruster(t as i8));
+    let args = CommandArgs::Engine(EngineCommand::Thruster(t as i8));
     zf_ffi::zf_call(args);
     Ok(Value::Nothing { span: call.head }.into_pipeline_data())
 }

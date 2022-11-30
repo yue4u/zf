@@ -11,16 +11,14 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
-use zf_bridge::{CommandBridge, Tag};
+use zf_ffi::{CommandArgs, Tag, TaskCommand, MissionCommand, GameCommand};
 
 use crate::{
     common::find_ref,
     entities::Mission,
     refs::{groups, path::levels},
     ui::Terminal,
-    vm::{
-        Command, CommandInput, CommandResult, GameCommand, IntoCommand, MissionCommand, VMSignal,
-    },
+    vm::{CommandInput, CommandResult, VMSignal},
 };
 
 use zf_runtime::{decode_from_caller, Caller, ExtendedStore, Runtime};
@@ -162,7 +160,7 @@ impl VMManager {
     }
 }
 
-fn fire_and_forget(vm_data: &VMData, cmd: Command) {
+fn fire_and_forget(vm_data: &VMData, cmd: CommandArgs) {
     godot_dbg!(&cmd);
     unsafe { vm_data.base.assume_safe() }.emit_signal(
         VMSignal::OnCmdParsed,
@@ -197,13 +195,12 @@ impl Into<Runtime<VMData>> for VMData {
                 "zf",
                 "zf_cmd",
                 |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| -> i64 {
-                    let cmd =
-                        decode_from_caller::<_, CommandBridge>(&mut caller, tag).into_command();
+                    let cmd = decode_from_caller::<_, CommandArgs>(&mut caller, tag);
                     godot_dbg!(&cmd);
                     match cmd {
-                        Command::Task(task) => {
+                        CommandArgs::Task(task) => {
                             let ret = match task {
-                                crate::vm::TaskCommand::Run { cmd: input, every } => {
+                                TaskCommand::Run { cmd: input, every } => {
                                     let store = caller.data_mut();
                                     let base = store.ext.base;
                                     let stop = Arc::new(AtomicBool::new(false));
@@ -239,7 +236,7 @@ impl Into<Runtime<VMData>> for VMData {
 
                                     start_info
                                 }
-                                crate::vm::TaskCommand::Stop(id) => (|| {
+                                TaskCommand::Stop(id) => (|| {
                                     if let Ok(id) = id.parse() {
                                         if let Some(task_runner) =
                                             caller.data_mut().ext.thead_handles.remove(&id)
@@ -251,7 +248,7 @@ impl Into<Runtime<VMData>> for VMData {
                                     format!("no task`{}` found", id)
                                 })(
                                 ),
-                                crate::vm::TaskCommand::Status => {
+                                TaskCommand::Status => {
                                     let handles = &mut caller.data_mut().ext.thead_handles;
 
                                     // clear finished task
@@ -269,13 +266,13 @@ impl Into<Runtime<VMData>> for VMData {
                             godot_dbg!(&ret);
                             zf_runtime::write_string_with_caller(&mut caller, ret)
                         }
-                        Command::Mission(m) => match m {
+                        CommandArgs::Mission(m) => match m {
                             MissionCommand::Info => zf_runtime::write_string_with_caller(
                                 &mut caller,
                                 Mission::dummy().summary(),
                             ),
                         },
-                        Command::Game(g) => {
+                        CommandArgs::Game(g) => {
                             let tree = unsafe {
                                 caller
                                     .data()
@@ -300,7 +297,7 @@ impl Into<Runtime<VMData>> for VMData {
                             };
                             0
                         }
-                        Command::Radar(_) => {
+                        CommandArgs::Radar(_) => {
                             let radars = unsafe {
                                 caller
                                     .data()

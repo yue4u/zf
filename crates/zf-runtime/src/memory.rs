@@ -1,5 +1,6 @@
+use zf_ffi::Tag;
 use wasmtime::{AsContextMut, Caller, Instance, Memory, Store, StoreContext};
-use zf_bridge::{config, decode_from_slice, Tag};
+use zf_ffi::{config, decode_from_slice};
 
 use crate::runtime::ExtendedStore;
 
@@ -54,7 +55,7 @@ pub(crate) fn write_string_from_host<T>(
     );
     Tag::into(ptr, len)
 }
-pub fn decode_from_host<'a, T: 'a, D: zf_bridge::de::Decode>(
+pub fn decode_from_host<'a, T: 'a, D: zf_ffi::de::Decode>(
     store: impl Into<StoreContext<'a, T>>,
     memory: &Memory,
     tag: i64,
@@ -66,7 +67,7 @@ pub fn decode_from_host<'a, T: 'a, D: zf_bridge::de::Decode>(
     args
 }
 
-pub fn decode_from_caller<T, D: zf_bridge::de::Decode>(
+pub fn decode_from_caller<T, D: zf_ffi::de::Decode>(
     caller: &mut Caller<'_, ExtendedStore<T>>,
     tag: i64,
 ) -> D {

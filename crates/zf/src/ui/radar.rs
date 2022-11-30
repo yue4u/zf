@@ -4,11 +4,12 @@ use gdnative::{
     api::{Area, TextureRect},
     prelude::*,
 };
+use zf_ffi::{CommandArgs, UIAction, UICommand};
 
 use crate::{
     refs::{groups, HasPath},
     units::player::Player,
-    vm::{register_vm_signal, Command, CommandInput, UIAction, UICommand, VMConnecter, VMSignal},
+    vm::{register_vm_signal, CommandInput, VMConnecter, VMSignal},
 };
 use serde::{Deserialize, Serialize};
 
@@ -85,7 +86,7 @@ impl Radar {
     #[method]
     fn on_cmd_parsed(&self, #[base] base: TRef<Node>, input: CommandInput) {
         match &input.cmd {
-            Command::UI(UICommand { label, action }) if label.as_str() == "radar" => {
+            CommandArgs::UI(UICommand { label, action }) if label.as_str() == "radar" => {
                 let ui = base.cast::<Control>().unwrap();
                 match action {
                     UIAction::Hide => ui.set_visible(false),

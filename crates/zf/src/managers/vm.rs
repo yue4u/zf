@@ -1,4 +1,4 @@
-use gdnative::prelude::*;
+use gdnative::{api::Engine, prelude::*};
 use serde::{Deserialize, Serialize};
 use std::{
     cell::RefCell,
@@ -11,7 +11,7 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
-use zf_ffi::{CommandArgs, Tag, TaskCommand, MissionCommand, GameCommand};
+use zf_ffi::{CommandArgs, GameCommand, MissionCommand, Tag, TaskCommand};
 
 use crate::{
     common::find_ref,
@@ -246,8 +246,7 @@ impl Into<Runtime<VMData>> for VMData {
                                         };
                                     }
                                     format!("no task`{}` found", id)
-                                })(
-                                ),
+                                })(),
                                 TaskCommand::Status => {
                                     let handles = &mut caller.data_mut().ext.thead_handles;
 
@@ -295,6 +294,10 @@ impl Into<Runtime<VMData>> for VMData {
                                     tree.quit(0);
                                 }
                             };
+                            0
+                        }
+                        CommandArgs::Time(time) => {
+                            Engine::godot_singleton().set_time_scale(time.scale);
                             0
                         }
                         CommandArgs::Radar(_) => {

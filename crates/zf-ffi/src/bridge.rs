@@ -15,6 +15,7 @@ pub enum CommandArgs {
     Fire(FireCommand),
     Radar(RadarCommand),
     UI(UICommand),
+    Time(TimeCommand),
     /// up to host impl and could use for test
     Mystery,
 }
@@ -75,4 +76,10 @@ pub struct FireCommand {
     pub weapon: String,
     pub target: Option<String>,
     pub pos: Option<(f32, f32, f32)>,
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
+pub struct TimeCommand {
+    pub scale: f64,
 }

@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://assets/3rd/mjolnir/scene.gltf" type="PackedScene" id=1]
+[ext_resource path="res://scripts/player.gdns" type="Script" id=2]
+
+[sub_resource type="SphereShape" id=1]
+radius = 50.0
+
+[sub_resource type="CapsuleShape" id=2]
+radius = 2.2
+
+[node name="PlayerMjolnir" instance=ExtResource( 1 )]
+transform = Transform( -1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0 )
+script = ExtResource( 2 )
+
+[node name="Camera" type="Camera" parent="." index="1"]
+transform = Transform( 0.0999998, -6.18929e-08, 1.6531e-08, 3.63798e-11, 0.0999999, -6.51926e-09, -2.32831e-10, 1.16415e-10, 0.1, 0, 3, 10 )
+current = true
+far = 2000.0
+
+[node name="RadarArea" type="Area" parent="." index="2"]
+transform = Transform( 1, -1.86265e-09, -1.66534e-16, 1.86265e-09, 1, 8.9407e-08, 0, -8.9407e-08, 1, 0, 0, 0 )
+collision_layer = 0
+collision_mask = 4
+
+[node name="CollisionShape" type="CollisionShape" parent="RadarArea" index="0"]
+shape = SubResource( 1 )
+
+[node name="Projectiles" type="Spatial" parent="." index="3"]
+
+[node name="Area" type="Area" parent="." index="4"]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape" type="CollisionShape" parent="Area" index="0"]
+shape = SubResource( 2 )

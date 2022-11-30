@@ -8,7 +8,7 @@ use zf_ffi::{CommandArgs, UIAction, UICommand};
 
 use crate::{
     refs::{groups, HasPath},
-    units::player::Player,
+    units::Player,
     vm::{register_vm_signal, CommandInput, VMConnecter, VMSignal},
 };
 use serde::{Deserialize, Serialize};

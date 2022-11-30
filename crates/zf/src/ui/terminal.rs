@@ -165,7 +165,7 @@ impl Terminal {
             VariantArray::new_shared(),
             ConnectFlags::DEFERRED.into(),
         )
-        .expect("failed to connect vm {}");
+        .expect("failed to connect vm");
 
         vm_manager
             .connect(
@@ -175,7 +175,7 @@ impl Terminal {
                 VariantArray::new_shared(),
                 ConnectFlags::DEFERRED.into(),
             )
-            .expect("failed to connect vm {}");
+            .expect("failed to connect vm");
 
         self.write(ZF);
         self.prompt();

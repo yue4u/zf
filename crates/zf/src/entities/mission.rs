@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::common::{Id, Position};
+use gdnative::prelude::{FromVariant, ToVariant};
 use nu_ansi_term::*;
 
 #[derive(Debug)]
@@ -16,6 +17,11 @@ pub type TargetsMap = HashMap<Id, MissionTarget>;
 pub struct MissionTarget {
     name: String,
     position: Position,
+}
+
+#[derive(Debug, ToVariant, FromVariant)]
+pub enum GameState {
+    MissionComplete,
 }
 
 impl Mission {

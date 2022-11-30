@@ -15,7 +15,7 @@ use zf_ffi::{memory::Tag, CommandArgs, GameCommand, MissionCommand, TaskCommand}
 
 use crate::{
     common::find_ref,
-    entities::Mission,
+    entities::{GameState, Mission},
     refs::{groups, path::levels},
     ui::Terminal,
     vm::{CommandInput, CommandResult, VMSignal},
@@ -94,6 +94,7 @@ impl VMManager {
         builder.signal(VMSignal::OnCmdEntered.as_str()).done();
         builder.signal(VMSignal::OnCmdParsed.as_str()).done();
         builder.signal(VMSignal::OnCmdResult.as_str()).done();
+        builder.signal(VMSignal::OnGameState.as_str()).done();
     }
 
     #[method]
@@ -120,34 +121,6 @@ impl VMManager {
         Some(())
     }
 
-    // #[method]
-    // pub(crate) fn on_cmd_entered_new(
-    //     &mut self,
-    //     #[base] base: &Node,
-    //     buf: VariantArray,
-    // ) -> Option<()> {
-    //     let mut text = String::new();
-    //     buf.iter()
-    //         .map(|item| item.to().unwrap())
-    //         .collect::<Vec<u8>>()
-    //         .as_slice()
-    //         // FIXME: we should not read_to_string here
-    //         .read_to_string(&mut text)
-    //         .unwrap();
-    //     let runtime = self.runtime.as_mut()?;
-    //     godot_print!("on_cmd_entered: {text}!");
-    //     base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
-
-    //     let result = runtime.eval(text).map_err(|e| e.to_string());
-    //     let id = runtime.store.data_mut().ext.cmd_id + 1;
-    //     runtime.store.data_mut().ext.cmd_id = id;
-    //     let result = CommandResult { id, result };
-    //     godot_dbg!(&result);
-    //     base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
-
-    //     Some(())
-    // }
-
     #[method]
     pub fn on_cmd_result(&self, #[base] base: &Node, result: CommandResult) -> Option<()> {
         godot_print!("receive_command_result: {}", result.id);
@@ -156,6 +129,23 @@ impl VMManager {
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
         result_buffer.insert(result.id, result);
 
+        Some(())
+    }
+
+    #[method]
+    pub fn on_game_state(&mut self, #[base] base: &Node, result: GameState) -> Option<()> {
+        godot_print!("receive_game_state: {:?}", result);
+
+        let runtime = self.runtime.as_mut()?;
+        let result = runtime
+            .eval("fsays 'mission completed'")
+            .map_err(|e| e.to_string());
+        let id = runtime.store.data_mut().ext.cmd_id + 1;
+        runtime.store.data_mut().ext.cmd_id = id;
+        let result = CommandResult { id, result };
+
+        base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
+        unsafe { base.get_tree().unwrap().assume_safe() }.set_pause(true);
         Some(())
     }
 }

@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://scenes/TargetPoint.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=3]
+
+[sub_resource type="Curve3D" id=1]
+_data = {
+"points": PoolVector3Array( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100 ),
+"tilts": PoolRealArray( 0, 0 )
+}
+
+[node name="Scene" instance=ExtResource( 2 )]
+
+[node name="TargetPoint" parent="Level" index="1" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 41.6118 )
+
+[node name="Path" type="Path" parent="Level" index="2"]
+curve = SubResource( 1 )
+
+[node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
+transform = Transform( 0.999988, 0.00420582, 0.00237835, -0.00421985, 0.999974, 0.00592383, -0.00235338, -0.0059338, 0.99998, 0, 0, 0 )
+
+[node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="0" instance=ExtResource( 3 )]

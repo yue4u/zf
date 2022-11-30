@@ -35,7 +35,7 @@ impl CommandPalette {
             VariantArray::new_shared(),
             ConnectFlags::DEFERRED.into(),
         )
-        .expect(&format!("failed to connect vm {}", ""));
+        .expect(&format!("failed to connect to vm"));
 
         base.grab_focus();
 

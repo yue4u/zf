@@ -26,7 +26,7 @@ impl TerminalConfiguration for ZFTermConfig {
 pub struct Color;
 
 impl Color {
-    pub fn resolve_cell_fg_color(cell: &Cell, palette: &color::ColorPalette) -> LinearRgba {
+    pub fn resolve_cell_fg_color(cell: &Cell, palette: &color::ColorPalette) -> SrgbaTuple {
         let attrs = cell.attrs();
         let fg = cell.attrs().foreground();
         match fg {
@@ -45,10 +45,9 @@ impl Color {
             }
             _ => palette.resolve_fg(fg),
         }
-        .to_linear()
     }
 
-    pub fn resolve_cell_bg_color(cell: &Cell, palette: &color::ColorPalette) -> LinearRgba {
+    pub fn resolve_cell_bg_color(cell: &Cell, palette: &color::ColorPalette) -> SrgbaTuple {
         let attrs = cell.attrs();
         let bg = cell.attrs().background();
         match bg {
@@ -67,7 +66,6 @@ impl Color {
             }
             _ => palette.resolve_bg(bg),
         }
-        .to_linear()
     }
 }
 
@@ -105,15 +103,7 @@ impl std::io::Write for TestWriter {
     }
 }
 
-pub const ZF: &'static str = r#"
-___          _        _     _______
-| _ \_ _ ___ (_)___ __| |_  |_  / __|
-|  _/ '_/ _ \| / -_) _|  _|  / /| _|
-|_| |_| \___// \___\__|\__| /___|_|
-           |__/
-
-Weclome to zf console!
-"#;
+pub const ZF: &'static str = include_str!("./weclome.ansi");
 
 #[cfg(test)]
 use expect_test::{expect, Expect};

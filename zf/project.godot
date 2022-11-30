@@ -21,6 +21,7 @@ enabled=PoolStringArray( "res://addons/godot_xterm/plugin.cfg" )
 [global]
 
 thread=false
+custom=false
 
 [layer_names]
 

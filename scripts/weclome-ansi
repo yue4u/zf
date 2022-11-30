@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+cat crates/zf-term/src/weclome.txt | lolcat -t -f | tee /dev/tty > crates/zf-term/src/weclome.ansi

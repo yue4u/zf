@@ -3,9 +3,10 @@ use std::io::Cursor;
 use anyhow::Ok;
 use wasi_common::{pipe::WritePipe, WasiCtx};
 use wasmtime::*;
-pub use wasmtime::{Caller, Func, Store};
 use wasmtime_wasi::WasiCtxBuilder;
 use zf_ffi::CommandArgs;
+
+pub use wasmtime::{Caller, Func, Store};
 
 use crate::{decode_from_caller, memory};
 
@@ -148,7 +149,7 @@ pub fn test_runtime() -> anyhow::Result<Runtime<TestStore>> {
             "zf",
             "zf_terminal_size",
             |mut _caller: Caller<'_, ExtendedStore<TestStore>>| -> i64 {
-                zf_ffi::Tag::into(80, 20)
+                zf_ffi::memory::Tag::into(80, 20)
             },
         )?;
 

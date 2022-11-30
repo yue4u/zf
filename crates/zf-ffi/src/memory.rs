@@ -17,8 +17,6 @@ impl Tag {
     }
 }
 
-// use zf_ffi::CommandBridge;
-
 /// https://radu-matei.com/blog/practical-guide-to-wasm-memory/
 #[no_mangle]
 pub fn alloc_string(len: usize) -> *mut u8 {
@@ -27,15 +25,6 @@ pub fn alloc_string(len: usize) -> *mut u8 {
     std::mem::forget(buf);
     ptr
 }
-
-// pub fn alloc_string_inside(mut string: String) -> i64 {
-//     string.shrink_to_fit();
-//     let ptr = string.as_mut_ptr();
-//     let len = string.len() as i32;
-//     std::mem::forget(string);
-
-//     Tag::into(ptr as i32, len)
-// }
 
 pub unsafe fn string_from(tag: i64) -> String {
     let (ptr, len) = Tag::from(tag);

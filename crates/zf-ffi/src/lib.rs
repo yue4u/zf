@@ -3,7 +3,6 @@ pub mod memory;
 
 pub use bincode::*;
 pub use commands::*;
-pub use memory::*;
 
 #[link(wasm_import_module = "zf")]
 extern "C" {

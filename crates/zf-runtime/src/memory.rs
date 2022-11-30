@@ -1,6 +1,5 @@
-use zf_ffi::Tag;
 use wasmtime::{AsContextMut, Caller, Instance, Memory, Store, StoreContext};
-use zf_ffi::{config, decode_from_slice};
+use zf_ffi::{config, decode_from_slice, memory::Tag};
 
 use crate::runtime::ExtendedStore;
 

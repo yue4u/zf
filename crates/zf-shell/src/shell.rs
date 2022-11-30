@@ -1,5 +1,5 @@
 use crate::commands::{
-    Engine, EngineOff, EngineOn, EngineThruster, EngineThrusterShort, Fire, Game, GameEnd,
+    Engine, EngineOff, EngineOn, EngineThruster, EngineThrusterShort, Fire, Fsays, Game, GameEnd,
     GameMenu, GameStart, Hi, Mission, Mystery, Radar, Task, TaskRun, TaskStop, Time, TimeScale, UI,
 };
 use anyhow::Result;
@@ -64,6 +64,8 @@ impl ShellState {
 
             Time,
             TimeScale,
+
+            Fsays,
 
             // default_context below
 

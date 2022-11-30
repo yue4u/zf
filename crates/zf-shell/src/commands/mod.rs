@@ -8,6 +8,7 @@ mod radar;
 mod task;
 mod ui;
 mod time;
+mod fsays;
 
 pub(crate) use engine::*;
 pub(crate) use fire::*;
@@ -19,6 +20,7 @@ pub(crate) use radar::*;
 pub(crate) use task::*;
 pub(crate) use ui::*;
 pub(crate) use time::*;
+pub(crate) use fsays::*;
 
 use nu_engine::CallExt;
 

@@ -167,3 +167,42 @@ fn term_size() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn fsays() -> anyhow::Result<()> {
+    let mut runtime = test_runtime()?;
+
+    check(
+        runtime.eval("fsays hi").unwrap(),
+        expect![[r#"
+             ____
+            < hi >
+             ----
+                    \
+                     \
+                        _~^~^~_
+                    \) /  o o  \ (/
+                      '_   -   _'
+                      / '-----' \
+        "#]],
+    );
+
+    check(
+        runtime
+            .eval("echo 'Hello fellow Rustaceans!' | fsays")
+            .unwrap(),
+        expect![[r#"
+             __________________________
+            < Hello fellow Rustaceans! >
+             --------------------------
+                    \
+                     \
+                        _~^~^~_
+                    \) /  o o  \ (/
+                      '_   -   _'
+                      / '-----' \
+        "#]],
+    );
+
+    Ok(())
+}

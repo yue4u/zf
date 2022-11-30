@@ -20,5 +20,6 @@ nu-protocol = { path = "../nushell/crates/nu-protocol", default-features = false
 nu-engine = { path = "../nushell/crates/nu-engine", default-features = false }
 nu-parser = { path = "../nushell/crates/nu-parser", default-features = false }
 once_cell = "1.15.0"
+ferris-says = "0.2"
 
 zf-ffi = { path = "../zf-ffi" }

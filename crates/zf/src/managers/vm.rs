@@ -11,7 +11,7 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
-use zf_ffi::{CommandArgs, GameCommand, MissionCommand, Tag, TaskCommand};
+use zf_ffi::{memory::Tag, CommandArgs, GameCommand, MissionCommand, TaskCommand};
 
 use crate::{
     common::find_ref,

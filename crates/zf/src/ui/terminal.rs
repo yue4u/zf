@@ -12,9 +12,9 @@ use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
     common::{current_scene, find_ref},
-    entities::{SceneName, GLOBAL_GAME_STATE},
+    entities::GLOBAL_GAME_STATE,
     managers::VMManager,
-    refs::{self, HasPath},
+    refs::{self, path::SceneName, HasPath},
     vm::{CommandResult, VMSignal},
 };
 
@@ -216,7 +216,7 @@ impl Terminal {
                 ),
                 code.paint("help")
             )),
-            SceneName::Tutorial => Some(format!(
+            SceneName::TutorialMovement => Some(format!(
                 "type {} to explore engine command",
                 code.paint("engine --help")
             )),

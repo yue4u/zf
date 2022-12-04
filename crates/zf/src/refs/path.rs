@@ -27,6 +27,26 @@ pub mod levels {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub enum SceneName {
+    TutorialMovement,
+    StartMenu,
+    Sandbox,
+    Unknown,
+}
+
+impl From<&str> for SceneName {
+    fn from(value: &str) -> Self {
+        match value {
+            levels::TUTORIAL_MOVEMENT => SceneName::TutorialMovement,
+            levels::START_MENU => SceneName::StartMenu,
+            levels::SANDBOX => SceneName::Sandbox,
+            _ => SceneName::Unknown,
+        }
+    }
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod health_bar_3_d {
     pub const VIEWPORT: &str = "/root/Scene/Viewport";
     pub const CONTROL: &str = "/root/Scene/Viewport/Control";
@@ -195,4 +215,3 @@ pub mod assets {
     pub const T_DUMMY_TRES: &str = "res://assets/t-dummy.tres";
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
 }
-

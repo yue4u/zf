@@ -25,6 +25,7 @@ pub fn main() -> io::Result<()> {
                     Some(path)
                 })
                 .collect::<Vec<PathBuf>>();
+            let mut level_inner = vec![];
             let paths = entries
                 .iter()
                 .map(|entry| {
@@ -38,11 +39,49 @@ pub fn main() -> io::Result<()> {
                         .to_str()
                         .unwrap()
                         .replace(dir_path.to_str().unwrap(), &format!("res://{dir_name}"));
-                    fmt_path(scene, &scene_path)
+                    let level_enum_varient = fmt_path_name(&scene);
+                    level_inner.push(level_enum_varient.to_case(Case::UpperCamel));
+                    fmt_path(&scene, &scene_path)
                 })
                 .collect::<Vec<String>>()
                 .join("\n");
             code.push_str(&fmt_mod(dir_name, &paths));
+
+            if dir_name == "levels" {
+                let mut level_enum_inner = level_inner.clone();
+                level_enum_inner.push("Unknown".to_owned());
+                code.push_str(&fmt_enum(
+                    "SceneName",
+                    &level_enum_inner
+                        .into_iter()
+                        .map(|v| format!("    {},", v.to_case(Case::UpperCamel)))
+                        .collect::<Vec<String>>()
+                        .join("\n"),
+                ));
+                let inner = &level_inner
+                    .into_iter()
+                    .map(|v| {
+                        format!(
+                            "            levels::{} => SceneName::{},",
+                            v.to_case(Case::ScreamingSnake),
+                            v.to_case(Case::UpperCamel)
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                code.push_str(&format!(
+                    r#"impl From<&str> for SceneName {{
+    fn from(value: &str) -> Self {{
+        match value {{
+{inner}
+            _ => SceneName::Unknown,
+        }}
+    }}
+}}
+
+"#
+                ));
+            }
             entries
         })
         .map(|path| {
@@ -121,11 +160,14 @@ fn assets(code: &mut String, gd_dir: &PathBuf, assets_dir: &PathBuf) {
     code.push_str(&fmt_mod("assets", &inner.join("\n")));
 }
 
-fn fmt_path(name: impl ToString, path: &str) -> String {
-    let name = name
-        .to_string()
+fn fmt_path_name(name: impl ToString) -> String {
+    name.to_string()
         .replace('.', "_")
-        .to_case(Case::ScreamingSnake);
+        .to_case(Case::ScreamingSnake)
+}
+
+fn fmt_path(name: impl ToString, path: &str) -> String {
+    let name = fmt_path_name(name);
     format!(r#"    pub const {name}: &str = "{path}";"#)
 }
 
@@ -135,6 +177,21 @@ fn fmt_mod(mod_name: &str, inner: &str) -> String {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod {mod_name} {{
+{inner}
+}}
+
+"#
+    )
+    .trim_start()
+    .to_owned()
+}
+
+fn fmt_enum(enum_name: &str, inner: &str) -> String {
+    format!(
+        r#"
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub enum {enum_name} {{
 {inner}
 }}
 

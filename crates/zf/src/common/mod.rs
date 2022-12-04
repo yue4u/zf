@@ -1,6 +1,5 @@
 use crate::{
-    entities::SceneName,
-    refs::{path, HasPath},
+    refs::{path::SceneName, HasPath},
     units::Player,
 };
 use gdnative::{api::*, prelude::*};
@@ -61,12 +60,7 @@ pub fn current_scene<'a>(base: &'a Node) -> SceneName {
         Some(scene) => {
             let name = unsafe { scene.assume_safe() }.filename();
             godot_dbg!(&name);
-            match name.to_string().as_str() {
-                path::levels::START_MENU => SceneName::StartMenu,
-                path::levels::SANDBOX => SceneName::Sandbox,
-                path::levels::TUTORIAL_MOVEMENT => SceneName::Tutorial,
-                _ => SceneName::Unknown,
-            }
+            name.to_string().as_str().into()
         }
         None => SceneName::Unknown,
     }

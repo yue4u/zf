@@ -1,14 +1,6 @@
 use std::sync::Mutex;
 
 use once_cell::sync::Lazy;
-
-pub enum SceneName {
-    StartMenu,
-    Tutorial,
-    Sandbox,
-    Unknown,
-}
-
 pub struct GlobalGameState {
     pub tutorial_completed: bool,
 }

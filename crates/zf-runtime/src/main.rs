@@ -16,6 +16,8 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 use expect_test::{expect, Expect};
+#[cfg(test)]
+use zf_runtime::strip_ansi;
 
 #[cfg(test)]
 fn check(actual: impl ToString, expect: Expect) {
@@ -28,11 +30,6 @@ fn sanity() -> anyhow::Result<()> {
 
     check(runtime.eval("[1 2 3] | math sum").unwrap(), expect!["6"]);
     Ok(())
-}
-
-#[cfg(test)]
-fn strip_ansi(input: impl std::fmt::Display) -> String {
-    String::from_utf8_lossy(&strip_ansi_escapes::strip(input.to_string()).unwrap()).to_string()
 }
 
 #[test]

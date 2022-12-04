@@ -7,10 +7,11 @@ use gdnative::{
     },
     prelude::*,
 };
+use zf_runtime::strip_ansi;
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
-    common::find_ref,
+    common::{current_scene, find_ref, SceneName},
     managers::VMManager,
     refs::{self, HasPath},
     vm::{CommandResult, VMSignal},
@@ -51,6 +52,7 @@ impl HasPath for Terminal {
 
 const TERM_PADDING: f32 = 10.;
 const ENTER_SIGNAL: &'static str = "signal";
+const GAME_INFO_SIGNAL: &'static str = "game_info";
 
 struct TerminalWriter {
     // base: Ref<Control>,
@@ -178,6 +180,7 @@ impl Terminal {
             .expect("failed to connect vm");
 
         self.write(ZF);
+        self.write_scene_message(base);
         self.prompt();
 
         Some(())
@@ -185,6 +188,33 @@ impl Terminal {
 
     fn write(&mut self, data: &str) {
         self.state.term.advance_bytes(data);
+    }
+
+    #[method]
+    fn write_scene_message(&mut self, #[base] base: TRef<Control>) -> Option<()> {
+        use nu_ansi_term::Color::*;
+
+        let as_node = unsafe { base.get_node_as::<Node>(".")? };
+        let text = match current_scene(&as_node) {
+            SceneName::Sandbox => None,
+            SceneName::StartMenu => {
+                let style = Rgb(255, 194, 60).bold();
+                Some(format!(
+                    "Type {} to continue or {} for help.",
+                    style.paint("game start"),
+                    style.paint("help")
+                ))
+            }
+            _ => None,
+        }?;
+        let line = format!(
+            "\n{}\n",
+            DarkGray.paint("=".repeat(strip_ansi(&text).len()))
+        );
+        self.write(&line);
+        self.write(&text);
+        self.write(&line);
+        None
     }
 
     #[method]

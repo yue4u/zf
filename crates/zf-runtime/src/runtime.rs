@@ -31,6 +31,11 @@ alias e = engine;
 alias f = fire;
 "#;
 
+#[allow(dead_code)]
+pub fn strip_ansi(input: impl std::fmt::Display) -> String {
+    String::from_utf8_lossy(&strip_ansi_escapes::strip(input.to_string()).unwrap()).to_string()
+}
+
 pub struct ExtendedStore<T> {
     pub ext: T,
     pub wasi: WasiCtx,

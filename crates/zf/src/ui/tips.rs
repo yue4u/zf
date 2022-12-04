@@ -1,5 +1,6 @@
 use crate::{
-    common::{current_scene, SceneName},
+    common::current_scene,
+    entities::SceneName,
     vm::{CommandInput, VMConnecter, VMSignal},
 };
 use gdnative::{api::RichTextLabel, prelude::*};

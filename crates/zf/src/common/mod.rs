@@ -1,4 +1,5 @@
 use crate::{
+    entities::SceneName,
     refs::{path, HasPath},
     units::Player,
 };
@@ -53,12 +54,6 @@ pub fn get_tree<'a>(base: &'a Node) -> TRef<'a, SceneTree> {
     unsafe { base.get_tree().unwrap().assume_safe() }
 }
 
-pub enum SceneName {
-    StartMenu,
-    Sandbox,
-    Unknown,
-}
-
 pub fn current_scene<'a>(base: &'a Node) -> SceneName {
     let current_scene = get_tree(base).current_scene();
     godot_dbg!(current_scene);
@@ -69,6 +64,7 @@ pub fn current_scene<'a>(base: &'a Node) -> SceneName {
             match name.to_string().as_str() {
                 path::levels::START_MENU => SceneName::StartMenu,
                 path::levels::SANDBOX => SceneName::Sandbox,
+                path::levels::TUTORIAL_MOVEMENT => SceneName::Tutorial,
                 _ => SceneName::Unknown,
             }
         }

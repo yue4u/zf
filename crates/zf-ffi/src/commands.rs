@@ -25,6 +25,7 @@ pub enum CommandArgs {
 pub enum GameCommand {
     Start,
     Menu,
+    Tutorial,
     End,
 }
 

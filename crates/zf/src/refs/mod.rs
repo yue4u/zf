@@ -1,5 +1,5 @@
 use crate::managers::VMManager;
-use crate::ui::CommandPalette;
+// use crate::ui::CommandPalette;
 use crate::units::Player;
 
 pub mod groups;
@@ -28,6 +28,6 @@ macro_rules! bind_path {
 
 bind_path!(
     Player => sandbox::T_MJOLNIR,
-    VMManager => base::VM,
-    CommandPalette => base::LINE_EDIT
+    VMManager => base::VM
+    // CommandPalette => base::LINE_EDIT
 );

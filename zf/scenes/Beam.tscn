@@ -22,6 +22,7 @@ mid_height = 2.0
 [node name="Beam" type="Spatial"]
 transform = Transform( 50, 0, 0, 0, 50, 0, 0, 0, 50, 0, 0, 0 )
 script = ExtResource( 1 )
+target_pos = null
 
 [node name="Area" type="Area" parent="."]
 collision_layer = 0

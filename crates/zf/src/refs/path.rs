@@ -7,17 +7,20 @@ pub mod scenes {
     pub const RADAR: &str = "res://scenes/Radar.tscn";
     pub const TERMINAL: &str = "res://scenes/Terminal.tscn";
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
+    pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
     pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
     pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
+    pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
 }
 
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod levels {
+    pub const TUTORIAL_MOVEMENT: &str = "res://levels/Tutorial-Movement.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const SANDBOX: &str = "res://levels/Sandbox.tscn";
 }
@@ -43,21 +46,15 @@ pub mod base {
     pub const LEVEL: &str = "/root/Scene/Level";
     pub const UI: &str = "/root/Scene/UI";
     pub const MARGIN_CONTAINER: &str = "/root/Scene/UI/MarginContainer";
+    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
+    pub const COMMAND_HISTORY: &str = "/root/Scene/UI/MarginContainer/Control/CommandHistory";
+    pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/PerfLabel";
+    pub const COMMAND_RESULT: &str = "/root/Scene/UI/MarginContainer/Control/CommandResult";
+    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/Terminal";
     pub const UI_EXTRA: &str = "/root/Scene/UI/MarginContainer/UIExtra";
     pub const MANAGERS: &str = "/root/Scene/Managers";
     pub const VM: &str = "/root/Scene/Managers/VM";
     pub const ENVIRONMENT: &str = "/root/Scene/Environment";
-    pub const LEGACY: &str = "/root/Scene/Legacy";
-    pub const WRAPPER_LEGACY: &str = "/root/Scene/Legacy/WrapperLegacy";
-    pub const COMMAND_RESULT: &str = "/root/Scene/Legacy/WrapperLegacy/CommandResult";
-    pub const V_BOX_CONTAINER: &str = "/root/Scene/Legacy/WrapperLegacy/VBoxContainer";
-    pub const COMMAND_HISTORY: &str = "/root/Scene/Legacy/WrapperLegacy/VBoxContainer/CommandHistory";
-    pub const PERF_LABEL: &str = "/root/Scene/Legacy/WrapperLegacy/PerfLabel";
-    pub const BOTTOM: &str = "/root/Scene/Legacy/WrapperLegacy/Bottom";
-    pub const COMMAND_PALETTE: &str = "/root/Scene/Legacy/WrapperLegacy/Bottom/CommandPalette";
-    pub const LABEL: &str = "/root/Scene/Legacy/WrapperLegacy/Bottom/CommandPalette/Label";
-    pub const LINE_EDIT: &str = "/root/Scene/Legacy/WrapperLegacy/Bottom/CommandPalette/LineEdit";
-    pub const TIPS: &str = "/root/Scene/Legacy/WrapperLegacy/Bottom/Tips";
 }
 
 #[rustfmt::skip]
@@ -78,6 +75,17 @@ pub mod terminal {
 #[allow(dead_code)]
 pub mod health_bar_2_d {
 
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod player_mjolnir {
+    pub const CAMERA: &str = "/root/Scene/Camera";
+    pub const RADAR_AREA: &str = "/root/Scene/RadarArea";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/RadarArea/CollisionShape";
+    pub const PROJECTILES: &str = "/root/Scene/Projectiles";
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE_1: &str = "/root/Scene/Area/CollisionShape";
 }
 
 #[rustfmt::skip]
@@ -107,9 +115,6 @@ pub mod launcher {
 #[allow(dead_code)]
 pub mod base_level {
     pub const PROJECTILES: &str = "/root/Scene/Level/Projectiles";
-    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
-    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/Terminal";
-    pub const COLOR_RECT: &str = "/root/Scene/UI/MarginContainer/Control/ColorRect";
 }
 
 #[rustfmt::skip]
@@ -120,11 +125,28 @@ pub mod terminal_sandbox {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod target_point {
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+    pub const CSG_MESH: &str = "/root/Scene/CSGMesh";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod homing_missile {
     pub const AREA: &str = "/root/Scene/Area";
     pub const MISSILES: &str = "/root/Scene/Area/missiles";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
     pub const PARTICLES: &str = "/root/Scene/Area/Particles";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_movement {
+    pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
 }
 
 #[rustfmt::skip]

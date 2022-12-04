@@ -11,7 +11,8 @@ use zf_runtime::strip_ansi;
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
-    common::{current_scene, find_ref, SceneName},
+    common::{current_scene, find_ref},
+    entities::{SceneName, GLOBAL_GAME_STATE},
     managers::VMManager,
     refs::{self, HasPath},
     vm::{CommandResult, VMSignal},
@@ -46,13 +47,13 @@ pub struct Terminal {
 
 impl HasPath for Terminal {
     fn path() -> &'static str {
-        refs::path::base_level::TERMINAL
+        refs::path::base::TERMINAL
     }
 }
 
 const TERM_PADDING: f32 = 10.;
 const ENTER_SIGNAL: &'static str = "signal";
-const GAME_INFO_SIGNAL: &'static str = "game_info";
+// const GAME_INFO_SIGNAL: &'static str = "game_info";
 
 struct TerminalWriter {
     // base: Ref<Control>,
@@ -195,21 +196,43 @@ impl Terminal {
         use nu_ansi_term::Color::*;
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
+        let code = Rgb(255, 194, 60).bold();
+
         let text = match current_scene(&as_node) {
             SceneName::Sandbox => None,
-            SceneName::StartMenu => {
-                let style = Rgb(255, 194, 60).bold();
-                Some(format!(
-                    "Type {} to continue or {} for help.",
-                    style.paint("game start"),
-                    style.paint("help")
-                ))
-            }
+            SceneName::StartMenu => Some(format!(
+                "Type {} to continue or {} for help.",
+                code.paint(
+                    GLOBAL_GAME_STATE
+                        .lock()
+                        .map(|state| {
+                            if state.tutorial_completed {
+                                "game start"
+                            } else {
+                                "game tutorial"
+                            }
+                        })
+                        .unwrap_or_else(|_| "game tutorial")
+                ),
+                code.paint("help")
+            )),
+            SceneName::Tutorial => Some(format!(
+                "type {} to explore engine command",
+                code.paint("engine --help")
+            )),
             _ => None,
         }?;
         let line = format!(
             "\n{}\n",
-            DarkGray.paint("=".repeat(strip_ansi(&text).len()))
+            DarkGray.paint(
+                "=".repeat(
+                    strip_ansi(&text)
+                        .lines()
+                        .map(|l| l.len())
+                        .max()
+                        .unwrap_or_default()
+                )
+            )
         );
         self.write(&line);
         self.write(&text);

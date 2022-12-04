@@ -24,6 +24,13 @@ cmd::proxy!(
 );
 
 cmd::proxy!(
+    GameTutorial,
+    name: "game tutorial",
+    usage: "Start game tutorial",
+    arg: CommandArgs::Game(GameCommand::Tutorial)
+);
+
+cmd::proxy!(
     GameEnd,
     name: "game end",
     usage: "End game",

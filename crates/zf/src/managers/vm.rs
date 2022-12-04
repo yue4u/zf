@@ -280,6 +280,9 @@ impl Into<Runtime<VMData>> for VMData {
                                 GameCommand::Menu => {
                                     tree.change_scene(levels::START_MENU).unwrap();
                                 }
+                                GameCommand::Tutorial => {
+                                    tree.change_scene(levels::TUTORIAL_MOVEMENT).unwrap();
+                                }
                                 GameCommand::End => {
                                     tree.quit(0);
                                 }

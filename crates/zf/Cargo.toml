@@ -13,6 +13,7 @@ path = "src/lib.rs"
 anyhow = { workspace = true, version = "1.0.65"}
 gdnative = { workspace = true }
 nu-ansi-term = "0.46"
+once_cell = "1.15.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 

@@ -1,0 +1,193 @@
+alias
+all
+any
+append
+ast
+build-string
+char
+clear
+collect
+columns
+commandline
+compact
+date
+date format
+date humanize
+date list-timezone
+date now
+date to-record
+date to-table
+date to-timezone
+debug
+decode
+decode base64
+def
+def-env
+default
+describe
+detect columns
+do
+drop
+drop column
+drop nth
+each
+each while
+echo
+encode
+encode base64
+engine
+engine off
+engine on
+engine t
+engine thruster
+error make
+every
+export
+export alias
+export def
+export def-env
+export extern
+export use
+extern
+find
+fire
+first
+flatten
+for
+format
+format filesize
+from
+from json
+msg
+game
+game end
+game menu
+game start
+game tutorial
+get
+grid
+group
+group-by
+headers
+help
+hi
+hide
+hide-env
+if
+ignore
+insert
+is-empty
+last
+length
+let
+lines
+math
+math abs
+math avg
+math ceil
+math eval
+math floor
+math max
+math median
+math min
+math mode
+math product
+math round
+math sqrt
+math stddev
+math sum
+math variance
+merge
+metadata
+mission
+module
+move
+mystery
+overlay
+overlay hide
+overlay list
+overlay new
+overlay use
+par-each
+parse
+prepend
+radar
+random
+random bool
+random chars
+random decimal
+random dice
+random integer
+random uuid
+range
+reduce
+reject
+rename
+reverse
+roll
+roll down
+roll left
+roll right
+roll up
+rotate
+select
+shuffle
+size
+skip
+skip until
+skip while
+sleep
+sort
+sort-by
+split
+split chars
+split column
+split list
+split row
+split words
+split-by
+str
+str camel-case
+str capitalize
+str collect
+str contains
+str distance
+str downcase
+str ends-with
+str index-of
+str join
+str kebab-case
+str length
+str lpad
+str pascal-case
+str replace
+str reverse
+str rpad
+str screaming-snake-case
+str snake-case
+str starts-with
+str substring
+str title-case
+str trim
+str upcase
+table
+take
+take until
+take while
+task
+task run
+task stop
+term size
+time
+time
+transpose
+ui
+uniq
+update
+update cells
+upsert
+use
+where
+window
+wrap
+zip

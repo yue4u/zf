@@ -27,9 +27,22 @@ pub const SHELL_WASM: &[u8] = include_bytes!(concat!(
 ));
 
 pub const SHELL_PRELOAD: &'static str = r#"
+alias g = game;
+alias t = game tutorial;
 alias e = engine;
 alias f = fire;
 "#;
+
+// generated via `help commands` for naive completions.
+// this only cmd name contains for now
+// it's better to do this in the shell but just much easier outside
+#[allow(dead_code)]
+const SHELL_CMDS: &'static str = include_str!("./cmds.txt");
+
+#[allow(dead_code)]
+pub fn cmds() -> Vec<&'static str> {
+    SHELL_CMDS.lines().collect()
+}
 
 #[allow(dead_code)]
 pub fn strip_ansi(input: impl std::fmt::Display) -> String {

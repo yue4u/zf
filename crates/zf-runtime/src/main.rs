@@ -17,7 +17,7 @@ fn main() -> Result<()> {
 #[cfg(test)]
 use expect_test::{expect, Expect};
 #[cfg(test)]
-use zf_runtime::strip_ansi;
+use zf_runtime::{cmds, strip_ansi};
 
 #[cfg(test)]
 fn check(actual: impl ToString, expect: Expect) {
@@ -202,4 +202,9 @@ fn fsays() -> anyhow::Result<()> {
     );
 
     Ok(())
+}
+
+#[test]
+fn cmds_len() {
+    check(cmds().len(), expect!["193"])
 }

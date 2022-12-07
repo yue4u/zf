@@ -1,13 +1,15 @@
 use gdnative::{
     api::{
+        control::FocusMode,
         object::ConnectFlags,
         // Font,
         DynamicFont,
         GlobalConstants,
+        ItemList,
     },
     prelude::*,
 };
-use zf_runtime::strip_ansi;
+use zf_runtime::{cmds, strip_ansi};
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
@@ -41,8 +43,10 @@ pub struct Terminal {
     process_state: ProcessState,
     buffer: String,
     font: Ref<DynamicFont>,
-    cell_size: Vector2,
     // font: Ref<Font>,
+    cell_size: Vector2,
+    cmds: Vec<&'static str>,
+    completion_item_list: Ref<ItemList>,
 }
 
 impl HasPath for Terminal {
@@ -115,14 +119,16 @@ impl Terminal {
         // let font = unsafe { base.get_font("", "").unwrap().assume_safe() }.claim();
         let writer = Box::new(TerminalWriter {});
         let cell_size = unsafe { font.assume_safe() }.get_string_size("W");
-
+        let completion_item_list = ItemList::new().into_shared();
         Terminal {
             // seqno: 0,
             font,
             process_state: ProcessState::Idle,
             buffer: String::new(),
             cell_size,
+            cmds: cmds(),
             state: ZFTerm::new(writer, TerminalSize::default()),
+            completion_item_list,
         }
     }
 
@@ -143,6 +149,8 @@ impl Terminal {
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Control>) -> Option<()> {
         self.resize(base);
+
+        base.add_child(self.completion_item_list, false);
 
         base.grab_focus();
 
@@ -253,6 +261,22 @@ impl Terminal {
             return None;
         }
 
+        let cl = unsafe { self.completion_item_list.assume_safe() };
+        let mut cl_visible = false;
+        let mut has_delta = true;
+
+        let calc_selected = || {
+            let selected_items = cl.get_selected_items();
+            if selected_items.is_empty() {
+                return None;
+            }
+            let item_count = cl.get_item_count();
+            if item_count <= 1 {
+                return None;
+            }
+            Some((item_count, selected_items.get(0) as i64))
+        };
+
         match event.scancode() {
             GlobalConstants::KEY_ENTER => {
                 match self.buffer.as_str() {
@@ -287,6 +311,28 @@ impl Terminal {
             //     self.buffer.clear();
             //     self.prompt();
             // }
+            GlobalConstants::KEY_TAB if cl.is_visible() => {
+                // we are using single mode so only one
+                let selected_items = cl.get_selected_items();
+                if selected_items.is_empty() {
+                    return None;
+                }
+                let selected = selected_items.get(0);
+                let text = cl.get_item_text(selected as i64).to_string();
+                let remain = text.strip_prefix(&self.buffer)?;
+                self.write(remain);
+                self.buffer = text;
+            }
+            GlobalConstants::KEY_UP if cl.is_visible() => {
+                has_delta = false;
+                let (item_count, selected) = calc_selected()?;
+                cl.select((item_count + selected - 1) % item_count, true);
+            }
+            GlobalConstants::KEY_DOWN if cl.is_visible() => {
+                has_delta = false;
+                let (item_count, selected) = calc_selected()?;
+                cl.select((selected + 1) % item_count, true);
+            }
             GlobalConstants::KEY_BACKSPACE => {
                 if !self.buffer.is_empty() {
                     self.buffer = self.buffer[..self.buffer.len() - 1].to_string();
@@ -301,8 +347,63 @@ impl Terminal {
                 }
             }
         }
+
+        if !self.buffer.is_empty() {
+            let matched: Vec<&&str> = self
+                .cmds
+                .iter()
+                .filter(|cmd| cmd.starts_with(&self.buffer) && cmd.len() != self.buffer.len())
+                .take(5)
+                .collect();
+            let matched_len = matched.len();
+            if !matched.is_empty() {
+                cl_visible = true;
+
+                if has_delta {
+                    cl.set_focus_mode(FocusMode::NONE.into());
+
+                    cl.set_size(
+                        Vector2 {
+                            x: 200.,
+                            y: matched_len as f32 * self.cell_size.y,
+                        },
+                        false,
+                    );
+
+                    cl.clear();
+                    for item in matched.into_iter() {
+                        cl.add_item(item, GodotObject::null(), true);
+                    }
+
+                    let cursor_pos = self.state.term.cursor_pos();
+                    cl.set_position(
+                        self.draw_pos(
+                            (cursor_pos.x) as f32 + 0.5, // with extra adjust
+                            // subtract display len + 1
+                            (cursor_pos.y - matched_len as i64) as f32 - 0.5, // with extra adjust
+                        ),
+                        false,
+                    );
+
+                    // toggle visible and init selected idx
+                    if cl.get_selected_items().len() < 1 {
+                        cl.select(0, true);
+                    }
+                }
+            }
+        }
+
+        cl.set_visible(cl_visible);
         base.update();
         Some(())
+    }
+
+    fn draw_pos(&self, x: f32, y: f32) -> Vector2 {
+        Vector2 {
+            x: TERM_PADDING + x * self.cell_size.x,
+            // position uses bottom-left so 2x here
+            y: 2. * TERM_PADDING + y * self.cell_size.y,
+        }
     }
 
     #[method]
@@ -332,12 +433,6 @@ impl Terminal {
         });
 
         let lines_len = lines.len();
-
-        let draw_pos = |x: f32, y: f32| Vector2 {
-            x: TERM_PADDING + x * self.cell_size.x,
-            // position uses bottom-left so 2x here
-            y: 2. * TERM_PADDING + y * self.cell_size.y,
-        };
 
         lines
             .iter_mut()
@@ -369,7 +464,7 @@ impl Terminal {
                     // HACK: using draw_rect with draw_string has z index issues
                     base.draw_string(
                         &self.font,
-                        draw_pos(x as f32, y as f32),
+                        self.draw_pos(x as f32, y as f32),
                         "█".repeat(cell.width()),
                         Color::from_rgba(bg.0, bg.1, bg.2, bg.3),
                         -1,
@@ -377,7 +472,7 @@ impl Terminal {
 
                     base.draw_string(
                         &self.font,
-                        draw_pos(x as f32, y as f32),
+                        self.draw_pos(x as f32, y as f32),
                         cell.str(),
                         Color::from_rgba(fg.0, fg.1, fg.2, fg.3),
                         -1,
@@ -390,7 +485,7 @@ impl Terminal {
         let cursor_pos = self.state.term.cursor_pos();
         base.draw_char(
             &self.font,
-            draw_pos(cursor_pos.x as f32, cursor_pos.y as f32),
+            self.draw_pos(cursor_pos.x as f32, cursor_pos.y as f32),
             "_",
             "",
             Color::from_rgba(1., 1., 1., 1.),

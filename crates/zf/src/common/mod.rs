@@ -1,5 +1,8 @@
 use crate::{
-    refs::{path::SceneName, HasPath},
+    refs::{
+        path::{sandbox, tutorial_fire, SceneName},
+        HasPath,
+    },
     units::Player,
 };
 use gdnative::{api::*, prelude::*};
@@ -42,7 +45,13 @@ pub(crate) trait LookAtPlauer {
 
 impl LookAtPlauer for TRef<'_, Spatial> {
     fn try_look_at_player(&self) -> Option<()> {
-        let transform = find_ref::<Player, Spatial>(unsafe { self.get_node(".")?.assume_safe() })?
+        let player_path = match current_scene(self.as_ref()) {
+            SceneName::TutorialFire => tutorial_fire::PLAYER_MJOLNIR,
+            _ => sandbox::T_MJOLNIR,
+        };
+
+        let transform = unsafe { self.get_node(player_path).unwrap().assume_safe() }
+            .cast::<Spatial>()?
             .global_transform();
         self.look_at(transform.origin, Vector3::UP);
         Some(())
@@ -55,11 +64,9 @@ pub fn get_tree<'a>(base: &'a Node) -> TRef<'a, SceneTree> {
 
 pub fn current_scene<'a>(base: &'a Node) -> SceneName {
     let current_scene = get_tree(base).current_scene();
-    godot_dbg!(current_scene);
     match current_scene {
         Some(scene) => {
             let name = unsafe { scene.assume_safe() }.filename();
-            godot_dbg!(&name);
             name.to_string().as_str().into()
         }
         None => SceneName::Unknown,

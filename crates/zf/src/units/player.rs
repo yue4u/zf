@@ -7,23 +7,37 @@ use gdnative::{
 use zf_ffi::{CommandArgs, EngineCommand};
 
 use crate::{
-    common::{self, Position, Rotation, Vector3DisplayShort},
+    common::{self, current_scene, Position, Rotation, Vector3DisplayShort},
     refs::{
         groups::{self, Layer},
-        path::scenes,
+        path::{sandbox, scenes, tutorial_fire, SceneName},
+        HasPath,
     },
     vm::{register_vm_signal, CommandInput, VMConnecter, VMSignal},
     weapons::HomingMissile,
 };
 
-#[derive(NativeClass, Default)]
+#[derive(NativeClass)]
 #[inherit(Spatial)]
 #[register_with(register_vm_signal)]
 pub struct Player {
+    base: Ref<Spatial>,
     speed: RefCell<f64>,
     position: RefCell<Position>,
     rotation: RefCell<Rotation>,
     engine: RefCell<EngineStatus>,
+}
+
+impl From<Ref<Spatial>> for Player {
+    fn from(value: Ref<Spatial>) -> Self {
+        Player {
+            base: value,
+            speed: RefCell::<f64>::default(),
+            position: RefCell::<Position>::default(),
+            rotation: RefCell::<Rotation>::default(),
+            engine: RefCell::<EngineStatus>::default(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -40,11 +54,23 @@ impl Default for EngineStatus {
 
 const MAX_SPEED: f64 = 1. / 30.;
 
+// impl HasPath for Player {
+//     fn path() -> &'static str {
+//         // sandbox::T_MJOLNIR
+//         match current_scene(
+//             unsafe { self.base.assume_safe().get_node(".").unwrap().assume_safe() }.as_ref(),
+//         ) {
+//             SceneName::TutorialFire => tutorial_fire::PLAYER_MJOLNIR,
+//             _ => sandbox::T_MJOLNIR,
+//         }
+//     }
+// }
+
 #[methods]
 impl Player {
-    fn new(_base: &Spatial) -> Self {
+    fn new(base: TRef<Spatial>) -> Self {
         // godot_print!("prepare Player");
-        Player::default()
+        Player::from(base.claim())
     }
 
     #[method]

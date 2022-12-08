@@ -4,13 +4,12 @@ use gdnative::{
 };
 
 use crate::{
-    common::{self, find_ref},
+    common::{self, current_scene},
     refs::{
         self,
         groups::Layer,
-        path::{self, scenes},
+        path::{self, sandbox, scenes, tutorial_fire, SceneName},
     },
-    units::Player,
 };
 
 impl Launcher {
@@ -103,7 +102,13 @@ impl Launcher {
         let area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
         self.layer.prepare_collision_for(area);
 
-        let player_pos = find_ref::<Player, Spatial>(base)
+        let player_path = match current_scene(base.as_ref()) {
+            SceneName::TutorialFire => tutorial_fire::PLAYER_MJOLNIR,
+            _ => sandbox::T_MJOLNIR,
+        };
+
+        let player_pos = unsafe { base.get_node(player_path).unwrap().assume_safe() }
+            .cast::<Spatial>()
             .unwrap()
             .global_transform()
             .origin;

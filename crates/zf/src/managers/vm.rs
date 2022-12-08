@@ -276,12 +276,15 @@ impl Into<Runtime<VMData>> for VMData {
                                 GameCommand::Start => {
                                     // TODO: handle this error.
                                     tree.change_scene(levels::SANDBOX).unwrap();
+                                    tree.set_pause(false);
                                 }
                                 GameCommand::Menu => {
                                     tree.change_scene(levels::START_MENU).unwrap();
+                                    tree.set_pause(false);
                                 }
                                 GameCommand::Tutorial => {
                                     tree.change_scene(levels::TUTORIAL_MOVEMENT).unwrap();
+                                    tree.set_pause(false);
                                 }
                                 GameCommand::End => {
                                     tree.quit(0);

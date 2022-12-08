@@ -10,8 +10,8 @@ font_data = ExtResource( 1 )
 [sub_resource type="StyleBoxFlat" id=8]
 content_margin_left = 10.0
 bg_color = Color( 0, 0, 0, 0.784314 )
-border_width_left = 5
-border_color = Color( 0, 1, 0.976471, 0.392157 )
+border_width_left = 3
+border_color = Color( 0, 1, 0.976471, 0.784314 )
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -36,6 +36,7 @@ corner_radius_bottom_left = 5
 [resource]
 default_font = SubResource( 1 )
 ItemList/colors/font_color = Color( 1, 1, 1, 1 )
+ItemList/colors/guide_color = Color( 0.176471, 0.176471, 0.176471, 1 )
 ItemList/fonts/font = SubResource( 1 )
 ItemList/styles/bg = SubResource( 8 )
 ItemList/styles/selected = SubResource( 7 )

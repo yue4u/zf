@@ -1,6 +1,6 @@
 use gdnative::{api::RichTextLabel, prelude::*};
 
-use crate::{refs::HasPath, units::Player};
+// use crate::{refs::HasPath, units::Player};
 
 #[derive(NativeClass, Default)]
 #[inherit(RichTextLabel)]
@@ -24,10 +24,11 @@ impl PlayerStatusDisplay {
     }
 
     fn sync(&self, base: &RichTextLabel) -> Option<()> {
-        unsafe { base.get_node_as_instance::<Player>(Player::path())? }
-            .map(|p, _| {
-                base.set_bbcode(p.display());
-            })
-            .ok()
+        // unsafe { base.get_node_as_instance::<Player>(Player::path())? }
+        //     .map(|p, _| {
+        //         base.set_bbcode(p.display());
+        //     })
+        //     .ok()
+        None
     }
 }

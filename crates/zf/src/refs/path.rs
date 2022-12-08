@@ -10,8 +10,10 @@ pub mod scenes {
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
     pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
+    pub const UI_SANDBOX: &str = "res://scenes/UISandbox.tscn";
     pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
+    pub const TARGET_DUMMY: &str = "res://scenes/TargetDummy.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
@@ -21,6 +23,7 @@ pub mod scenes {
 #[allow(dead_code)]
 pub mod levels {
     pub const TUTORIAL_MOVEMENT: &str = "res://levels/Tutorial-Movement.tscn";
+    pub const TUTORIAL_FIRE: &str = "res://levels/Tutorial-Fire.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const SANDBOX: &str = "res://levels/Sandbox.tscn";
 }
@@ -29,6 +32,7 @@ pub mod levels {
 #[allow(dead_code)]
 pub enum SceneName {
     TutorialMovement,
+    TutorialFire,
     StartMenu,
     Sandbox,
     Unknown,
@@ -38,6 +42,7 @@ impl From<&str> for SceneName {
     fn from(value: &str) -> Self {
         match value {
             levels::TUTORIAL_MOVEMENT => SceneName::TutorialMovement,
+            levels::TUTORIAL_FIRE => SceneName::TutorialFire,
             levels::START_MENU => SceneName::StartMenu,
             levels::SANDBOX => SceneName::Sandbox,
             _ => SceneName::Unknown,
@@ -67,9 +72,7 @@ pub mod base {
     pub const UI: &str = "/root/Scene/UI";
     pub const MARGIN_CONTAINER: &str = "/root/Scene/UI/MarginContainer";
     pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
-    pub const COMMAND_HISTORY: &str = "/root/Scene/UI/MarginContainer/Control/CommandHistory";
     pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/PerfLabel";
-    pub const COMMAND_RESULT: &str = "/root/Scene/UI/MarginContainer/Control/CommandResult";
     pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/Terminal";
     pub const UI_EXTRA: &str = "/root/Scene/UI/MarginContainer/UIExtra";
     pub const MANAGERS: &str = "/root/Scene/Managers";
@@ -127,6 +130,12 @@ pub mod t_dummy {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod ui_sandbox {
+    pub const ITEM_LIST: &str = "/root/Scene/UI/MarginContainer/Control/ItemList";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod launcher {
 
 }
@@ -135,6 +144,15 @@ pub mod launcher {
 #[allow(dead_code)]
 pub mod base_level {
     pub const PROJECTILES: &str = "/root/Scene/Level/Projectiles";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod target_dummy {
+    pub const SKETCHFAB_MODEL: &str = "/root/Scene/Sketchfab_model";
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+    pub const HP: &str = "/root/Scene/HP";
 }
 
 #[rustfmt::skip]
@@ -167,6 +185,14 @@ pub mod tutorial_movement {
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_fire {
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
+    pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
+    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
 }
 
 #[rustfmt::skip]
@@ -215,3 +241,4 @@ pub mod assets {
     pub const T_DUMMY_TRES: &str = "res://assets/t-dummy.tres";
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
 }
+

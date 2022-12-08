@@ -162,173 +162,169 @@ fn fire_and_forget(vm_data: &VMData, cmd: CommandArgs) {
     );
 }
 
+struct RuntimeFunc;
+
+impl RuntimeFunc {
+    fn zf_terminal_size(caller: Caller<'_, ExtendedStore<VMData>>) -> i64 {
+        let terminal =
+            find_ref::<Terminal, Control>(unsafe { caller.data().ext.base.assume_safe() })
+                .expect("find ref termial")
+                .cast_instance::<Terminal>()
+                .expect("cast instance termial");
+        // terminal.state
+        let size = terminal.map(|t, _| t.get_size()).expect("term.get_size");
+        Tag::into(size.cols as i32, size.rows as i32)
+    }
+
+    fn zf_cmd(mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64) -> i64 {
+        let cmd = decode_from_caller::<_, CommandArgs>(&mut caller, tag);
+        godot_dbg!(&cmd);
+        match cmd {
+            CommandArgs::Task(task) => {
+                let ret = match task {
+                    TaskCommand::Run { cmd: input, every } => {
+                        let store = caller.data_mut();
+                        let base = store.ext.base;
+                        let stop = Arc::new(AtomicBool::new(false));
+                        let stop_clone = stop.clone();
+                        let name = input.clone();
+                        let handle = std::thread::spawn(move || {
+                            let mut runtime: Runtime<VMData> = VMData::from_base(base).into();
+                            let ret = runtime.eval(&input);
+                            _ = godot_dbg!(ret);
+
+                            if let Some(dur) = every {
+                                loop {
+                                    if stop_clone.load(Ordering::Relaxed) {
+                                        godot_dbg!(format!("stop `{}` done!", &input));
+                                        break;
+                                    }
+                                    std::thread::sleep(Duration::from_nanos(dur));
+                                    let ret = runtime.eval(&input);
+                                    _ = godot_dbg!(ret);
+                                }
+                            }
+                        });
+                        let task_id = caller.data_mut().ext.thead_handles.len() + 1;
+                        let task = TaskRunner {
+                            id: task_id,
+                            stop,
+                            cmd: name,
+                            handle,
+                        };
+                        let start_info = format!("start {}", &task);
+                        caller.data_mut().ext.thead_handles.insert(task_id, task);
+
+                        start_info
+                    }
+                    TaskCommand::Stop(id) => (|| {
+                        if let Ok(id) = id.parse() {
+                            if let Some(task_runner) =
+                                caller.data_mut().ext.thead_handles.remove(&id)
+                            {
+                                task_runner.stop.store(true, Ordering::Relaxed);
+                                return format!("stop {}", task_runner);
+                            };
+                        }
+                        format!("no task`{}` found", id)
+                    })(),
+                    TaskCommand::Status => {
+                        let handles = &mut caller.data_mut().ext.thead_handles;
+
+                        // clear finished task
+                        handles.retain(|_, task_runner| !task_runner.handle.is_finished());
+
+                        let info = handles
+                            .values()
+                            .map(|h| h.info())
+                            .collect::<Vec<TaskRunnerInfo>>();
+                        serde_json::to_string(&TaskRunnerInfoVec(info))
+                            .expect("fail to serialize task runner info")
+                    }
+                };
+                godot_dbg!(&ret);
+                zf_runtime::write_string_with_caller(&mut caller, ret)
+            }
+            CommandArgs::Mission(m) => match m {
+                MissionCommand::Info => {
+                    zf_runtime::write_string_with_caller(&mut caller, Mission::dummy().summary())
+                }
+            },
+            CommandArgs::Game(g) => {
+                let tree = unsafe {
+                    caller
+                        .data()
+                        .ext
+                        .base
+                        .assume_safe()
+                        .get_tree()
+                        .unwrap()
+                        .assume_safe()
+                };
+                match g {
+                    GameCommand::Start => {
+                        // TODO: handle this error.
+                        tree.change_scene(levels::SANDBOX).unwrap();
+                        tree.set_pause(false);
+                    }
+                    GameCommand::Menu => {
+                        tree.change_scene(levels::START_MENU).unwrap();
+                        tree.set_pause(false);
+                    }
+                    GameCommand::Tutorial => {
+                        tree.change_scene(levels::TUTORIAL_MOVEMENT).unwrap();
+                        tree.set_pause(false);
+                    }
+                    GameCommand::End => {
+                        tree.quit(0);
+                    }
+                };
+                0
+            }
+            CommandArgs::Time(time) => {
+                Engine::godot_singleton().set_time_scale(time.scale);
+                0
+            }
+            CommandArgs::Radar(_) => {
+                let radars = unsafe {
+                    caller
+                        .data()
+                        .ext
+                        .base
+                        .assume_safe()
+                        .get_tree()
+                        .unwrap()
+                        .assume_safe()
+                }
+                .get_nodes_in_group(groups::RADAR);
+                // TODO: maybe more radars
+                let result = unsafe {
+                    radars
+                        .get(0)
+                        .call("detected", &[])
+                        .unwrap()
+                        .to::<String>()
+                        .unwrap()
+                };
+                zf_runtime::write_string_with_caller(&mut caller, result)
+            }
+            cmd => {
+                fire_and_forget(&mut caller.data_mut().ext, cmd);
+                0
+            }
+        }
+    }
+}
+
 impl Into<Runtime<VMData>> for VMData {
     fn into(self) -> Runtime<VMData> {
         Runtime::init(self, |linker| -> anyhow::Result<()> {
-            linker.func_wrap(
-                "zf",
-                "zf_terminal_size",
-                |caller: Caller<'_, ExtendedStore<VMData>>| -> i64 {
-                    let terminal = find_ref::<Terminal, Control>(unsafe {
-                        caller.data().ext.base.assume_safe()
-                    })
-                    .expect("find ref termial")
-                    .cast_instance::<Terminal>()
-                    .expect("cast instance termial");
-                    // terminal.state
-                    let size = terminal.map(|t, _| t.get_size()).expect("term.get_size");
-                    Tag::into(size.cols as i32, size.rows as i32)
-                },
-            )?;
-
-            linker.func_wrap(
-                "zf",
-                "zf_cmd",
-                |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| -> i64 {
-                    let cmd = decode_from_caller::<_, CommandArgs>(&mut caller, tag);
-                    godot_dbg!(&cmd);
-                    match cmd {
-                        CommandArgs::Task(task) => {
-                            let ret = match task {
-                                TaskCommand::Run { cmd: input, every } => {
-                                    let store = caller.data_mut();
-                                    let base = store.ext.base;
-                                    let stop = Arc::new(AtomicBool::new(false));
-                                    let stop_clone = stop.clone();
-                                    let name = input.clone();
-                                    let handle = std::thread::spawn(move || {
-                                        let mut runtime: Runtime<VMData> =
-                                            VMData::from_base(base).into();
-                                        let ret = runtime.eval(&input);
-                                        _ = godot_dbg!(ret);
-
-                                        if let Some(dur) = every {
-                                            loop {
-                                                if stop_clone.load(Ordering::Relaxed) {
-                                                    godot_dbg!(format!("stop `{}` done!", &input));
-                                                    break;
-                                                }
-                                                std::thread::sleep(Duration::from_nanos(dur));
-                                                let ret = runtime.eval(&input);
-                                                _ = godot_dbg!(ret);
-                                            }
-                                        }
-                                    });
-                                    let task_id = caller.data_mut().ext.thead_handles.len() + 1;
-                                    let task = TaskRunner {
-                                        id: task_id,
-                                        stop,
-                                        cmd: name,
-                                        handle,
-                                    };
-                                    let start_info = format!("start {}", &task);
-                                    caller.data_mut().ext.thead_handles.insert(task_id, task);
-
-                                    start_info
-                                }
-                                TaskCommand::Stop(id) => (|| {
-                                    if let Ok(id) = id.parse() {
-                                        if let Some(task_runner) =
-                                            caller.data_mut().ext.thead_handles.remove(&id)
-                                        {
-                                            task_runner.stop.store(true, Ordering::Relaxed);
-                                            return format!("stop {}", task_runner);
-                                        };
-                                    }
-                                    format!("no task`{}` found", id)
-                                })(),
-                                TaskCommand::Status => {
-                                    let handles = &mut caller.data_mut().ext.thead_handles;
-
-                                    // clear finished task
-                                    handles
-                                        .retain(|_, task_runner| !task_runner.handle.is_finished());
-
-                                    let info = handles
-                                        .values()
-                                        .map(|h| h.info())
-                                        .collect::<Vec<TaskRunnerInfo>>();
-                                    serde_json::to_string(&TaskRunnerInfoVec(info))
-                                        .expect("fail to serialize task runner info")
-                                }
-                            };
-                            godot_dbg!(&ret);
-                            zf_runtime::write_string_with_caller(&mut caller, ret)
-                        }
-                        CommandArgs::Mission(m) => match m {
-                            MissionCommand::Info => zf_runtime::write_string_with_caller(
-                                &mut caller,
-                                Mission::dummy().summary(),
-                            ),
-                        },
-                        CommandArgs::Game(g) => {
-                            let tree = unsafe {
-                                caller
-                                    .data()
-                                    .ext
-                                    .base
-                                    .assume_safe()
-                                    .get_tree()
-                                    .unwrap()
-                                    .assume_safe()
-                            };
-                            match g {
-                                GameCommand::Start => {
-                                    // TODO: handle this error.
-                                    tree.change_scene(levels::SANDBOX).unwrap();
-                                    tree.set_pause(false);
-                                }
-                                GameCommand::Menu => {
-                                    tree.change_scene(levels::START_MENU).unwrap();
-                                    tree.set_pause(false);
-                                }
-                                GameCommand::Tutorial => {
-                                    tree.change_scene(levels::TUTORIAL_MOVEMENT).unwrap();
-                                    tree.set_pause(false);
-                                }
-                                GameCommand::End => {
-                                    tree.quit(0);
-                                }
-                            };
-                            0
-                        }
-                        CommandArgs::Time(time) => {
-                            Engine::godot_singleton().set_time_scale(time.scale);
-                            0
-                        }
-                        CommandArgs::Radar(_) => {
-                            let radars = unsafe {
-                                caller
-                                    .data()
-                                    .ext
-                                    .base
-                                    .assume_safe()
-                                    .get_tree()
-                                    .unwrap()
-                                    .assume_safe()
-                            }
-                            .get_nodes_in_group(groups::RADAR);
-                            // TODO: maybe more radars
-                            let result = unsafe {
-                                radars
-                                    .get(0)
-                                    .call("detected", &[])
-                                    .unwrap()
-                                    .to::<String>()
-                                    .unwrap()
-                            };
-                            zf_runtime::write_string_with_caller(&mut caller, result)
-                        }
-                        cmd => {
-                            fire_and_forget(&mut caller.data_mut().ext, cmd);
-                            0
-                        }
-                    }
-                },
-            )?;
+            linker
+                .func_wrap("zf", "zf_terminal_size", RuntimeFunc::zf_terminal_size)?
+                .func_wrap("zf", "zf_cmd", RuntimeFunc::zf_cmd)?;
 
             Ok(())
         })
-        .unwrap()
+        .expect("failed to init runtime")
     }
 }

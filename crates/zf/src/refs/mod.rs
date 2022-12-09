@@ -26,6 +26,6 @@ macro_rules! bind_path {
 }
 
 bind_path!(
-    VMManager => base::VM
+    VMManager => auto_load::VM
     // CommandPalette => base::LINE_EDIT
 );

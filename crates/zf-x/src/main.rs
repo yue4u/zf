@@ -100,10 +100,16 @@ pub fn main() -> io::Result<()> {
                             .strip_prefix("parent=\"")
                             .and_then(|part| part.strip_suffix("\"")));
                     }
+                    let base = if path.ends_with("AutoLoad.tscn") {
+                        "AutoLoad"
+                    } else {
+                        "Scene"
+                    };
 
                     if let (Some(name), Some(parent)) = (name, parent) {
-                        let path = format!(
-                            "/root/Scene/{}{}",
+                        let node_path = format!(
+                            "/root/{}/{}{}",
+                            base,
                             if parent == "." {
                                 "".to_owned()
                             } else {
@@ -118,7 +124,7 @@ pub fn main() -> io::Result<()> {
                         } else {
                             name
                         };
-                        let line = fmt_path(name, &path);
+                        let line = fmt_path(name, &node_path);
                         return Some(line);
                     }
                     None

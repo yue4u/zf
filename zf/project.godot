@@ -14,6 +14,10 @@ config/name="zf"
 run/main_scene="res://levels/StartMenu.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+AutoLoad="*res://scenes/AutoLoad.tscn"
+
 [editor_plugins]
 
 enabled=PoolStringArray( "res://addons/godot_xterm/plugin.cfg" )

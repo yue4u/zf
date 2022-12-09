@@ -16,6 +16,7 @@ pub mod scenes {
     pub const TARGET_DUMMY: &str = "res://scenes/TargetDummy.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
+    pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
 }
 
@@ -71,13 +72,7 @@ pub mod base {
     pub const LEVEL: &str = "/root/Scene/Level";
     pub const UI: &str = "/root/Scene/UI";
     pub const MARGIN_CONTAINER: &str = "/root/Scene/UI/MarginContainer";
-    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
-    pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/PerfLabel";
-    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/Terminal";
     pub const UI_EXTRA: &str = "/root/Scene/UI/MarginContainer/UIExtra";
-    pub const TEXTURE_RECT: &str = "/root/Scene/UI/TextureRect";
-    pub const MANAGERS: &str = "/root/Scene/Managers";
-    pub const VM: &str = "/root/Scene/Managers/VM";
     pub const ENVIRONMENT: &str = "/root/Scene/Environment";
 }
 
@@ -172,6 +167,21 @@ pub mod target_point {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod auto_load {
+    pub const UI: &str = "/root/AutoLoad/UI";
+    pub const MARGIN_CONTAINER: &str = "/root/AutoLoad/UI/MarginContainer";
+    pub const CONTROL: &str = "/root/AutoLoad/UI/MarginContainer/Control";
+    pub const PERF_LABEL: &str = "/root/AutoLoad/UI/MarginContainer/Control/PerfLabel";
+    pub const TERMINAL: &str = "/root/AutoLoad/UI/MarginContainer/Control/Terminal";
+    pub const UI_EXTRA: &str = "/root/AutoLoad/UI/MarginContainer/UIExtra";
+    pub const TEXTURE_RECT: &str = "/root/AutoLoad/UI/TextureRect";
+    pub const ANIMATION_PLAYER: &str = "/root/AutoLoad/UI/TextureRect/AnimationPlayer";
+    pub const MANAGERS: &str = "/root/AutoLoad/Managers";
+    pub const VM: &str = "/root/AutoLoad/Managers/VM";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod homing_missile {
     pub const AREA: &str = "/root/Scene/Area";
     pub const MISSILES: &str = "/root/Scene/Area/missiles";
@@ -205,6 +215,7 @@ pub mod start_menu {
     pub const TITLE: &str = "/root/Scene/Level/CenterContainer/Title";
     pub const OMNI_LIGHT: &str = "/root/Scene/Level/OmniLight";
     pub const CAMERA: &str = "/root/Scene/Level/Camera";
+    pub const TEXTURE_RECT: &str = "/root/Scene/UI/TextureRect";
 }
 
 #[rustfmt::skip]
@@ -227,8 +238,15 @@ pub mod sandbox {
     pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
     pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
+    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
+    pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/PerfLabel";
+    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/Terminal";
     pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
+    pub const TEXTURE_RECT: &str = "/root/Scene/UI/TextureRect";
+    pub const ANIMATION_PLAYER: &str = "/root/Scene/UI/TextureRect/AnimationPlayer";
+    pub const MANAGERS: &str = "/root/Scene/Managers";
+    pub const VM: &str = "/root/Scene/Managers/VM";
 }
 
 #[rustfmt::skip]

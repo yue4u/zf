@@ -84,11 +84,9 @@ impl ScreenTransition {
     }
 
     #[method]
-    fn animation_finished(&self, #[base] base: TRef<TextureRect>) -> Option<()> {
+    fn animation_finished(&self, #[base] base: TRef<TextureRect>, _name: String) -> Option<()> {
         godot_dbg!("animation_finished");
         base.set_visible(false);
-        let animation_player = unsafe { self.animation_player.unwrap().assume_safe() };
-        animation_player.disconnect("animation_finished", base, "animation_finished");
         Some(())
     }
 

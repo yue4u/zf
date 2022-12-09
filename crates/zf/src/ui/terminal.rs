@@ -51,7 +51,7 @@ pub struct Terminal {
 
 impl HasPath for Terminal {
     fn path() -> &'static str {
-        refs::path::base::TERMINAL
+        refs::path::auto_load::TERMINAL
     }
 }
 

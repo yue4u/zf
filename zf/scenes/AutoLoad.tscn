@@ -10,6 +10,7 @@
 
 [sub_resource type="Animation" id=1]
 resource_name = "Pixelate"
+length = 1.2
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:material:shader_param/factor")
 tracks/0/interp = 1
@@ -17,10 +18,24 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 1 ),
-"transitions": PoolRealArray( 1, 1 ),
+"times": PoolRealArray( 0, 0.2, 0.6, 1, 1.2 ),
+"transitions": PoolRealArray( 1, 0.5, 1, 1, 1 ),
 "update": 0,
-"values": [ 1.0, 0.0 ]
+"values": [ 0.0, 0.95, 0.99, 0.95, 0.0 ]
+}
+tracks/1/type = "method"
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0.6 ),
+"transitions": PoolRealArray( 1 ),
+"values": [ {
+"args": [ "change_scene" ],
+"method": "call"
+} ]
 }
 
 [sub_resource type="Animation" id=2]
@@ -74,7 +89,7 @@ grow_vertical = 2
 
 [node name="UIExtra" type="CanvasLayer" parent="UI/MarginContainer"]
 
-[node name="TextureRect" type="TextureRect" parent="UI"]
+[node name="PostProcessingTextureRect" type="TextureRect" parent="UI"]
 material = ExtResource( 6 )
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -83,7 +98,7 @@ expand = true
 stretch_mode = 2
 script = ExtResource( 4 )
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="UI/TextureRect"]
+[node name="ScreenTransitionPlayer" type="AnimationPlayer" parent="UI/PostProcessingTextureRect"]
 anims/Pixelate = SubResource( 1 )
 anims/RESET = SubResource( 2 )
 

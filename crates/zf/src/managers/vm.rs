@@ -16,8 +16,8 @@ use zf_ffi::{memory::Tag, CommandArgs, GameCommand, MissionCommand, TaskCommand}
 use crate::{
     common::find_ref,
     entities::{GameState, Mission},
-    refs::{groups, path::levels},
-    ui::Terminal,
+    refs::{self, groups, path::SceneName},
+    ui::{ScreenTransition, Terminal},
     vm::{CommandInput, CommandResult, VMSignal},
 };
 
@@ -78,6 +78,23 @@ impl VMData {
             thead_handles: HashMap::new(),
             base,
         }
+    }
+
+    fn scene_tree(&self) -> TRef<SceneTree> {
+        unsafe { self.base.assume_safe().get_tree().unwrap().assume_safe() }
+    }
+
+    fn change_scene(&self, scene: SceneName) {
+        unsafe {
+            self.base
+                .assume_safe()
+                .get_node_as_instance::<ScreenTransition>(
+                    refs::path::auto_load::POST_PROCESSING_TEXTURE_RECT,
+                )
+        }
+        .unwrap()
+        .map_mut(|player, _| player.play_transition(scene))
+        .unwrap();
     }
 }
 
@@ -251,32 +268,18 @@ impl RuntimeFunc {
                 }
             },
             CommandArgs::Game(g) => {
-                let tree = unsafe {
-                    caller
-                        .data()
-                        .ext
-                        .base
-                        .assume_safe()
-                        .get_tree()
-                        .unwrap()
-                        .assume_safe()
-                };
                 match g {
                     GameCommand::Start => {
-                        // TODO: handle this error.
-                        tree.change_scene(levels::SANDBOX).unwrap();
-                        tree.set_pause(false);
+                        caller.data().ext.change_scene(SceneName::Sandbox);
                     }
                     GameCommand::Menu => {
-                        tree.change_scene(levels::START_MENU).unwrap();
-                        tree.set_pause(false);
+                        caller.data().ext.change_scene(SceneName::StartMenu);
                     }
                     GameCommand::Tutorial => {
-                        tree.change_scene(levels::TUTORIAL_MOVEMENT).unwrap();
-                        tree.set_pause(false);
+                        caller.data().ext.change_scene(SceneName::TutorialMovement);
                     }
                     GameCommand::End => {
-                        tree.quit(0);
+                        caller.data().ext.scene_tree().quit(0);
                     }
                 };
                 0
@@ -286,17 +289,11 @@ impl RuntimeFunc {
                 0
             }
             CommandArgs::Radar(_) => {
-                let radars = unsafe {
-                    caller
-                        .data()
-                        .ext
-                        .base
-                        .assume_safe()
-                        .get_tree()
-                        .unwrap()
-                        .assume_safe()
-                }
-                .get_nodes_in_group(groups::RADAR);
+                let radars = caller
+                    .data()
+                    .ext
+                    .scene_tree()
+                    .get_nodes_in_group(groups::RADAR);
                 // TODO: maybe more radars
                 let result = unsafe {
                     radars

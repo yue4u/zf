@@ -1,3 +1,5 @@
+use gdnative::prelude::{FromVariant, ToVariant};
+
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod scenes {
@@ -31,6 +33,7 @@ pub mod levels {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+#[derive(ToVariant, FromVariant)]
 pub enum SceneName {
     TutorialMovement,
     TutorialFire,
@@ -47,6 +50,18 @@ impl From<&str> for SceneName {
             levels::START_MENU => SceneName::StartMenu,
             levels::SANDBOX => SceneName::Sandbox,
             _ => SceneName::Unknown,
+        }
+    }
+}
+
+impl SceneName {
+    pub fn path(&self) -> &'static str {
+        match self {
+            SceneName::TutorialMovement => levels::TUTORIAL_MOVEMENT,
+            SceneName::TutorialFire => levels::TUTORIAL_FIRE,
+            SceneName::StartMenu => levels::START_MENU,
+            SceneName::Sandbox => levels::SANDBOX,
+            SceneName::Unknown => unreachable!(),
         }
     }
 }
@@ -174,8 +189,8 @@ pub mod auto_load {
     pub const PERF_LABEL: &str = "/root/AutoLoad/UI/MarginContainer/Control/PerfLabel";
     pub const TERMINAL: &str = "/root/AutoLoad/UI/MarginContainer/Control/Terminal";
     pub const UI_EXTRA: &str = "/root/AutoLoad/UI/MarginContainer/UIExtra";
-    pub const TEXTURE_RECT: &str = "/root/AutoLoad/UI/TextureRect";
-    pub const ANIMATION_PLAYER: &str = "/root/AutoLoad/UI/TextureRect/AnimationPlayer";
+    pub const POST_PROCESSING_TEXTURE_RECT: &str = "/root/AutoLoad/UI/PostProcessingTextureRect";
+    pub const SCREEN_TRANSITION_PLAYER: &str = "/root/AutoLoad/UI/PostProcessingTextureRect/ScreenTransitionPlayer";
     pub const MANAGERS: &str = "/root/AutoLoad/Managers";
     pub const VM: &str = "/root/AutoLoad/Managers/VM";
 }
@@ -215,7 +230,6 @@ pub mod start_menu {
     pub const TITLE: &str = "/root/Scene/Level/CenterContainer/Title";
     pub const OMNI_LIGHT: &str = "/root/Scene/Level/OmniLight";
     pub const CAMERA: &str = "/root/Scene/Level/Camera";
-    pub const TEXTURE_RECT: &str = "/root/Scene/UI/TextureRect";
 }
 
 #[rustfmt::skip]
@@ -238,15 +252,8 @@ pub mod sandbox {
     pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
     pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
-    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/Control";
-    pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/PerfLabel";
-    pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/Terminal";
     pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
-    pub const TEXTURE_RECT: &str = "/root/Scene/UI/TextureRect";
-    pub const ANIMATION_PLAYER: &str = "/root/Scene/UI/TextureRect/AnimationPlayer";
-    pub const MANAGERS: &str = "/root/Scene/Managers";
-    pub const VM: &str = "/root/Scene/Managers/VM";
 }
 
 #[rustfmt::skip]
@@ -261,4 +268,3 @@ pub mod assets {
     pub const T_DUMMY_TRES: &str = "res://assets/t-dummy.tres";
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
 }
-

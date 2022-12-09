@@ -6,6 +6,7 @@ use gdnative::{
         DynamicFont,
         GlobalConstants,
         ItemList,
+        Particles2D,
     },
     prelude::*,
 };
@@ -13,7 +14,7 @@ use zf_runtime::{cmds, strip_ansi};
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
-    common::{current_scene, find_ref},
+    common::{self, current_scene, find_ref},
     entities::GLOBAL_GAME_STATE,
     managers::VMManager,
     refs::{self, path::SceneName, HasPath},
@@ -39,6 +40,7 @@ impl Default for ProcessState {
 #[register_with(Self::register_signals)]
 pub struct Terminal {
     // seqno: usize,
+    base: Ref<Control>,
     state: ZFTerm,
     process_state: ProcessState,
     buffer: String,
@@ -105,7 +107,7 @@ impl std::io::Write for TerminalWriter {
 
 #[methods]
 impl Terminal {
-    fn new(_base: TRef<Control>) -> Self {
+    fn new(base: TRef<Control>) -> Self {
         let font = ResourceLoader::godot_singleton()
             .load(
                 refs::path::assets::JET_BRAINS_MONO_TRES,
@@ -122,6 +124,7 @@ impl Terminal {
         let completion_item_list = ItemList::new().into_shared();
         Terminal {
             // seqno: 0,
+            base: base.claim(),
             font,
             process_state: ProcessState::Idle,
             buffer: String::new(),
@@ -196,6 +199,7 @@ impl Terminal {
     }
 
     fn write(&mut self, data: &str) {
+        self.create_typing_particles();
         self.state.term.advance_bytes(data);
     }
 
@@ -246,6 +250,28 @@ impl Terminal {
         self.write(&text);
         self.write(&line);
         None
+    }
+
+    fn create_typing_particles(&self) {
+        let base = unsafe { self.base.assume_unique() };
+        let cursor_pos = self.state.term.cursor_pos();
+        let draw_pos = self.draw_pos(cursor_pos.x as f32, cursor_pos.y as f32);
+        let typing_particles = common::load_as::<Particles2D>(refs::path::scenes::TYPING_PARTICLES)
+            .unwrap()
+            .into_shared();
+        let typing_particles = unsafe { typing_particles.assume_safe() }.clone();
+        typing_particles.set_emitting(true);
+        typing_particles.set_position(draw_pos);
+        base.add_child(typing_particles, false);
+
+        for child in base.get_children().into_iter() {
+            if let Some(particles_ref) = child.to_object::<Particles2D>() {
+                let particles = unsafe { particles_ref.assume_safe() };
+                if !particles.is_emitting() {
+                    particles.queue_free();
+                }
+            }
+        }
     }
 
     #[method]

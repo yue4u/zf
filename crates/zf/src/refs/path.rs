@@ -8,6 +8,7 @@ pub mod scenes {
     pub const BASE: &str = "res://scenes/Base.tscn";
     pub const RADAR: &str = "res://scenes/Radar.tscn";
     pub const TERMINAL: &str = "res://scenes/Terminal.tscn";
+    pub const TYPING_PARTICLES: &str = "res://scenes/TypingParticles.tscn";
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
@@ -103,6 +104,12 @@ pub mod radar {
 #[allow(dead_code)]
 pub mod terminal {
 
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod typing_particles {
+    pub const PARTICLES_2_D: &str = "/root/Scene/Particles2D";
 }
 
 #[rustfmt::skip]

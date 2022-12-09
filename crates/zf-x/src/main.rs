@@ -9,7 +9,7 @@ use std::{
 pub fn main() -> io::Result<()> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let gd_dir = manifest_dir.join("../../zf/").canonicalize()?;
-    let mut code = "".to_owned();
+    let mut code = "use gdnative::prelude::{FromVariant, ToVariant};\n\n".to_owned();
 
     let mods = ["scenes", "levels"]
         .iter()
@@ -59,7 +59,7 @@ pub fn main() -> io::Result<()> {
                         .join("\n"),
                 ));
                 let inner = &level_inner
-                    .into_iter()
+                    .iter()
                     .map(|v| {
                         format!(
                             "            levels::{} => SceneName::{},",
@@ -75,6 +75,30 @@ pub fn main() -> io::Result<()> {
         match value {{
 {inner}
             _ => SceneName::Unknown,
+        }}
+    }}
+}}
+
+"#
+                ));
+
+                let inner = &level_inner
+                    .iter()
+                    .map(|v| {
+                        format!(
+                            "            SceneName::{} => levels::{},",
+                            v.to_case(Case::UpperCamel),
+                            v.to_case(Case::ScreamingSnake),
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                code.push_str(&format!(
+                    r#"impl SceneName {{
+    pub fn path(&self) -> &'static str {{
+        match self {{
+{inner}
+            SceneName::Unknown => unreachable!(),
         }}
     }}
 }}
@@ -197,6 +221,7 @@ fn fmt_enum(enum_name: &str, inner: &str) -> String {
         r#"
 #[rustfmt::skip]
 #[allow(dead_code)]
+#[derive(ToVariant, FromVariant)]
 pub enum {enum_name} {{
 {inner}
 }}

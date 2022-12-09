@@ -75,6 +75,7 @@ pub mod base {
     pub const PERF_LABEL: &str = "/root/Scene/UI/MarginContainer/Control/PerfLabel";
     pub const TERMINAL: &str = "/root/Scene/UI/MarginContainer/Control/Terminal";
     pub const UI_EXTRA: &str = "/root/Scene/UI/MarginContainer/UIExtra";
+    pub const TEXTURE_RECT: &str = "/root/Scene/UI/TextureRect";
     pub const MANAGERS: &str = "/root/Scene/Managers";
     pub const VM: &str = "/root/Scene/Managers/VM";
     pub const ENVIRONMENT: &str = "/root/Scene/Environment";
@@ -237,6 +238,7 @@ pub mod assets {
     pub const JET_BRAINS_MONO_TRES: &str = "res://assets/JetBrains_Mono.tres";
     pub const BAR_PROGRESS_PNG: &str = "res://assets/bar_progress.png";
     pub const THEME_TRANSPARENT_TRES: &str = "res://assets/theme_transparent.tres";
+    pub const PIXELATE_TRES: &str = "res://assets/pixelate.tres";
     pub const BAR_UNDER_PNG: &str = "res://assets/bar_under.png";
     pub const T_DUMMY_TRES: &str = "res://assets/t-dummy.tres";
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";

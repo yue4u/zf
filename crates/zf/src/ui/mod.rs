@@ -6,6 +6,7 @@ mod perf_label;
 mod player_status;
 mod radar;
 mod result;
+mod screen_transition;
 mod terminal;
 mod tips;
 
@@ -17,5 +18,6 @@ pub use perf_label::*;
 pub use player_status::*;
 pub use radar::*;
 pub use result::*;
+pub use screen_transition::*;
 pub use terminal::*;
 pub use tips::*;

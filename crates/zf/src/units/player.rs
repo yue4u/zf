@@ -7,11 +7,10 @@ use gdnative::{
 use zf_ffi::{CommandArgs, EngineCommand};
 
 use crate::{
-    common::{self, current_scene, Position, Rotation, Vector3DisplayShort},
+    common::{self, Position, Rotation, Vector3DisplayShort},
     refs::{
         groups::{self, Layer},
-        path::{sandbox, scenes, tutorial_fire, SceneName},
-        HasPath,
+        path::scenes,
     },
     vm::{register_vm_signal, CommandInput, VMConnecter, VMSignal},
     weapons::HomingMissile,
@@ -21,6 +20,7 @@ use crate::{
 #[inherit(Spatial)]
 #[register_with(register_vm_signal)]
 pub struct Player {
+    #[allow(unused)]
     base: Ref<Spatial>,
     speed: RefCell<f64>,
     position: RefCell<Position>,

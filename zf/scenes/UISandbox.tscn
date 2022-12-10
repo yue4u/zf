@@ -4,7 +4,7 @@
 
 [node name="Scene" instance=ExtResource( 1 )]
 
-[node name="ItemList" type="ItemList" parent="UI/MarginContainer/Control" index="1"]
+[node name="UI@MarginContainer@Control@ItemList" type="ItemList" parent="." index="1"]
 margin_left = -30.0
 margin_top = -30.0
 margin_right = 396.0

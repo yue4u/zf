@@ -7,11 +7,8 @@ use gdnative::{
 use zf_ffi::{CommandArgs, UIAction, UICommand};
 
 use crate::{
-    common::current_scene,
-    refs::{
-        groups,
-        path::{sandbox, tutorial_fire, SceneName},
-    },
+    refs::groups,
+    units::Player,
     vm::{register_vm_signal, CommandInput, VMConnecter, VMSignal},
 };
 use serde::{Deserialize, Serialize};
@@ -45,15 +42,13 @@ impl Radar {
         base.connect_vm_signal(VMSignal::OnCmdParsed.into());
         base.add_to_group(groups::RADAR, false);
 
-        // HACK: we should not doing this here
-        let player_path = match current_scene(base.as_ref()) {
-            SceneName::TutorialFire => tutorial_fire::PLAYER_MJOLNIR,
-            _ => sandbox::T_MJOLNIR,
-        };
-
         let player_radar = unsafe {
-            base.get_node(&format!("{}/{}", player_path, "RadarArea"))?
-                .assume_safe()
+            base.get_node(&format!(
+                "{}/{}",
+                Player::path_from(base.as_ref()),
+                "RadarArea"
+            ))?
+            .assume_safe()
         }
         .cast::<Area>()?;
 
@@ -113,13 +108,8 @@ impl Radar {
 
     #[method]
     fn _process(&self, #[base] base: &Node, _delta: f64) -> Option<()> {
-        // HACK: we should not doing this here
-        let player_path = match current_scene(base) {
-            SceneName::TutorialFire => tutorial_fire::PLAYER_MJOLNIR,
-            _ => sandbox::T_MJOLNIR,
-        };
-
-        let player = unsafe { base.get_node(player_path)?.assume_safe() }.cast::<Spatial>()?;
+        let player =
+            unsafe { base.get_node(Player::path_from(base))?.assume_safe() }.cast::<Spatial>()?;
         for entry in self.detected.borrow().iter() {
             render_marker(base, player, entry);
         }

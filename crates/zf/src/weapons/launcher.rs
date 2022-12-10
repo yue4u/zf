@@ -4,12 +4,13 @@ use gdnative::{
 };
 
 use crate::{
-    common::{current_scene, SceneLoader},
+    common::SceneLoader,
     refs::{
         self,
         groups::Layer,
-        path::{self, sandbox, scenes, tutorial_fire, SceneName},
+        path::{base_level, scenes},
     },
+    units::Player,
 };
 
 impl Launcher {
@@ -103,16 +104,15 @@ impl Launcher {
         let area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
         self.layer.prepare_collision_for(area);
 
-        let player_path = match current_scene(base.as_ref()) {
-            SceneName::TutorialFire => tutorial_fire::PLAYER_MJOLNIR,
-            _ => sandbox::T_MJOLNIR,
-        };
-
-        let player_pos = unsafe { base.get_node(player_path).unwrap().assume_safe() }
-            .cast::<Spatial>()
-            .unwrap()
-            .global_transform()
-            .origin;
+        let player_pos = unsafe {
+            base.get_node(Player::path_from(base.as_ref()))
+                .unwrap()
+                .assume_safe()
+        }
+        .cast::<Spatial>()
+        .unwrap()
+        .global_transform()
+        .origin;
 
         let parent = unsafe { base.get_parent().unwrap().assume_safe() }
             .cast::<Spatial>()
@@ -123,7 +123,7 @@ impl Launcher {
         weapon.set("target_pos", Some(player_pos));
 
         unsafe {
-            base.get_node(path::base_level::PROJECTILES)
+            base.get_node(base_level::PROJECTILES)
                 .unwrap()
                 .assume_safe()
         }

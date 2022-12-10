@@ -14,7 +14,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<ui::CommandPalette>();
     handle.add_class::<ui::CommandHistory>();
     handle.add_class::<ui::CommandResultDisplay>();
-    handle.add_class::<ui::PlayerStatusDisplay>();
+    handle.add_class::<ui::PlayerStatus>();
     handle.add_class::<ui::Radar>();
     handle.add_class::<ui::PerfLabel>();
     handle.add_class::<ui::Tips>();

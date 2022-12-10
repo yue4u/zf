@@ -54,6 +54,21 @@ impl Default for EngineStatus {
 
 const MAX_SPEED: f64 = 1. / 30.;
 
+impl Player {
+    pub fn path_from<'a>(base: &'a Node) -> String {
+        let player = unsafe {
+            base.get_tree()
+                .unwrap()
+                .assume_safe()
+                .get_nodes_in_group(groups::PLAYER)
+                .get(0)
+                .to::<Ref<Node>>()
+                .unwrap()
+        };
+        unsafe { player.assume_safe() }.get_path().to_string()
+    }
+}
+
 #[methods]
 impl Player {
     fn new(base: TRef<Spatial>) -> Self {
@@ -137,12 +152,12 @@ impl Player {
 
     pub fn display(&self) -> String {
         format!(
-            r#"[b]Status[/b]
+            r#"[b][color=#4FFFCA]Status[/color][/b]
 speed: {:.2}
 position: {}
 rotation: {}
 
-[b]Engine[/b]
+[b][color=#4FFFCA]Engine[/color][/b]
 engine: {:?}
 "#,
             self.speed.borrow(),

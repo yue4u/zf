@@ -1,6 +1,6 @@
-use crate::refs::{
-    path::{sandbox, tutorial_fire, SceneName},
-    HasPath,
+use crate::{
+    refs::{path::SceneName, HasPath},
+    units::Player,
 };
 use gdnative::{api::*, prelude::*};
 
@@ -61,14 +61,13 @@ pub(crate) trait LookAtPlauer {
 
 impl LookAtPlauer for TRef<'_, Spatial> {
     fn try_look_at_player(&self) -> Option<()> {
-        let player_path = match current_scene(self.as_ref()) {
-            SceneName::TutorialFire => tutorial_fire::PLAYER_MJOLNIR,
-            _ => sandbox::T_MJOLNIR,
-        };
-
-        let transform = unsafe { self.get_node(player_path).unwrap().assume_safe() }
-            .cast::<Spatial>()?
-            .global_transform();
+        let transform = unsafe {
+            self.get_node(Player::path_from(&self))
+                .unwrap()
+                .assume_safe()
+        }
+        .cast::<Spatial>()?
+        .global_transform();
         self.look_at(transform.origin, Vector3::UP);
         Some(())
     }

@@ -34,10 +34,10 @@ where
         );
         match *metadata.level() {
             Level::TRACE => {
-                godot_dbg!(msg);
+                godot_print!("{}", msg);
             }
             Level::DEBUG => {
-                godot_dbg!(msg);
+                godot_print!("{}", msg);
             }
             Level::INFO => {
                 godot_print!("{}", msg);

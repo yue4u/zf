@@ -94,7 +94,7 @@ impl VMData {
                 .get_node_as_instance::<ScreenTransition>(auto_load::POST_PROCESSING_TEXTURE_RECT)
         }
         .unwrap()
-        .map_mut(|player, _| player.play_transition(scene))
+        .map_mut(|screen_transition, _| screen_transition.to(scene))
         .unwrap();
     }
 }

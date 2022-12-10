@@ -90,6 +90,7 @@ grow_vertical = 2
 [node name="UIExtra" type="CanvasLayer" parent="UI/MarginContainer"]
 
 [node name="PostProcessingTextureRect" type="TextureRect" parent="UI"]
+pause_mode = 2
 material = ExtResource( 6 )
 anchor_right = 1.0
 anchor_bottom = 1.0

@@ -55,7 +55,7 @@ impl ScreenTransition {
 
     #[method]
     /// Start playing transition and set next scene target but not start right now
-    pub fn play_transition(&mut self, next_scene: SceneName) {
+    pub fn to(&mut self, next_scene: SceneName) {
         self.next_scene = Some(next_scene.path());
         let animation_player = unsafe { self.animation_player.unwrap().assume_safe() };
         animation_player.play("Pixelate", -1., 1.0, false);

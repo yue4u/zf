@@ -9,6 +9,8 @@ mod weapons;
 use gdnative::prelude::*;
 
 fn init(handle: InitHandle) {
+    common::tracing::init();
+
     handle.add_class::<ui::Hello>();
     handle.add_class::<ui::Env>();
     handle.add_class::<ui::CommandPalette>();

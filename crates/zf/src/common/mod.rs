@@ -1,3 +1,5 @@
+pub mod tracing;
+
 use crate::{
     refs::{path::SceneName, HasPath},
     units::Player,

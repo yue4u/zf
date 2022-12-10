@@ -1,7 +1,7 @@
 use crate::commands::{
-    Engine, EngineOff, EngineOn, EngineThruster, EngineThrusterShort, Fire, Fsays, Game, GameEnd,
-    GameMenu, GameStart, GameTutorial, Hi, Mission, Mystery, Radar, Task, TaskRun, TaskStop, Time,
-    TimeScale, UI,
+    Clear, Engine, EngineOff, EngineOn, EngineThruster, EngineThrusterShort, Fire, Fsays, Game,
+    GameEnd, GameMenu, GameStart, GameTutorial, Hi, Mission, Mystery, Radar, Task, TaskRun,
+    TaskStop, Time, TimeScale, UI,
 };
 use anyhow::Result;
 use nu_command::*;

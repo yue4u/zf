@@ -321,10 +321,6 @@ impl Terminal {
         match event.scancode() {
             GlobalConstants::KEY_ENTER => {
                 match self.buffer.as_str() {
-                    "clear" => {
-                        self.write("\x1b[2J");
-                        self.prompt()
-                    }
                     lines => {
                         // godot_dbg!("lines: {}", lines);
                         // base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);

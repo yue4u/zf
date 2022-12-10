@@ -1,3 +1,6 @@
 #!/usr/bin/env sh
-cd zf
+ROOT=$(dirname $0)/..
+
+rm -rf $ROOT/build/*
+cd $ROOT/zf
 godot --no-window --export "Linux/X11" --path .

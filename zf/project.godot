@@ -18,10 +18,6 @@ config/icon="res://icon.png"
 
 AutoLoad="*res://scenes/AutoLoad.tscn"
 
-[editor_plugins]
-
-enabled=PoolStringArray( "res://addons/godot_xterm/plugin.cfg" )
-
 [global]
 
 thread=false

@@ -12,7 +12,7 @@ impl Env {
 
     #[method]
     fn _ready(&self) {
-        godot_print!("env ready");
+        tracing::info!("env ready");
     }
 
     #[method]

@@ -67,7 +67,7 @@ impl Launcher {
         let rng = RandomNumberGenerator::new();
         rng.randomize();
         let start_time_msec = rng.randi_range(0, self.random_start_time_msec as i64);
-        // godot_dbg!("rng says {}", start_time_msec);
+        // tracing::debug!("{:?}","rng says {}", start_time_msec);
         let timer = unsafe { Timer::new().into_shared().assume_safe() };
         base.add_child(timer, false);
 
@@ -99,7 +99,7 @@ impl Launcher {
         )
         .unwrap();
 
-        // godot_print!("trigger launcher with {:?}", weapon.name());
+        // tracing::info!("trigger launcher with {:?}", weapon.name());
 
         let area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
         self.layer.prepare_collision_for(area);
@@ -128,6 +128,6 @@ impl Launcher {
                 .assume_safe()
         }
         .add_child(weapon, false);
-        // godot_dbg!("add_child done");
+        // tracing::debug!("{:?}","add_child done");
     }
 }

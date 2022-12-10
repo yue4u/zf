@@ -15,7 +15,7 @@ impl PerfLabel {
 
     #[method]
     fn _ready(&self) {
-        godot_print!("perf label ready");
+        tracing::info!("perf label ready");
     }
 
     #[method]

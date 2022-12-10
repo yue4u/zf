@@ -118,7 +118,7 @@ impl VMManager {
 
     #[method]
     pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
-        godot_print!("vm host ready");
+        tracing::info!("vm host ready");
         info!("vm host ready");
         let root = unsafe { base.get_node("/root").unwrap().assume_safe() };
 
@@ -139,14 +139,14 @@ impl VMManager {
     #[method]
     pub(crate) fn on_cmd_entered(&mut self, #[base] base: &Node, text: String) -> Option<()> {
         let runtime = self.runtime.as_mut()?;
-        godot_print!("on_cmd_entered: {text}!");
+        tracing::info!("on_cmd_entered: {text}!");
         base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
 
         let result = runtime.eval(text).map_err(|e| e.to_string());
         let id = runtime.store.data_mut().ext.cmd_id + 1;
         runtime.store.data_mut().ext.cmd_id = id;
         let result = CommandResult { id, result };
-        godot_dbg!(&result);
+        tracing::debug!("{:?}", &result);
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
 
         Some(())
@@ -154,7 +154,7 @@ impl VMManager {
 
     #[method]
     pub fn on_cmd_result(&self, #[base] base: &Node, result: CommandResult) -> Option<()> {
-        godot_print!("receive_command_result: {}", result.id);
+        tracing::info!("receive_command_result: {}", result.id);
 
         let mut result_buffer = self.result_buffer.borrow_mut();
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
@@ -165,7 +165,7 @@ impl VMManager {
 
     #[method]
     pub fn on_game_state(&mut self, #[base] base: &Node, state: GameState) -> Option<()> {
-        // godot_print!("receive_game_state: {:?}", result);
+        // tracing::info!("receive_game_state: {:?}", result);
 
         let state = match state {
             GameState::MissionComplete(msg) => {
@@ -194,7 +194,7 @@ impl VMManager {
 }
 
 fn fire_and_forget(vm_data: &VMData, cmd: CommandArgs) {
-    godot_dbg!(&cmd);
+    tracing::debug!("{:?}", &cmd);
     unsafe { vm_data.base.assume_safe() }.emit_signal(
         VMSignal::OnCmdParsed,
         &[CommandInput {
@@ -220,7 +220,7 @@ impl RuntimeFunc {
 
     fn zf_cmd(mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64) -> i64 {
         let cmd = decode_from_caller::<_, CommandArgs>(&mut caller, tag);
-        godot_dbg!(&cmd);
+        tracing::debug!("{:?}", &cmd);
         match cmd {
             CommandArgs::Task(task) => {
                 let ret = match task {
@@ -233,17 +233,17 @@ impl RuntimeFunc {
                         let handle = std::thread::spawn(move || {
                             let mut runtime: Runtime<VMData> = VMData::from_base(base).into();
                             let ret = runtime.eval(&input);
-                            _ = godot_dbg!(ret);
+                            _ = tracing::debug!("{:?}", ret);
 
                             if let Some(dur) = every {
                                 loop {
                                     if stop_clone.load(Ordering::Relaxed) {
-                                        godot_dbg!(format!("stop `{}` done!", &input));
+                                        tracing::debug!("{:?}", format!("stop `{}` done!", &input));
                                         break;
                                     }
                                     std::thread::sleep(Duration::from_nanos(dur));
                                     let ret = runtime.eval(&input);
-                                    _ = godot_dbg!(ret);
+                                    _ = tracing::debug!("{:?}", ret);
                                 }
                             }
                         });
@@ -284,7 +284,7 @@ impl RuntimeFunc {
                             .expect("fail to serialize task runner info")
                     }
                 };
-                godot_dbg!(&ret);
+                tracing::debug!("{:?}", &ret);
                 zf_runtime::write_string_with_caller(&mut caller, ret)
             }
             CommandArgs::Mission(m) => match m {

@@ -76,7 +76,7 @@ impl ScreenTransition {
     //     #[base] _base: TRef<AnimationPlayer>,
     //     _name: String,
     // ) -> Option<()> {
-    //     godot_dbg!("on_animation_finished");
+    //     tracing::debug!("{:?}","on_animation_finished");
     //
     //     Some(())
     // }

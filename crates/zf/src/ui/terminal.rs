@@ -91,7 +91,7 @@ impl std::io::Write for TerminalWriter {
         //     //     self.prompt()
         //     // }
         //     lines => {
-        //         godot_print!("send: {}", lines);
+        //         tracing::info!("send: {}", lines);
         //         unsafe { self.base.assume_safe() }.emit_signal(ENTER_SIGNAL, &[lines.to_variant()]);
         //         // self.state = ProcessState::Running;
         //         // self.buffer = "".to_string();
@@ -335,11 +335,11 @@ impl Terminal {
             GlobalConstants::KEY_ENTER => {
                 match self.buffer.as_str() {
                     lines => {
-                        // godot_dbg!("lines: {}", lines);
+                        // tracing::debug!("{:?}","lines: {}", lines);
                         // base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
                         // self.state = ProcessState::Running;
                         // let buffer: String = self.buffer.drain(..).collect();
-                        // godot_dbg!(lines);
+                        // tracing::debug!("{:?}",lines);
                         base.emit_signal(ENTER_SIGNAL, &[lines.to_variant()]);
 
                         // self.state
@@ -459,7 +459,7 @@ impl Terminal {
     #[method]
     fn _draw(&mut self, #[base] base: &Control) {
         let rect = base.get_rect();
-        // godot_dbg!(rect);
+        // tracing::debug!("{:?}",rect);
         let color_palette = &self.state.term.get_config().color_palette();
         let anchor = Vector2 { x: 0., y: 0. };
         base.draw_rect(
@@ -564,7 +564,7 @@ impl Terminal {
 
     #[method]
     fn on_game_state(&mut self, #[base] base: TRef<Control>, state: GameState) -> Option<()> {
-        godot_dbg!("on_game_state", &state);
+        tracing::debug!("on_game_state: {:?}", &state);
         match state {
             GameState::MissionComplete(msg) => {
                 self.write("\n");

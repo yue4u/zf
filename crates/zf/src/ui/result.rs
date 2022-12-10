@@ -13,7 +13,7 @@ impl CommandResultDisplay {
 
     #[method]
     fn _ready(&self, #[base] base: TRef<Node>) -> Option<()> {
-        godot_print!("command result ready");
+        tracing::info!("command result ready");
         base.connect_vm_signal(VMSignal::OnCmdResult.into());
         Some(())
     }

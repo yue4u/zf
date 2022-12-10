@@ -16,7 +16,7 @@ impl PlayerStatus {
 
     #[method]
     fn _ready(&self) -> Option<()> {
-        godot_print!("player status ready");
+        tracing::info!("player status ready");
         Some(())
     }
 

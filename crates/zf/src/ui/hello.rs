@@ -12,6 +12,6 @@ impl Hello {
 
     #[method]
     fn _ready(&self) {
-        godot_print!("hello, zf outside")
+        tracing::info!("hello, zf outside")
     }
 }

@@ -72,7 +72,7 @@ impl Player {
 #[methods]
 impl Player {
     fn new(base: TRef<Spatial>) -> Self {
-        // godot_print!("prepare Player");
+        // tracing::info!("prepare Player");
         Player::from(base.claim())
     }
 
@@ -87,7 +87,7 @@ impl Player {
 
     #[method]
     fn on_cmd_parsed(&self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
-        // godot_dbg!(&input);
+        // tracing::debug!("{:?}",&input);
         let current_status = self.engine.borrow();
         let next_status = match &input.cmd {
             CommandArgs::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
@@ -97,7 +97,7 @@ impl Player {
             },
             CommandArgs::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
             CommandArgs::Fire(fire) => {
-                // godot_print!("fire: {:?}", fire);
+                // tracing::info!("fire: {:?}", fire);
                 let weapon =
                     common::SceneLoader::load_and_instance_as::<Spatial>(scenes::HOMING_MISSILE)
                         .unwrap();
@@ -116,7 +116,7 @@ impl Player {
             _ => None,
         }?;
 
-        // godot_dbg!(&next_status);
+        // tracing::debug!("{:?}",&next_status);
 
         let speed = match next_status {
             EngineStatus::On(percent) => MAX_SPEED * (percent as f64) / 100.,
@@ -147,7 +147,7 @@ impl Player {
 
     #[method]
     pub fn damage(&self) {
-        // godot_dbg!("damage player!");
+        // tracing::debug!("{:?}","damage player!");
     }
 
     pub fn display(&self) -> String {

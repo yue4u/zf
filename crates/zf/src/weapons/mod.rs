@@ -55,7 +55,7 @@ impl DamageAble for Ref<Area> {
     fn try_damage(&self) -> anyhow::Result<()> {
         let area = unsafe { self.assume_safe() };
         if area.collision_layer() == 0 {
-            // godot_dbg!("does not have collision layer");
+            // tracing::debug!("{:?}","does not have collision layer");
             return Err(anyhow::Error::msg("does not have collision layer"));
         }
 

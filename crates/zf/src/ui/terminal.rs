@@ -219,6 +219,19 @@ impl Terminal {
         self.state.term.advance_bytes(data);
     }
 
+    fn prompt(&mut self) {
+        use nu_ansi_term::Color::*;
+        let before = match self.process_state {
+            ProcessState::Error => Black.on(LightRed).paint(" "),
+            _ /*     fmt     */ => Black.on(LightCyan).paint(" "),
+        };
+        self.write(&format!("\n{} > ", before));
+    }
+
+    fn clear(&mut self) {
+        self.write("\x1b[2J\x1b[H");
+    }
+
     #[method]
     fn write_scene_message(&mut self, scene_name: SceneName) -> Option<()> {
         use nu_ansi_term::Color::*;
@@ -529,15 +542,6 @@ impl Terminal {
         );
     }
 
-    fn prompt(&mut self) {
-        use nu_ansi_term::Color::*;
-        let before = match self.process_state {
-            ProcessState::Error => Black.on(LightRed).paint(" "),
-            _ /*     fmt     */ => Black.on(LightCyan).paint(" "),
-        };
-        self.write(&format!("\n{} > ", before));
-    }
-
     #[method]
     fn on_cmd_result(&mut self, #[base] base: &Control, result: CommandResult) -> Option<()> {
         let result = match result.result {
@@ -569,6 +573,7 @@ impl Terminal {
                 base.update();
             }
             GameState::LevelChange(scene) => {
+                self.clear();
                 self.write_scene_message(scene);
                 self.prompt();
                 base.update();

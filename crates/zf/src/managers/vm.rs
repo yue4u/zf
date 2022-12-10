@@ -11,7 +11,6 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
-use tracing::info;
 use zf_ffi::{memory::Tag, CommandArgs, GameCommand, MissionCommand, TaskCommand};
 
 use crate::{
@@ -119,7 +118,6 @@ impl VMManager {
     #[method]
     pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
         tracing::info!("vm host ready");
-        info!("vm host ready");
         let root = unsafe { base.get_node("/root").unwrap().assume_safe() };
 
         root.connect(

@@ -27,7 +27,7 @@ where
         let mut msg_vistor = GodotProxyLayerVistitor(None);
         event.record(&mut msg_vistor);
         let msg = format!(
-            "[{}] {} at {}",
+            "[{}] {} (at {})",
             metadata.level(),
             msg_vistor.0.unwrap_or_default(),
             metadata.name()

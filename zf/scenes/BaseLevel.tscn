@@ -7,16 +7,14 @@
 
 [node name="Projectiles" type="Node" parent="Level" index="0"]
 
+[node name="UIExtra" parent="UI/MarginContainer" index="0"]
+layer = 0
+
 [node name="PlayerStatus" parent="UI/MarginContainer/UIExtra" index="0" instance=ExtResource( 2 )]
 anchor_top = 0.5
+anchor_right = 0.5
 anchor_bottom = 0.6
 margin_left = 30.0
 margin_right = 200.0
-bbcode_text = "jsadojioas
-asdoiaji
-asjdiasjiod
-dajsoi"
-text = "jsadojioas
-asdoiaji
-asjdiasjiod
-dajsoi"
+bbcode_text = ""
+text = ""

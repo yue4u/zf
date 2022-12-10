@@ -14,7 +14,7 @@ use zf_runtime::{cmds, strip_ansi};
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
-    common::{self, current_scene, find_ref},
+    common::{current_scene, find_ref, PackedSceneRef, SceneLoader},
     entities::{GameState, GLOBAL_GAME_STATE},
     managers::VMManager,
     refs::{self, path::SceneName, HasPath},
@@ -49,6 +49,7 @@ pub struct Terminal {
     cell_size: Vector2,
     cmds: Vec<&'static str>,
     completion_item_list: Ref<ItemList>,
+    typing_particles: PackedSceneRef,
 }
 
 impl HasPath for Terminal {
@@ -132,6 +133,7 @@ impl Terminal {
             cmds: cmds(),
             state: ZFTerm::new(writer, TerminalSize::default()),
             completion_item_list,
+            typing_particles: SceneLoader::load(refs::path::scenes::TYPING_PARTICLES).unwrap(),
         }
     }
 
@@ -269,7 +271,7 @@ impl Terminal {
         let base = unsafe { self.base.assume_unique() };
         let cursor_pos = self.state.term.cursor_pos();
         let draw_pos = self.draw_pos(cursor_pos.x as f32, cursor_pos.y as f32);
-        let typing_particles = common::load_as::<Particles2D>(refs::path::scenes::TYPING_PARTICLES)
+        let typing_particles = SceneLoader::instance_as::<Particles2D>(&self.typing_particles)
             .unwrap()
             .into_shared();
         let typing_particles = unsafe { typing_particles.assume_safe() }.clone();

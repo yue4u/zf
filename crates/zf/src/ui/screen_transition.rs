@@ -54,6 +54,7 @@ impl ScreenTransition {
     }
 
     #[method]
+    /// Start playing transition and set next scene target but not start right now
     pub fn play_transition(&mut self, next_scene: SceneName) {
         self.next_scene = Some(next_scene.path());
         let animation_player = unsafe { self.animation_player.unwrap().assume_safe() };
@@ -61,9 +62,10 @@ impl ScreenTransition {
     }
 
     #[method]
-    pub fn change_scene(&self) {
+    /// Actualy changed current scene. This will be called in the middle of transition.
+    pub fn change_scene(&mut self) {
         let tree = unsafe { self.base.assume_safe().get_tree().unwrap().assume_safe() };
-        let path = self.next_scene.unwrap();
+        let path = self.next_scene.take().unwrap();
         tree.change_scene(path).unwrap();
         tree.set_pause(false);
     }

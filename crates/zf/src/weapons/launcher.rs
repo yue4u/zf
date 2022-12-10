@@ -4,7 +4,7 @@ use gdnative::{
 };
 
 use crate::{
-    common::{self, current_scene},
+    common::{current_scene, SceneLoader},
     refs::{
         self,
         groups::Layer,
@@ -14,7 +14,8 @@ use crate::{
 
 impl Launcher {
     pub fn load_with_weapon(base: TRef<Spatial>, weapon_path: impl ToString) {
-        let node = common::load_as::<Node>(refs::path::scenes::LAUNCHER).expect("load failed");
+        let node = SceneLoader::load_and_instance_as::<Node>(refs::path::scenes::LAUNCHER)
+            .expect("load failed");
         let launcher = node
             .cast_instance::<Launcher>()
             .expect("cast_instance failed")
@@ -90,7 +91,7 @@ impl Launcher {
 
     #[method]
     fn trigger(&self, #[base] base: TRef<Node>) {
-        let weapon = common::load_as::<Spatial>(
+        let weapon = SceneLoader::load_and_instance_as::<Spatial>(
             self.weapon_path
                 .as_deref()
                 .unwrap_or(scenes::HOMING_MISSILE),

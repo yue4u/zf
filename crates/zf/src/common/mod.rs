@@ -18,14 +18,33 @@ impl Vector3DisplayShort for Vector3 {
     }
 }
 
-pub fn load_as<T: GodotObject<Memory = ManuallyManaged> + SubClass<Node>>(
-    path: &str,
-) -> Option<Ref<T, Unique>> {
-    let res = ResourceLoader::godot_singleton().load(path, "PackedScene", false)?;
-    let scene = unsafe { res.assume_thread_local() }.cast::<PackedScene>()?;
-    let instance = scene.instance(PackedScene::GEN_EDIT_STATE_INSTANCE)?;
-    let instance = unsafe { instance.assume_unique() };
-    instance.cast::<T>()
+pub struct SceneLoader;
+
+pub type PackedSceneRef = Ref<PackedScene, Unique>;
+
+impl SceneLoader {
+    pub fn load(path: &str) -> Option<PackedSceneRef> {
+        let res = ResourceLoader::godot_singleton().load(path, "PackedScene", false)?;
+        let scene = unsafe { res.assume_unique() }.cast::<PackedScene>()?;
+        Some(scene)
+    }
+
+    pub fn instance_as<T>(scene: &PackedSceneRef) -> Option<Ref<T, Unique>>
+    where
+        T: GodotObject<Memory = ManuallyManaged> + SubClass<Node>,
+    {
+        let instance = scene.instance(PackedScene::GEN_EDIT_STATE_INSTANCE)?;
+        let instance = unsafe { instance.assume_unique() };
+        instance.cast::<T>()
+    }
+
+    pub fn load_and_instance_as<T>(path: &str) -> Option<Ref<T, Unique>>
+    where
+        T: GodotObject<Memory = ManuallyManaged> + SubClass<Node>,
+    {
+        let scene = SceneLoader::load(path)?;
+        SceneLoader::instance_as::<T>(&scene)
+    }
 }
 
 pub fn find_ref<'a, S, R>(target: TRef<Node>) -> Option<TRef<'a, R>>

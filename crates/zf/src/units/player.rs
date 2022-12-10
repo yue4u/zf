@@ -83,7 +83,9 @@ impl Player {
             CommandArgs::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
             CommandArgs::Fire(fire) => {
                 // godot_print!("fire: {:?}", fire);
-                let weapon = common::load_as::<Spatial>(scenes::HOMING_MISSILE).unwrap();
+                let weapon =
+                    common::SceneLoader::load_and_instance_as::<Spatial>(scenes::HOMING_MISSILE)
+                        .unwrap();
                 let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
                 Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
                 let missile = weapon.cast_instance::<HomingMissile>().unwrap();

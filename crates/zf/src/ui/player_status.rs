@@ -28,7 +28,7 @@ impl PlayerStatusDisplay {
         //     .map(|p, _| {
         //         base.set_bbcode(p.display());
         //     })
-        //     .ok()
+        //     .ok();
         None
     }
 }

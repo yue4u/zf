@@ -103,6 +103,7 @@ anims/Pixelate = SubResource( 1 )
 anims/RESET = SubResource( 2 )
 
 [node name="Managers" type="Node" parent="."]
+pause_mode = 2
 
 [node name="VM" type="Node" parent="Managers"]
 script = ExtResource( 3 )

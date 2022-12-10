@@ -15,7 +15,7 @@ use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
     common::{self, current_scene, find_ref},
-    entities::GLOBAL_GAME_STATE,
+    entities::{GameState, GLOBAL_GAME_STATE},
     managers::VMManager,
     refs::{self, path::SceneName, HasPath},
     vm::{CommandResult, VMSignal},
@@ -183,6 +183,16 @@ impl Terminal {
 
         vm_manager
             .connect(
+                VMSignal::OnGameState,
+                base,
+                VMSignal::OnGameState,
+                VariantArray::new_shared(),
+                ConnectFlags::DEFERRED.into(),
+            )
+            .expect("failed to connect vm");
+
+        vm_manager
+            .connect(
                 VMSignal::OnCmdResult,
                 base,
                 VMSignal::OnCmdResult,
@@ -192,25 +202,28 @@ impl Terminal {
             .expect("failed to connect vm");
 
         self.write(ZF);
-        self.write_scene_message(base);
+        self.write_scene_message(current_scene(&as_node));
         self.prompt();
 
         Some(())
     }
 
     fn write(&mut self, data: &str) {
+        self.state.term.advance_bytes(data);
+    }
+
+    fn write_with_effect(&mut self, data: &str) {
         self.create_typing_particles();
         self.state.term.advance_bytes(data);
     }
 
     #[method]
-    fn write_scene_message(&mut self, #[base] base: TRef<Control>) -> Option<()> {
+    fn write_scene_message(&mut self, scene_name: SceneName) -> Option<()> {
         use nu_ansi_term::Color::*;
 
-        let as_node = unsafe { base.get_node_as::<Node>(".")? };
         let code = Rgb(255, 194, 60).bold();
 
-        let text = match current_scene(&as_node) {
+        let text = match scene_name {
             SceneName::Sandbox => None,
             SceneName::StartMenu => Some(format!(
                 "Type {} to continue or {} for help.",
@@ -346,7 +359,7 @@ impl Terminal {
                 let selected = selected_items.get(0);
                 let text = cl.get_item_text(selected as i64).to_string();
                 let remain = text.strip_prefix(&self.buffer)?;
-                self.write(remain);
+                self.write_with_effect(remain);
                 self.buffer = text;
             }
             GlobalConstants::KEY_UP if cl.is_visible() => {
@@ -362,14 +375,14 @@ impl Terminal {
             GlobalConstants::KEY_BACKSPACE => {
                 if !self.buffer.is_empty() {
                     self.buffer = self.buffer[..self.buffer.len() - 1].to_string();
-                    self.write("\x08 \x08");
+                    self.write_with_effect("\x08 \x08");
                 }
             }
             _ => {
                 let ch = event.unicode() as u8 as char;
                 if ch != '\0' && ch != '\r' {
                     self.buffer.push(ch);
-                    self.write(&ch.to_string());
+                    self.write_with_effect(&ch.to_string());
                 }
             }
         }
@@ -411,7 +424,7 @@ impl Terminal {
                         false,
                     );
 
-                    // toggle visible and init selected idx
+                    // init selected idx
                     if cl.get_selected_items().len() < 1 {
                         cl.select(0, true);
                     }
@@ -544,6 +557,25 @@ impl Terminal {
         self.write(&result);
         self.prompt();
         base.update();
+        Some(())
+    }
+
+    #[method]
+    fn on_game_state(&mut self, #[base] base: TRef<Control>, state: GameState) -> Option<()> {
+        godot_dbg!("on_game_state", &state);
+        match state {
+            GameState::MissionComplete(msg) => {
+                self.write("\n");
+                self.write(&msg);
+                self.prompt();
+                base.update();
+            }
+            GameState::LevelChange(scene) => {
+                self.write_scene_message(scene);
+                self.prompt();
+                base.update();
+            }
+        };
         Some(())
     }
 }

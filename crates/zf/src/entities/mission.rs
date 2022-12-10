@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::common::{Id, Position};
+use crate::{
+    common::{Id, Position},
+    refs::path::SceneName,
+};
 use gdnative::prelude::{FromVariant, ToVariant};
 use nu_ansi_term::*;
 
@@ -21,7 +24,8 @@ pub struct MissionTarget {
 
 #[derive(Debug, ToVariant, FromVariant)]
 pub enum GameState {
-    MissionComplete,
+    MissionComplete(String),
+    LevelChange(SceneName),
 }
 
 impl Mission {

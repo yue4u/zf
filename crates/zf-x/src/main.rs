@@ -221,7 +221,7 @@ fn fmt_enum(enum_name: &str, inner: &str) -> String {
         r#"
 #[rustfmt::skip]
 #[allow(dead_code)]
-#[derive(ToVariant, FromVariant)]
+#[derive(Debug, ToVariant, FromVariant)]
 pub enum {enum_name} {{
 {inner}
 }}

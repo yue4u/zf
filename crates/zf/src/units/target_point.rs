@@ -58,7 +58,10 @@ impl TargetPoint {
             return None;
         }
 
-        base.emit_signal(HIT_BY_PLAYER, &[GameState::MissionComplete.to_variant()]);
+        base.emit_signal(
+            HIT_BY_PLAYER,
+            &[GameState::MissionComplete("Reached target point".to_owned()).to_variant()],
+        );
 
         None
     }

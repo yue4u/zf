@@ -1,9 +1,6 @@
-use crate::{
-    refs::{
-        path::{sandbox, tutorial_fire, SceneName},
-        HasPath,
-    },
-    units::Player,
+use crate::refs::{
+    path::{sandbox, tutorial_fire, SceneName},
+    HasPath,
 };
 use gdnative::{api::*, prelude::*};
 

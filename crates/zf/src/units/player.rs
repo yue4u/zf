@@ -54,18 +54,6 @@ impl Default for EngineStatus {
 
 const MAX_SPEED: f64 = 1. / 30.;
 
-// impl HasPath for Player {
-//     fn path() -> &'static str {
-//         // sandbox::T_MJOLNIR
-//         match current_scene(
-//             unsafe { self.base.assume_safe().get_node(".").unwrap().assume_safe() }.as_ref(),
-//         ) {
-//             SceneName::TutorialFire => tutorial_fire::PLAYER_MJOLNIR,
-//             _ => sandbox::T_MJOLNIR,
-//         }
-//     }
-// }
-
 #[methods]
 impl Player {
     fn new(base: TRef<Spatial>) -> Self {

@@ -45,7 +45,9 @@ impl TargetDummy {
 
     #[method]
     pub fn damage(&self) {
-        unsafe { self.base.assume_safe() }
-            .emit_signal(HIT_BY_PLAYER, &[GameState::MissionComplete.to_variant()]);
+        unsafe { self.base.assume_safe() }.emit_signal(
+            HIT_BY_PLAYER,
+            &[GameState::MissionComplete("Target is damaged!".to_owned()).to_variant()],
+        );
     }
 }

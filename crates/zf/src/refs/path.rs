@@ -34,7 +34,7 @@ pub mod levels {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-#[derive(ToVariant, FromVariant)]
+#[derive(Debug, ToVariant, FromVariant)]
 pub enum SceneName {
     TutorialMovement,
     TutorialFire,
@@ -109,7 +109,7 @@ pub mod terminal {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod typing_particles {
-    pub const PARTICLES_2_D: &str = "/root/Scene/Particles2D";
+
 }
 
 #[rustfmt::skip]

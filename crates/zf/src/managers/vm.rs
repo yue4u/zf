@@ -14,9 +14,12 @@ use std::{
 use zf_ffi::{memory::Tag, CommandArgs, GameCommand, MissionCommand, TaskCommand};
 
 use crate::{
-    common::find_ref,
+    common::{current_scene, find_ref},
     entities::{GameState, Mission},
-    refs::{self, groups, path::SceneName},
+    refs::{
+        groups,
+        path::{auto_load, SceneName},
+    },
     ui::{ScreenTransition, Terminal},
     vm::{CommandInput, CommandResult, VMSignal},
 };
@@ -88,9 +91,7 @@ impl VMData {
         unsafe {
             self.base
                 .assume_safe()
-                .get_node_as_instance::<ScreenTransition>(
-                    refs::path::auto_load::POST_PROCESSING_TEXTURE_RECT,
-                )
+                .get_node_as_instance::<ScreenTransition>(auto_load::POST_PROCESSING_TEXTURE_RECT)
         }
         .unwrap()
         .map_mut(|player, _| player.play_transition(scene))
@@ -117,6 +118,17 @@ impl VMManager {
     #[method]
     pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
         godot_print!("vm host ready");
+        let root = unsafe { base.get_node("/root").unwrap().assume_safe() };
+
+        root.connect(
+            "child_entered_tree",
+            base,
+            "on_child_entered_tree",
+            VariantArray::new_shared(),
+            0,
+        )
+        .expect("failed to connect child_entered_tree");
+
         let mut runtime: Runtime<VMData> = VMData::from_base(base.claim()).into();
         runtime.eval(zf_runtime::SHELL_PRELOAD).unwrap();
         self.runtime = Some(runtime);
@@ -150,20 +162,32 @@ impl VMManager {
     }
 
     #[method]
-    pub fn on_game_state(&mut self, #[base] base: &Node, result: GameState) -> Option<()> {
-        godot_print!("receive_game_state: {:?}", result);
+    pub fn on_game_state(&mut self, #[base] base: &Node, state: GameState) -> Option<()> {
+        // godot_print!("receive_game_state: {:?}", result);
 
-        let runtime = self.runtime.as_mut()?;
-        let result = runtime
-            .eval("fsays 'mission completed'")
-            .map_err(|e| e.to_string());
-        let id = runtime.store.data_mut().ext.cmd_id + 1;
-        runtime.store.data_mut().ext.cmd_id = id;
-        let result = CommandResult { id, result };
+        let state = match state {
+            GameState::MissionComplete(msg) => {
+                let runtime = self.runtime.as_mut()?;
+                let result = runtime
+                    .eval(format!("fsays 'Mission completed: {}'", msg))
+                    .expect("fsays should work");
+                GameState::MissionComplete(result)
+            }
+            as_is => as_is,
+        };
 
-        base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
+        base.emit_signal(VMSignal::OnGameState, &[state.to_variant()]);
         unsafe { base.get_tree().unwrap().assume_safe() }.set_pause(true);
         Some(())
+    }
+
+    #[method]
+    fn on_child_entered_tree(&mut self, #[base] base: &Node, node: Ref<Node>) {
+        let scene = current_scene(unsafe { node.assume_safe() }.as_ref());
+        base.emit_signal(
+            VMSignal::OnGameState,
+            &[GameState::LevelChange(scene).to_variant()],
+        );
     }
 }
 
@@ -188,7 +212,6 @@ impl RuntimeFunc {
                 .expect("find ref termial")
                 .cast_instance::<Terminal>()
                 .expect("cast instance termial");
-        // terminal.state
         let size = terminal.map(|t, _| t.get_size()).expect("term.get_size");
         Tag::into(size.cols as i32, size.rows as i32)
     }

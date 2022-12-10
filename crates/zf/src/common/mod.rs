@@ -33,7 +33,7 @@ impl SceneLoader {
     where
         T: GodotObject<Memory = ManuallyManaged> + SubClass<Node>,
     {
-        let instance = scene.instance(PackedScene::GEN_EDIT_STATE_INSTANCE)?;
+        let instance = scene.instance(0)?;
         let instance = unsafe { instance.assume_unique() };
         instance.cast::<T>()
     }

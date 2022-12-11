@@ -1,4 +1,4 @@
-pub mod tracing;
+pub mod logging;
 
 use crate::{
     refs::{path::SceneName, HasPath},

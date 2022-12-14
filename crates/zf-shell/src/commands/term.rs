@@ -4,31 +4,26 @@ use nu_protocol::{
     engine::{Command, EngineState, Stack},
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
-
-use zf_ffi::{CommandArgs, TimeCommand};
-
-use crate::cmd;
-
-cmd::empty!(
-    Time,
-    name: "time",
-    usage: "control game time scale"
-);
+use zf_ffi::{CommandArgs, TermCommand};
 
 #[derive(Clone)]
-pub(crate) struct TimeScale;
-
-impl Command for TimeScale {
+pub(crate) struct TermOpacity;
+// term opacity
+impl Command for TermOpacity {
     fn name(&self) -> &str {
-        "time scale"
+        "term opacity"
     }
 
-    fn signature(&self) -> Signature {
-        Signature::build("time").required("scale", SyntaxShape::Number, "time scale")
+    fn signature(&self) -> nu_protocol::Signature {
+        Signature::build(self.name()).required(
+            "number", //
+            SyntaxShape::Number,
+            "opacity number in range of 0.0..1.0",
+        )
     }
 
     fn usage(&self) -> &str {
-        "time scale 0.5"
+        "Set term opacity"
     }
 
     fn run(
@@ -39,20 +34,19 @@ impl Command for TimeScale {
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         let val = call.req::<Value>(engine_state, stack, 0).map_err(|_| {
-            ShellError::MissingParameter(format!("please provide a scale"), call.head)
+            ShellError::MissingParameter(format!("please provide a opacity"), call.head)
         })?;
 
-        let scale = val.as_float()?;
-        if scale < 0. || scale > 5. {
+        let opacity = val.as_float()? as f32;
+        if opacity < 0. || opacity > 1. {
             return Err(ShellError::UnsupportedInput(
-                format!("scale must be in range of 0..5"),
+                format!("opacity must be in range of 0.0..1.0"),
                 val.span()?,
             ));
-        }
+        };
 
-        let args = CommandArgs::Time(TimeCommand { scale });
+        let args = CommandArgs::Term(TermCommand::Opacity(opacity));
         zf_ffi::cmd(args);
-
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }
 }

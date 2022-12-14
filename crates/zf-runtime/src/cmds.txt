@@ -177,6 +177,7 @@ take while
 task
 task run
 task stop
+term opacity
 term size
 time
 time

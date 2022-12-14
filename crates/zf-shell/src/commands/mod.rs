@@ -10,6 +10,7 @@ mod radar;
 mod task;
 mod time;
 mod ui;
+mod term;
 
 pub(crate) use clear::*;
 pub(crate) use engine::*;
@@ -23,6 +24,7 @@ pub(crate) use radar::*;
 pub(crate) use task::*;
 pub(crate) use time::*;
 pub(crate) use ui::*;
+pub(crate) use term::*;
 
 use nu_engine::CallExt;
 

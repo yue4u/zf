@@ -10,6 +10,7 @@ use gdnative::{
     },
     prelude::*,
 };
+use zf_ffi::{CommandArgs, TermCommand};
 use zf_runtime::{cmds, strip_ansi};
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
@@ -18,7 +19,7 @@ use crate::{
     entities::{GameState, GLOBAL_GAME_STATE},
     managers::VMManager,
     refs::{self, path::SceneName, HasPath},
-    vm::{CommandResult, VMSignal},
+    vm::{CommandInput, CommandResult, VMSignal},
 };
 
 #[derive(FromVariant, ToVariant, Clone, Debug, PartialEq)]
@@ -50,6 +51,7 @@ pub struct Terminal {
     cmds: Vec<&'static str>,
     completion_item_list: Ref<ItemList>,
     typing_particles: PackedSceneRef,
+    bg_opacity: f32,
 }
 
 impl HasPath for Terminal {
@@ -134,6 +136,7 @@ impl Terminal {
             state: ZFTerm::new(writer, TerminalSize::default()),
             completion_item_list,
             typing_particles: SceneLoader::load(refs::path::scenes::TYPING_PARTICLES).unwrap(),
+            bg_opacity: 0.5,
         }
     }
 
@@ -188,6 +191,16 @@ impl Terminal {
                 VMSignal::OnGameState,
                 base,
                 VMSignal::OnGameState,
+                VariantArray::new_shared(),
+                ConnectFlags::DEFERRED.into(),
+            )
+            .expect("failed to connect vm");
+
+        vm_manager
+            .connect(
+                VMSignal::OnCmdParsed,
+                base,
+                VMSignal::OnCmdParsed,
                 VariantArray::new_shared(),
                 ConnectFlags::DEFERRED.into(),
             )
@@ -462,12 +475,13 @@ impl Terminal {
         // tracing::debug!("{:?}",rect);
         let color_palette = &self.state.term.get_config().color_palette();
         let anchor = Vector2 { x: 0., y: 0. };
+
         base.draw_rect(
             Rect2 {
                 position: anchor,
                 size: rect.size,
             },
-            Color::from_rgba(0., 0., 0., 0.5),
+            Color::from_rgba(0., 0., 0., self.bg_opacity),
             true,
             -1.,
             false,
@@ -540,6 +554,17 @@ impl Terminal {
             "",
             Color::from_rgba(1., 1., 1., 1.),
         );
+    }
+
+    #[method]
+    fn on_cmd_parsed(&mut self, #[base] base: TRef<Control>, input: CommandInput) {
+        match input.cmd {
+            CommandArgs::Term(TermCommand::Opacity(opacity)) => {
+                self.bg_opacity = opacity;
+                base.update();
+            }
+            _ => return,
+        }
     }
 
     #[method]

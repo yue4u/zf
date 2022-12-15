@@ -19,12 +19,8 @@ pub struct Runtime<S> {
 }
 
 pub const SHELL_MODULE: &'static str = "zf-shell";
-pub const SHELL_WASM: &[u8] = include_bytes!(concat!(
-    // https://github.com/rust-lang/cargo/issues/3946
-    // we don't have `CARGO_WORKSPACE_DIR` at home
-    "../../../",
-    "target/wasm32-wasi/release/zf-shell.wasm"
-));
+// https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#artifact-dependencies
+pub const SHELL_WASM: &[u8] = include_bytes!(env!("CARGO_BIN_FILE_ZF_SHELL"));
 
 pub const SHELL_PRELOAD: &'static str = r#"
 alias g = game;

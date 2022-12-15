@@ -10,12 +10,13 @@ name = "zf-runtime-bin"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = { workspace = true, version = "1.0.65"}
+anyhow = { workspace = true }
 expect-test = { workspace = true }
 
-wasmtime = "1.0.0"
-wasmtime-wasi = "1.0.0"
-wasi-common = "1.0.1"
+wasmtime = "3.0.1"
+wasmtime-wasi = "3.0.1"
+wasi-common = "3.0.1"
 strip-ansi-escapes = "0.1.1"
 
 zf-ffi = { path = "../zf-ffi" }
+zf-shell = { path = "../zf-shell", artifact = "bin", target = "wasm32-wasi" }

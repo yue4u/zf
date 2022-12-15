@@ -34,7 +34,7 @@ impl Command for Fsays {
             .or_else(|_| input.into_value(call.head).as_string())?;
 
         let mut vec = Vec::new();
-        say(msg.as_bytes(), 40, &mut vec)?;
+        say(&msg, 40, &mut vec)?;
 
         let val = String::from_utf8(vec).unwrap();
 

@@ -10,10 +10,10 @@ crate-type = ["cdylib"]
 path = "src/lib.rs"
 
 [dependencies]
-anyhow = { workspace = true, version = "1.0.65"}
+anyhow = { workspace = true, version = "1.0.66"}
 gdnative = { workspace = true }
 nu-ansi-term = "0.46"
-once_cell = "1.15.0"
+once_cell = "1.16.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = { workspace = true }

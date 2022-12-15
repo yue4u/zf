@@ -297,10 +297,8 @@ impl Terminal {
         let base = unsafe { self.base.assume_unique() };
         let cursor_pos = self.state.term.cursor_pos();
         let draw_pos = self.draw_pos(cursor_pos.x as f32, cursor_pos.y as f32);
-        let typing_particles = SceneLoader::instance_as::<Particles2D>(&self.typing_particles)
-            .unwrap()
-            .into_shared();
-        let typing_particles = unsafe { typing_particles.assume_safe() }.clone();
+        let typing_particles =
+            SceneLoader::instance_as::<Particles2D>(&self.typing_particles).unwrap();
         typing_particles.set_emitting(true);
         typing_particles.set_position(draw_pos);
         base.add_child(typing_particles, false);

@@ -33,13 +33,7 @@ where
             metadata.name()
         );
         match *metadata.level() {
-            Level::TRACE => {
-                godot_print!("{}", msg);
-            }
-            Level::DEBUG => {
-                godot_print!("{}", msg);
-            }
-            Level::INFO => {
+            Level::TRACE | Level::DEBUG | Level::INFO => {
                 godot_print!("{}", msg);
             }
             Level::WARN => {

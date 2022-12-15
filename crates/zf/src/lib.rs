@@ -22,6 +22,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<ui::Tips>();
     handle.add_class::<ui::Terminal>();
     handle.add_class::<ui::ScreenTransition>();
+    handle.add_class::<ui::PlayerHealthBar>();
     handle.add_class::<units::GangutSpaceHub>();
     handle.add_class::<units::Player>();
     handle.add_class::<units::TDummy>();

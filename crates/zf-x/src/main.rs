@@ -106,7 +106,7 @@ pub fn main() -> io::Result<()> {
 "#
                 ));
             }
-            entries
+            entries //.into_iter().map(move |e| (e, dir_name))
         })
         .map(|path| {
             let mut seen = HashMap::<String, u32>::new();
@@ -125,22 +125,34 @@ pub fn main() -> io::Result<()> {
                             .and_then(|part| part.strip_suffix("\"")));
                     }
                     let base = if path.ends_with("AutoLoad.tscn") {
-                        "AutoLoad"
+                        "/AutoLoad"
                     } else {
-                        "Scene"
+                        "/Scene"
                     };
 
                     if let (Some(name), Some(parent)) = (name, parent) {
-                        let node_path = format!(
-                            "/root/{}/{}{}",
-                            base,
-                            if parent == "." {
-                                "".to_owned()
-                            } else {
-                                format!("{parent}/")
-                            },
-                            name
-                        );
+                        let node_path = if path.ends_with("PlayerHealthBar.tscn") {
+                            format!(
+                                ".{}{}",
+                                if parent == "." {
+                                    "/".to_owned()
+                                } else {
+                                    format!("/{parent}/")
+                                },
+                                name
+                            )
+                        } else {
+                            format!(
+                                "/root{}{}{}",
+                                base,
+                                if parent == "." {
+                                    "/".to_owned()
+                                } else {
+                                    format!("/{parent}/")
+                                },
+                                name
+                            )
+                        };
                         let name = name.to_case(Case::ScreamingSnake);
                         *seen.entry(name.clone()).or_insert(0) += 1;
                         let name = if seen[&name] > 1 {

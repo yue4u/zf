@@ -11,6 +11,8 @@ pub mod scenes {
     pub const TYPING_PARTICLES: &str = "res://scenes/TypingParticles.tscn";
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
+    pub const PLAYER_STATUS: &str = "res://scenes/PlayerStatus.tscn";
+    pub const PLAYER_HEALTH_BAR: &str = "res://scenes/PlayerHealthBar.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
     pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
     pub const UI_SANDBOX: &str = "res://scenes/UISandbox.tscn";
@@ -131,6 +133,31 @@ pub mod player_mjolnir {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod player_status {
+
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod player_health_bar {
+    pub const PLACEHOLDER: &str = "./placeholder";
+    pub const PLACEHOLDER_2: &str = "./placeholder2";
+    pub const CONTROL: &str = "./Control";
+    pub const COLOR_RECT: &str = "./Control/ColorRect";
+    pub const PLACEHOLDER_5: &str = "./placeholder5";
+    pub const CURRENT: &str = "./Current";
+    pub const LABEL_3: &str = "./Label3";
+    pub const MAX: &str = "./Max";
+    pub const PLACEHOLDER_6: &str = "./placeholder6";
+    pub const CONTROL_2: &str = "./Control2";
+    pub const COLOR_RECT_1: &str = "./Control2/ColorRect";
+    pub const PLACEHOLDER_3: &str = "./placeholder3";
+    pub const PLACEHOLDER_4: &str = "./placeholder4";
+    pub const PROGRESS: &str = "./Progress";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod beam {
     pub const AREA: &str = "/root/Scene/Area";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
@@ -149,7 +176,7 @@ pub mod t_dummy {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod ui_sandbox {
-    pub const ITEM_LIST: &str = "/root/Scene/UI/MarginContainer/Control/ItemList";
+    pub const ITEM_LIST: &str = "/root/Scene/ItemList";
 }
 
 #[rustfmt::skip]
@@ -162,6 +189,11 @@ pub mod launcher {
 #[allow(dead_code)]
 pub mod base_level {
     pub const PROJECTILES: &str = "/root/Scene/Level/Projectiles";
+    pub const UI_EXTRA: &str = "/root/Scene/UI/MarginContainer/UIExtra";
+    pub const PLAYER_STATUS: &str = "/root/Scene/UI/MarginContainer/UIExtra/PlayerStatus";
+    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
+    pub const H_BOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/HBoxContainer";
+    pub const LABEL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/Label";
 }
 
 #[rustfmt::skip]
@@ -267,11 +299,19 @@ pub mod sandbox {
 #[allow(dead_code)]
 pub mod assets {
     pub const T_DUMMY_TSCN: &str = "res://assets/t-dummy.tscn";
+    pub const UI_THEME_TRES: &str = "res://assets/UITheme.tres";
     pub const JET_BRAINS_MONO_TRES: &str = "res://assets/JetBrains_Mono.tres";
+    pub const PLAYER_HEALTH_BAR_SHADER: &str = "res://assets/PlayerHealthBar.shader";
     pub const BAR_PROGRESS_PNG: &str = "res://assets/bar_progress.png";
+    pub const RADAR_TINT_SHADER: &str = "res://assets/radar_tint.shader";
+    pub const RADAR_BG_SHADER: &str = "res://assets/radar_bg.shader";
     pub const THEME_TRANSPARENT_TRES: &str = "res://assets/theme_transparent.tres";
+    pub const PLAYER_HEALTH_BAR_SHADER_TRES: &str = "res://assets/PlayerHealthBarShader.tres";
     pub const PIXELATE_TRES: &str = "res://assets/pixelate.tres";
     pub const BAR_UNDER_PNG: &str = "res://assets/bar_under.png";
     pub const T_DUMMY_TRES: &str = "res://assets/t-dummy.tres";
+    pub const UI_FONT_TRES: &str = "res://assets/UIFont.tres";
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
+    pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
 }
+

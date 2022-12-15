@@ -18,7 +18,7 @@ use crate::{
 
 #[derive(NativeClass)]
 #[inherit(Spatial)]
-#[register_with(register_vm_signal)]
+#[register_with(Self::register_signal)]
 pub struct Player {
     #[allow(unused)]
     base: Ref<Spatial>,
@@ -69,11 +69,18 @@ impl Player {
     }
 }
 
+pub const PLAYER_HIT: &'static str = "player_hit";
+
 #[methods]
 impl Player {
     fn new(base: TRef<Spatial>) -> Self {
         // tracing::info!("prepare Player");
         Player::from(base.claim())
+    }
+
+    pub fn register_signal<T: NativeClass>(builder: &ClassBuilder<T>) {
+        builder.signal(VMSignal::OnCmdResult.as_str()).done();
+        builder.signal(PLAYER_HIT).done();
     }
 
     #[method]
@@ -147,7 +154,8 @@ impl Player {
 
     #[method]
     pub fn damage(&self) {
-        // tracing::debug!("{:?}","damage player!");
+        tracing::debug!("{:?}", "damage player!");
+        unsafe { self.base.assume_safe() }.emit_signal(PLAYER_HIT, &[1.to_variant()]);
     }
 
     pub fn display(&self) -> String {

@@ -1,14 +1,16 @@
 shader_type canvas_item;
+
 const float PI = 3.1415926538;
+const float delta = .2;
+const float count = 100.;
+const float g = 1.73205080757;
+
 uniform float value : hint_range(0, 1) = 1.;
 
 void fragment()
 {
     COLOR.a = 0.;
-    float delta = .2;
-    float count = 100.;
     float x = 1. - fract(count * UV.x + 3. * TIME);
-    float g = 1.73205080757;
     if (UV.y > (1. - g * UV.x * count)){
         if (UV.y < g * x && (UV.y > g * x - delta)) {
             COLOR = UV.x < value

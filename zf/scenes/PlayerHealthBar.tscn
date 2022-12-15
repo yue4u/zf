@@ -1,17 +1,19 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://assets/UITheme.tres" type="Theme" id=1]
-[ext_resource path="res://assets/PlayerHealthBar2D.shader" type="Shader" id=2]
+[ext_resource path="res://assets/PlayerHealthBar.shader" type="Shader" id=2]
 [ext_resource path="res://icon.png" type="Texture" id=3]
+[ext_resource path="res://scripts/PlayerHealthBar.gdns" type="Script" id=4]
 
 [sub_resource type="ShaderMaterial" id=6]
 shader = ExtResource( 2 )
 shader_param/value = 0.337
 
-[node name="HBoxContainer" type="HBoxContainer"]
+[node name="PlayerHealthBar" type="HBoxContainer"]
 anchor_right = 1.0
 margin_bottom = 21.0
 theme = ExtResource( 1 )
+script = ExtResource( 4 )
 
 [node name="placeholder" type="Control" parent="."]
 margin_bottom = 21.0
@@ -20,6 +22,7 @@ margin_bottom = 21.0
 margin_left = 4.0
 margin_right = 4.0
 margin_bottom = 21.0
+rect_pivot_offset = Vector2( 168, 21 )
 
 [node name="Control" type="Control" parent="."]
 margin_left = 8.0
@@ -33,16 +36,43 @@ margin_bottom = 20.0
 rect_rotation = 30.0
 color = Color( 0, 1, 0.929412, 1 )
 
-[node name="Label" type="Label" parent="."]
+[node name="placeholder5" type="Control" parent="."]
 margin_left = 12.0
-margin_right = 140.0
+margin_right = 12.0
 margin_bottom = 21.0
-text = " 3000 / 3000 "
+rect_pivot_offset = Vector2( 168, 21 )
+
+[node name="Current" type="Label" parent="."]
+margin_left = 16.0
+margin_right = 68.0
+margin_bottom = 21.0
+text = "3000"
 valign = 1
 
-[node name="Control2" type="Control" parent="."]
+[node name="Label3" type="Label" parent="."]
+margin_left = 72.0
+margin_right = 80.0
+margin_bottom = 21.0
+custom_colors/font_color = Color( 0.666667, 0.666667, 0.666667, 1 )
+text = "/"
+valign = 1
+
+[node name="Max" type="Label" parent="."]
+margin_left = 84.0
+margin_right = 140.0
+margin_bottom = 21.0
+text = "3000 "
+valign = 1
+
+[node name="placeholder6" type="Control" parent="."]
 margin_left = 144.0
 margin_right = 144.0
+margin_bottom = 21.0
+rect_pivot_offset = Vector2( 168, 21 )
+
+[node name="Control2" type="Control" parent="."]
+margin_left = 148.0
+margin_right = 148.0
 margin_bottom = 21.0
 
 [node name="ColorRect" type="ColorRect" parent="Control2"]
@@ -53,29 +83,21 @@ rect_rotation = 30.0
 color = Color( 0, 1, 0.929412, 1 )
 
 [node name="placeholder3" type="Control" parent="."]
-margin_left = 148.0
-margin_right = 148.0
-margin_bottom = 21.0
-
-[node name="placeholder4" type="Control" parent="."]
 margin_left = 152.0
 margin_right = 152.0
 margin_bottom = 21.0
 
-[node name="TextureRect" type="TextureRect" parent="."]
-material = SubResource( 6 )
+[node name="placeholder4" type="Control" parent="."]
 margin_left = 156.0
-margin_right = 588.0
+margin_right = 156.0
+margin_bottom = 21.0
+
+[node name="Progress" type="TextureRect" parent="."]
+material = SubResource( 6 )
+margin_left = 160.0
+margin_right = 1024.0
 margin_bottom = 21.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = ExtResource( 3 )
 expand = true
-
-[node name="Label2" type="Label" parent="."]
-margin_left = 592.0
-margin_right = 1024.0
-margin_bottom = 21.0
-size_flags_horizontal = 3
-size_flags_vertical = 6
-text = "level 20"

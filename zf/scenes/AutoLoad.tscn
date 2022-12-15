@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://assets/code_theme.tres" type="Theme" id=1]
 [ext_resource path="res://scripts/PerfLabel.gdns" type="Script" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://icon.png" type="Texture" id=5]
 [ext_resource path="res://assets/pixelate.tres" type="Material" id=6]
 [ext_resource path="res://scenes/Terminal.tscn" type="PackedScene" id=7]
+[ext_resource path="res://assets/UITheme.tres" type="Theme" id=8]
 
 [sub_resource type="Animation" id=1]
 resource_name = "Pixelate"
@@ -78,6 +79,7 @@ anchor_left = 1.0
 anchor_right = 1.0
 margin_left = -100.0
 margin_bottom = 43.0
+theme = ExtResource( 8 )
 text = "fps:
 mem:"
 script = ExtResource( 2 )

@@ -7,7 +7,7 @@
 
 [sub_resource type="ShaderMaterial" id=6]
 shader = ExtResource( 2 )
-shader_param/value = 0.337
+shader_param/value = 1.0
 
 [node name="PlayerHealthBar" type="HBoxContainer"]
 anchor_right = 1.0
@@ -46,7 +46,9 @@ rect_pivot_offset = Vector2( 168, 21 )
 margin_left = 16.0
 margin_right = 68.0
 margin_bottom = 21.0
-text = "3000"
+rect_min_size = Vector2( 52, 0 )
+text = "300"
+align = 2
 valign = 1
 
 [node name="Label3" type="Label" parent="."]

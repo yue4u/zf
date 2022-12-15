@@ -22,8 +22,8 @@ pub struct PlayerHealthBar {
 impl PlayerHealthBar {
     fn new(_base: &Node) -> Self {
         PlayerHealthBar {
-            current: 3000,
-            max: 3000,
+            current: 1000,
+            max: 1000,
             current_label: None,
             max_label: None,
             progress_rect: None,

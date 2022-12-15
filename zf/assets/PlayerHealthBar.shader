@@ -13,8 +13,13 @@ void fragment()
     float x = 1. - fract(count * UV.x + 3. * TIME);
     if (UV.y > (1. - g * UV.x * count)){
         if (UV.y < g * x && (UV.y > g * x - delta)) {
+            vec3 c = value > .6
+                ? vec3(0., 1.0, 0.93)
+                : (value > .3
+                    ? vec3(1., 0.61, 0.)
+                    : vec3(1., 0.0, 0.42));
             COLOR = UV.x < value
-                ? vec4(0., 1.0, 0.93, 1. - UV.x)
+                ? vec4(c, 1. - UV.x)
                 : vec4(1., 1.0, 1.00, 0.2);
         }
     }

@@ -507,7 +507,6 @@ impl Terminal {
                 for cell in line.cells_mut() {
                     let fg = zf_term::Color::resolve_cell_fg_color(cell, color_palette);
                     let bg = zf_term::Color::resolve_cell_bg_color(cell, color_palette);
-
                     // base.draw_rect(
                     //     Rect2 {
                     //         position: Vector2 {

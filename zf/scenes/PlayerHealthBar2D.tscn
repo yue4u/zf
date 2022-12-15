@@ -1,0 +1,84 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://assets/3rd/Julius_Sans_One,Lancelot,Orbitron/Orbitron/static/Orbitron-Regular.ttf" type="DynamicFontData" id=1]
+
+[sub_resource type="DynamicFont" id=5]
+font_data = ExtResource( 1 )
+
+[sub_resource type="Gradient" id=1]
+colors = PoolColorArray( 1, 1, 1, 0, 1, 1, 1, 0 )
+
+[sub_resource type="GradientTexture" id=2]
+gradient = SubResource( 1 )
+
+[sub_resource type="Gradient" id=3]
+colors = PoolColorArray( 0, 1, 0.929412, 0.196078, 0, 1, 0.929412, 0.196078 )
+
+[sub_resource type="GradientTexture" id=4]
+gradient = SubResource( 3 )
+
+[node name="HBoxContainer" type="HBoxContainer"]
+anchor_right = 1.0
+margin_right = -524.0
+margin_bottom = 21.0
+
+[node name="placeholder" type="Control" parent="."]
+margin_bottom = 21.0
+
+[node name="placeholder2" type="Control" parent="."]
+margin_left = 4.0
+margin_right = 4.0
+margin_bottom = 21.0
+
+[node name="Control" type="Control" parent="."]
+margin_left = 8.0
+margin_right = 8.0
+margin_bottom = 21.0
+
+[node name="ColorRect" type="ColorRect" parent="Control"]
+margin_left = 4.0
+margin_right = 7.0
+margin_bottom = 20.0
+rect_rotation = 30.0
+color = Color( 0, 1, 0.929412, 1 )
+
+[node name="Label" type="Label" parent="."]
+margin_left = 12.0
+margin_right = 140.0
+margin_bottom = 21.0
+custom_fonts/font = SubResource( 5 )
+text = " 3000 / 3000 "
+valign = 1
+
+[node name="Control2" type="Control" parent="."]
+margin_left = 144.0
+margin_right = 144.0
+margin_bottom = 21.0
+
+[node name="ColorRect" type="ColorRect" parent="Control2"]
+margin_left = 4.0
+margin_right = 7.0
+margin_bottom = 20.0
+rect_rotation = 30.0
+color = Color( 0, 1, 0.929412, 1 )
+
+[node name="placeholder3" type="Control" parent="."]
+margin_left = 148.0
+margin_right = 148.0
+margin_bottom = 21.0
+
+[node name="placeholder4" type="Control" parent="."]
+margin_left = 152.0
+margin_right = 152.0
+margin_bottom = 21.0
+
+[node name="TextureProgress" type="TextureProgress" parent="."]
+margin_left = 156.0
+margin_right = 500.0
+margin_bottom = 21.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+value = 50.0
+texture_under = SubResource( 2 )
+texture_progress = SubResource( 4 )
+nine_patch_stretch = true

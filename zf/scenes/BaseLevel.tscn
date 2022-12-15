@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://scenes/Base.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/PlayerStatus.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/PlayerHealthBar2D.tscn" type="PackedScene" id=3]
 
 [node name="Scene" instance=ExtResource( 1 )]
 
@@ -11,10 +12,21 @@
 layer = 0
 
 [node name="PlayerStatus" parent="UI/MarginContainer/UIExtra" index="0" instance=ExtResource( 2 )]
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.6
+anchor_top = 0.45
+anchor_bottom = 0.55
 margin_left = 30.0
-margin_right = 200.0
+margin_right = -30.0
 bbcode_text = ""
 text = ""
+
+[node name="Control" type="Control" parent="UI/MarginContainer/UIExtra" index="1"]
+anchor_top = 0.57
+anchor_right = 1.0
+anchor_bottom = 0.57
+margin_left = 30.0
+margin_right = -30.0
+margin_bottom = 20.0
+
+[node name="HBoxContainer" parent="UI/MarginContainer/UIExtra/Control" index="0" instance=ExtResource( 3 )]
+anchor_bottom = 1.0
+margin_bottom = 0.0

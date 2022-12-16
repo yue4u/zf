@@ -16,7 +16,7 @@ use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
     common::{current_scene, find_ref, PackedSceneRef, SceneLoader},
-    entities::{GameState, GLOBAL_GAME_STATE},
+    entities::{GameEvent, GLOBAL_GAME_STATE},
     managers::VMManager,
     refs::{self, path::SceneName, HasPath},
     vm::{CommandInput, CommandResult, VMSignal},
@@ -269,7 +269,7 @@ impl Terminal {
                 ),
                 code.paint("help")
             )),
-            SceneName::TutorialMovement => Some(format!(
+            SceneName::Tutorial => Some(format!(
                 "type {} to explore engine command",
                 code.paint("engine --help")
             )),
@@ -585,21 +585,22 @@ impl Terminal {
     }
 
     #[method]
-    fn on_game_state(&mut self, #[base] base: TRef<Control>, state: GameState) -> Option<()> {
+    fn on_game_state(&mut self, #[base] base: TRef<Control>, state: GameEvent) -> Option<()> {
         tracing::debug!("on_game_state: {:?}", &state);
         match state {
-            GameState::MissionComplete(msg) => {
+            GameEvent::MissionComplete(msg) => {
                 self.write("\n");
                 self.write(&msg);
                 self.prompt();
                 base.update();
             }
-            GameState::LevelChange(scene) => {
+            GameEvent::LevelChange(scene) => {
                 self.clear();
                 self.write_scene_message(scene);
                 self.prompt();
                 base.update();
             }
+            _ => {}
         };
         Some(())
     }

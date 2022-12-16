@@ -1,4 +1,5 @@
 use gdnative::prelude::{FromVariant, ToVariant};
+use std::fmt::Display;
 
 #[rustfmt::skip]
 #[allow(dead_code)]
@@ -28,8 +29,8 @@ pub mod scenes {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod levels {
-    pub const TUTORIAL_MOVEMENT: &str = "res://levels/Tutorial-Movement.tscn";
-    pub const TUTORIAL_FIRE: &str = "res://levels/Tutorial-Fire.tscn";
+    pub const TUTORIAL_FIRE: &str = "res://levels/TutorialFire.tscn";
+    pub const TUTORIAL: &str = "res://levels/Tutorial.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const SANDBOX: &str = "res://levels/Sandbox.tscn";
 }
@@ -38,18 +39,31 @@ pub mod levels {
 #[allow(dead_code)]
 #[derive(Debug, ToVariant, FromVariant)]
 pub enum SceneName {
-    TutorialMovement,
     TutorialFire,
+    Tutorial,
     StartMenu,
     Sandbox,
     Unknown,
 }
 
+impl Display for SceneName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let scene_name = match &self {
+            SceneName::TutorialFire => "TutorialFire",
+            SceneName::Tutorial => "Tutorial",
+            SceneName::StartMenu => "StartMenu",
+            SceneName::Sandbox => "Sandbox",
+            SceneName::Unknown => "Unknown",
+        };
+        f.write_str(scene_name)
+    }
+}
+
 impl From<&str> for SceneName {
     fn from(value: &str) -> Self {
         match value {
-            levels::TUTORIAL_MOVEMENT => SceneName::TutorialMovement,
             levels::TUTORIAL_FIRE => SceneName::TutorialFire,
+            levels::TUTORIAL => SceneName::Tutorial,
             levels::START_MENU => SceneName::StartMenu,
             levels::SANDBOX => SceneName::Sandbox,
             _ => SceneName::Unknown,
@@ -60,8 +74,8 @@ impl From<&str> for SceneName {
 impl SceneName {
     pub fn path(&self) -> &'static str {
         match self {
-            SceneName::TutorialMovement => levels::TUTORIAL_MOVEMENT,
             SceneName::TutorialFire => levels::TUTORIAL_FIRE,
+            SceneName::Tutorial => levels::TUTORIAL,
             SceneName::StartMenu => levels::START_MENU,
             SceneName::Sandbox => levels::SANDBOX,
             SceneName::Unknown => unreachable!(),
@@ -245,19 +259,19 @@ pub mod homing_missile {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod tutorial_movement {
-    pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
-    pub const PATH: &str = "/root/Scene/Level/Path";
-    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
-    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
 pub mod tutorial_fire {
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
     pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
     pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial {
+    pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
 }
 
 #[rustfmt::skip]
@@ -314,4 +328,3 @@ pub mod assets {
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
 }
-

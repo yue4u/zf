@@ -4,7 +4,7 @@ use gdnative::{
 };
 
 use crate::{
-    common::find_ref, entities::GameState, managers::VMManager, refs::groups, vm::VMSignal,
+    common::find_ref, entities::GameEvent, managers::VMManager, refs::groups, vm::VMSignal,
 };
 
 #[derive(NativeClass)]
@@ -47,7 +47,7 @@ impl TargetDummy {
     pub fn damage(&self) {
         unsafe { self.base.assume_safe() }.emit_signal(
             HIT_BY_PLAYER,
-            &[GameState::MissionComplete("Target is damaged!".to_owned()).to_variant()],
+            &[GameEvent::MissionComplete("Target is damaged!".to_owned()).to_variant()],
         );
     }
 }

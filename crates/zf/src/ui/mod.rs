@@ -9,7 +9,7 @@ mod radar;
 mod result;
 mod screen_transition;
 mod terminal;
-mod tips;
+mod mission;
 
 pub use env::*;
 pub use hello::*;
@@ -22,4 +22,4 @@ pub use radar::*;
 pub use result::*;
 pub use screen_transition::*;
 pub use terminal::*;
-pub use tips::*;
+pub use mission::*;

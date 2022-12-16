@@ -8,7 +8,7 @@ use gdnative::prelude::{FromVariant, ToVariant};
 use nu_ansi_term::*;
 
 #[derive(Debug)]
-pub struct Mission {
+pub struct MissionLegacy {
     title: String,
     info: String,
     targets: TargetsMap,
@@ -23,12 +23,13 @@ pub struct MissionTarget {
 }
 
 #[derive(Debug, ToVariant, FromVariant)]
-pub enum GameState {
+pub enum GameEvent {
+    HitTargetPoint,
     MissionComplete(String),
     LevelChange(SceneName),
 }
 
-impl Mission {
+impl MissionLegacy {
     pub fn summary(self) -> String {
         format!(
             "{}\n\n{}",

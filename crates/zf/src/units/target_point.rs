@@ -4,7 +4,7 @@ use gdnative::{
 };
 
 use crate::{
-    common::find_ref, entities::GameState, managers::VMManager, refs::groups, vm::VMSignal,
+    common::find_ref, entities::GameEvent, managers::VMManager, refs::groups, vm::VMSignal,
 };
 
 #[derive(NativeClass)]
@@ -16,7 +16,8 @@ const HIT_BY_PLAYER: &'static str = "hit_by_player";
 
 #[methods]
 impl TargetPoint {
-    fn new(_base: &Spatial) -> Self {
+    fn new(base: &Spatial) -> Self {
+        base.add_to_group(groups::TARGET_POINT, false);
         TargetPoint
     }
 
@@ -58,10 +59,8 @@ impl TargetPoint {
             return None;
         }
 
-        base.emit_signal(
-            HIT_BY_PLAYER,
-            &[GameState::MissionComplete("Reached target point".to_owned()).to_variant()],
-        );
+        base.emit_signal(HIT_BY_PLAYER, &[GameEvent::HitTargetPoint.to_variant()]);
+        base.queue_free();
 
         None
     }

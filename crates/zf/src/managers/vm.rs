@@ -15,7 +15,7 @@ use zf_ffi::{memory::Tag, CommandArgs, GameCommand, MissionCommand, TaskCommand}
 
 use crate::{
     common::{current_scene, find_ref},
-    entities::{GameState, Mission},
+    entities::{GameEvent, MissionLegacy},
     refs::{
         groups,
         path::{auto_load, SceneName},
@@ -162,22 +162,23 @@ impl VMManager {
     }
 
     #[method]
-    pub fn on_game_state(&mut self, #[base] base: &Node, state: GameState) -> Option<()> {
+    pub fn on_game_state(&mut self, #[base] base: &Node, state: GameEvent) -> Option<()> {
         // tracing::info!("receive_game_state: {:?}", result);
 
         let state = match state {
-            GameState::MissionComplete(msg) => {
+            GameEvent::MissionComplete(msg) => {
                 let runtime = self.runtime.as_mut()?;
                 let result = runtime
                     .eval(format!("fsays 'Mission completed: {}'", msg))
                     .expect("fsays should work");
-                GameState::MissionComplete(result)
+
+                unsafe { base.get_tree().unwrap().assume_safe() }.set_pause(true);
+                GameEvent::MissionComplete(result)
             }
             as_is => as_is,
         };
 
         base.emit_signal(VMSignal::OnGameState, &[state.to_variant()]);
-        unsafe { base.get_tree().unwrap().assume_safe() }.set_pause(true);
         Some(())
     }
 
@@ -186,7 +187,7 @@ impl VMManager {
         let scene = current_scene(unsafe { node.assume_safe() }.as_ref());
         base.emit_signal(
             VMSignal::OnGameState,
-            &[GameState::LevelChange(scene).to_variant()],
+            &[GameEvent::LevelChange(scene).to_variant()],
         );
     }
 }
@@ -286,9 +287,10 @@ impl RuntimeFunc {
                 zf_runtime::write_string_with_caller(&mut caller, ret)
             }
             CommandArgs::Mission(m) => match m {
-                MissionCommand::Info => {
-                    zf_runtime::write_string_with_caller(&mut caller, Mission::dummy().summary())
-                }
+                MissionCommand::Info => zf_runtime::write_string_with_caller(
+                    &mut caller,
+                    MissionLegacy::dummy().summary(),
+                ),
             },
             CommandArgs::Game(g) => {
                 match g {
@@ -299,7 +301,7 @@ impl RuntimeFunc {
                         caller.data().ext.change_scene(SceneName::StartMenu);
                     }
                     GameCommand::Tutorial => {
-                        caller.data().ext.change_scene(SceneName::TutorialMovement);
+                        caller.data().ext.change_scene(SceneName::Tutorial);
                     }
                     GameCommand::End => {
                         caller.data().ext.scene_tree().quit(0);

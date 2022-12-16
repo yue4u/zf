@@ -3,6 +3,7 @@ use gdnative::{api::Area, prelude::TRef};
 pub const PLAYER: &'static str = "player";
 pub const ENEMY: &'static str = "enemy";
 pub const RADAR: &'static str = "radar";
+pub const TARGET_POINT: &'static str = "target_point";
 
 #[derive(Debug)]
 #[allow(dead_code, non_camel_case_types)]

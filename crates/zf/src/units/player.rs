@@ -12,7 +12,7 @@ use crate::{
         groups::{self, Layer},
         path::scenes,
     },
-    vm::{register_vm_signal, CommandInput, VMConnecter, VMSignal},
+    vm::{CommandInput, VMConnecter, VMSignal},
     weapons::HomingMissile,
 };
 

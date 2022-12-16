@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://scenes/Base.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/PlayerStatus.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scenes/PlayerHealthBar.tscn" type="PackedScene" id=3]
 [ext_resource path="res://assets/UITheme.tres" type="Theme" id=4]
+[ext_resource path="res://scenes/Mission.tscn" type="PackedScene" id=5]
 
 [node name="Scene" instance=ExtResource( 1 )]
 
@@ -12,14 +13,60 @@
 [node name="UIExtra" parent="UI/MarginContainer" index="0"]
 layer = 0
 
-[node name="PlayerStatus" parent="UI/MarginContainer/UIExtra" index="0" instance=ExtResource( 2 )]
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/MarginContainer/UIExtra" index="0"]
 anchor_top = 0.4
+anchor_right = 1.0
 anchor_bottom = 0.55
 margin_left = 30.0
 margin_right = -30.0
+alignment = 1
+
+[node name="Mission" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="0" instance=ExtResource( 5 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 189.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Control2" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="1"]
+margin_left = 193.0
+margin_right = 383.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Control3" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="2"]
+margin_left = 387.0
+margin_right = 576.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Control" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="3"]
+margin_left = 580.0
+margin_right = 770.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PlayerStatus" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="4" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 774.0
+margin_right = 964.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme = ExtResource( 4 )
-bbcode_text = ""
-text = ""
+bbcode_text = "Status
+speed: {:.2}
+position: {}
+rotation: {}
+
+Engine
+engine: {:?}"
+scroll_active = false
 
 [node name="Control" type="HBoxContainer" parent="UI/MarginContainer/UIExtra" index="1"]
 anchor_top = 0.57

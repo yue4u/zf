@@ -12,7 +12,7 @@ use crate::{
 #[register_with(Self::register_signals)]
 pub struct TargetPoint;
 
-const HIT_BY_PLAYER: &'static str = "hit_by_player";
+const HIT_TARGET_POINT: &'static str = "hit_target_point";
 
 #[methods]
 impl TargetPoint {
@@ -37,7 +37,7 @@ impl TargetPoint {
         let vm_manager = find_ref::<VMManager, Node>(as_node)?;
 
         base.connect(
-            HIT_BY_PLAYER,
+            HIT_TARGET_POINT,
             vm_manager,
             VMSignal::OnGameState.as_str(),
             VariantArray::new_shared(),
@@ -48,7 +48,7 @@ impl TargetPoint {
     }
 
     fn register_signals(builder: &ClassBuilder<Self>) {
-        builder.signal(HIT_BY_PLAYER).done();
+        builder.signal(HIT_TARGET_POINT).done();
     }
 
     #[method]
@@ -59,7 +59,7 @@ impl TargetPoint {
             return None;
         }
 
-        base.emit_signal(HIT_BY_PLAYER, &[GameEvent::HitTargetPoint.to_variant()]);
+        base.emit_signal(HIT_TARGET_POINT, &[GameEvent::HitTargetPoint.to_variant()]);
         base.queue_free();
 
         None

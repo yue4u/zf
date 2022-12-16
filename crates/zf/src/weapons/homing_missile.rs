@@ -13,6 +13,8 @@ pub struct HomingMissile {
 
 #[methods]
 impl HomingMissile {
+    const DAMGAE: u32 = 50;
+
     fn new(_base: &Spatial) -> Self {
         // tracing::info!("prepare HomingMissile");
         HomingMissile { target_pos: None }
@@ -42,7 +44,7 @@ impl HomingMissile {
 
     #[method]
     fn on_detected(&self, #[base] base: &Spatial, area: Ref<Area>) {
-        if area.try_damage().is_ok() {
+        if area.try_damage(Self::DAMGAE).is_ok() {
             base.queue_free();
         }
     }

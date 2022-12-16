@@ -98,10 +98,9 @@ impl Player {
         let current_status = self.engine.borrow();
         let next_status = match &input.cmd {
             CommandArgs::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
-            CommandArgs::Engine(EngineCommand::Thruster(percent)) => match &*current_status {
-                EngineStatus::On(_) => Some(EngineStatus::On(*percent)),
-                _ => None,
-            },
+            CommandArgs::Engine(EngineCommand::Thruster(percent)) => {
+                Some(EngineStatus::On(*percent))
+            }
             CommandArgs::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
             CommandArgs::Fire(fire) => {
                 // tracing::info!("fire: {:?}", fire);
@@ -153,9 +152,8 @@ impl Player {
     }
 
     #[method]
-    pub fn damage(&self) {
-        tracing::debug!("{:?}", "damage player!");
-        unsafe { self.base.assume_safe() }.emit_signal(PLAYER_HIT, &[1.to_variant()]);
+    pub fn damage(&self, ammount: u32) {
+        unsafe { self.base.assume_safe() }.emit_signal(PLAYER_HIT, &[ammount.to_variant()]);
     }
 
     pub fn display(&self) -> String {

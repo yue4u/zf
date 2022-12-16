@@ -28,6 +28,8 @@ struct MissionDetails {
     // cmds: u32,
 }
 
+const ON_MISSION_STATE: &'static str = "ON_MISSION_STATE";
+
 #[methods]
 impl Mission {
     fn new(base: TRef<RichTextLabel>) -> Self {
@@ -38,7 +40,7 @@ impl Mission {
     }
 
     pub fn register_signal<T: NativeClass>(builder: &ClassBuilder<T>) {
-        builder.signal(VMSignal::OnGameState.as_str()).done();
+        builder.signal(ON_MISSION_STATE).done();
     }
 
     #[method]
@@ -57,7 +59,7 @@ impl Mission {
             .expect("failed to connect vm");
 
         base.connect(
-            VMSignal::OnGameState,
+            ON_MISSION_STATE,
             vm_manager,
             VMSignal::OnGameState,
             VariantArray::new_shared(),
@@ -78,11 +80,16 @@ impl Mission {
         let m = self.mission.as_mut().unwrap();
         match state {
             // GameEvent::MissionComplete(msg) => {}
-            GameEvent::LevelChange(scene) => m.scene = scene,
-            GameEvent::HitTargetPoint => m.target_points += 1,
+            GameEvent::LevelChange(scene) => {
+                m.scene = scene;
+                self.update_text();
+            }
+            GameEvent::HitTargetPoint => {
+                m.target_points += 1;
+                self.update_text();
+            }
             _ => {}
         };
-        self.update_text();
         Some(())
     }
 
@@ -121,7 +128,7 @@ Target enemies: {enemies} / {enemies_all}
 
         if enemies == enemies_all && target_points == target_points_all {
             base.emit_signal(
-                VMSignal::OnGameState,
+                ON_MISSION_STATE,
                 &[GameEvent::MissionComplete(scene.to_string()).to_variant()],
             );
         }

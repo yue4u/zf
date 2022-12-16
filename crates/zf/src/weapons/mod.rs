@@ -48,11 +48,11 @@ impl Weapon for TRef<'_, Spatial> {
 }
 
 trait DamageAble {
-    fn try_damage(&self) -> anyhow::Result<()>;
+    fn try_damage(&self, ammount: u32) -> anyhow::Result<()>;
 }
 
 impl DamageAble for Ref<Area> {
-    fn try_damage(&self) -> anyhow::Result<()> {
+    fn try_damage(&self, ammount: u32) -> anyhow::Result<()> {
         let area = unsafe { self.assume_safe() };
         if area.collision_layer() == 0 {
             // tracing::debug!("{:?}","does not have collision layer");
@@ -72,7 +72,7 @@ impl DamageAble for Ref<Area> {
         }
 
         unsafe {
-            spatial.call_deferred("damage", &[]);
+            spatial.call_deferred("damage", &[ammount.to_variant()]);
         }
         Ok(())
     }

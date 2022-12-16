@@ -45,7 +45,7 @@ impl TDummy {
     }
 
     #[method]
-    pub fn damage(&self) {
+    pub fn damage(&self, _ammount: u32) {
         let hp = unsafe { self.hp.unwrap().assume_safe() };
         let hp_tmp = hp.value() - 0.5 * hp.max();
         hp.set_value(hp_tmp);

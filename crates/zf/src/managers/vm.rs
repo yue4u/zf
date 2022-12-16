@@ -14,7 +14,7 @@ use std::{
 use zf_ffi::{memory::Tag, CommandArgs, GameCommand, MissionCommand, TaskCommand};
 
 use crate::{
-    common::{current_scene, find_ref},
+    common::{current_scene, find_ref, get_tree},
     entities::{GameEvent, MissionLegacy},
     refs::{
         groups,
@@ -162,23 +162,23 @@ impl VMManager {
     }
 
     #[method]
-    pub fn on_game_state(&mut self, #[base] base: &Node, state: GameEvent) -> Option<()> {
-        // tracing::info!("receive_game_state: {:?}", result);
+    pub fn on_game_state(&mut self, #[base] base: &Node, event: GameEvent) -> Option<()> {
+        tracing::trace!("receive_game_event: {:?}", event);
 
-        let state = match state {
+        let event = match event {
             GameEvent::MissionComplete(msg) => {
                 let runtime = self.runtime.as_mut()?;
                 let result = runtime
                     .eval(format!("fsays 'Mission completed: {}'", msg))
                     .expect("fsays should work");
 
-                unsafe { base.get_tree().unwrap().assume_safe() }.set_pause(true);
+                get_tree(base).set_pause(true);
                 GameEvent::MissionComplete(result)
             }
             as_is => as_is,
         };
 
-        base.emit_signal(VMSignal::OnGameState, &[state.to_variant()]);
+        base.emit_signal(VMSignal::OnGameState, &[event.to_variant()]);
         Some(())
     }
 

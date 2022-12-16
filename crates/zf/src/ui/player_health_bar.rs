@@ -12,6 +12,7 @@ use crate::{
 #[inherit(Node)]
 pub struct PlayerHealthBar {
     current: u32,
+    prev: f64,
     max: u32,
     current_label: Option<Ref<Label>>,
     max_label: Option<Ref<Label>>,
@@ -23,6 +24,7 @@ impl PlayerHealthBar {
     fn new(_base: &Node) -> Self {
         PlayerHealthBar {
             current: 1000,
+            prev: 1000.,
             max: 1000,
             current_label: None,
             max_label: None,
@@ -69,6 +71,7 @@ impl PlayerHealthBar {
     }
 
     pub fn update(&mut self, delta: u32) {
+        self.prev = self.current as f64;
         self.current = self.current.saturating_sub(delta);
 
         unsafe { self.current_label.as_ref().unwrap().assume_safe() }
@@ -77,18 +80,18 @@ impl PlayerHealthBar {
     }
 
     fn update_shader_param(&self) {
-        let val = self.current as f32 / self.max as f32;
+        let val = self.current as f64 / self.max as f64;
+        let prev_value = self.prev / self.max as f64;
 
-        unsafe {
+        let texture_rect = unsafe {
             self.progress_rect
                 .unwrap()
                 .assume_safe()
                 .material()
                 .unwrap()
-                .assume_safe()
-                .cast::<ShaderMaterial>()
-                .unwrap()
-                .set_shader_param("value", val);
         };
+        let shader = unsafe { texture_rect.assume_safe().cast::<ShaderMaterial>().unwrap() };
+        shader.set_shader_param("value", val);
+        shader.set_shader_param("prev_value", prev_value);
     }
 }

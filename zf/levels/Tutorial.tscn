@@ -10,7 +10,7 @@ _data = {
 "tilts": PoolRealArray( 0, 0, 0, 0 )
 }
 
-[node name="Scene" instance=ExtResource( 3 )]
+[node name="Scene2" instance=ExtResource( 3 )]
 
 [node name="TargetPoint2" parent="Level" index="1" instance=ExtResource( 1 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 5.37522, 8.28971, 83.9233 )

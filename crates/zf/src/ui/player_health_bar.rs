@@ -23,9 +23,9 @@ pub struct PlayerHealthBar {
 impl PlayerHealthBar {
     fn new(_base: &Node) -> Self {
         PlayerHealthBar {
-            current: 1000,
-            prev: 1000.,
-            max: 1000,
+            current: 5000,
+            prev: 5000.,
+            max: 5000,
             current_label: None,
             max_label: None,
             progress_rect: None,
@@ -63,6 +63,14 @@ impl PlayerHealthBar {
                 ConnectFlags::DEFERRED.into(),
             )
             .expect("failed to connect line edit");
+    }
+
+    #[method]
+    fn _process(&mut self, #[base] _base: &Node, delta: f64) {
+        if self.prev > self.current as f64 {
+            self.prev -= delta * 100.;
+        }
+        self.update_shader_param();
     }
 
     #[method]

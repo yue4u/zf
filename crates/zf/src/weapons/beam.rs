@@ -14,7 +14,7 @@ pub struct Beam {
 
 #[methods]
 impl Beam {
-    const DAMAGE: u32 = 2;
+    const DAMAGE: u32 = 50;
 
     fn new(_base: &Spatial) -> Self {
         // tracing::info!("prepare Beam");

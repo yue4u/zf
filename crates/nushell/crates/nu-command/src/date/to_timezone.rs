@@ -84,9 +84,10 @@ impl Command for SubCommand {
                 // result: None
                 // The following should be the result of the test, but it fails. Cannot figure it out why.
                 result: {
-                    let dt = FixedOffset::east(5 * 3600)
-                        .ymd(2020, 10, 10)
-                        .and_hms(13, 00, 00);
+                    let dt = FixedOffset::east_opt(5 * 3600)
+                        .unwrap()
+                        .with_ymd_and_hms(2020, 10, 10, 13, 00, 00)
+                        .unwrap();
 
                     Some(Value::Date {
                         val: dt,

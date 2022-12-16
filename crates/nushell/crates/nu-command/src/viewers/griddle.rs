@@ -183,7 +183,7 @@ prints out the list properly."#
 /// Keeps `\n` removes `\r`, `\t` etc.
 ///
 /// If parsing fails silently returns the input string
-fn strip_ansi(string: &str) -> Cow<str> {
+fn _strip_ansi(string: &str) -> Cow<str> {
     // Check if any ascii control character except LF(0x0A = 10) is present,
     // which will be stripped. Includes the primary start of ANSI sequences ESC
     // (0x1B = decimal 27)
@@ -205,17 +205,15 @@ fn create_grid_output(
     color_param: bool,
     separator_param: Option<String>,
     env_str: Option<String>,
-    use_grid_icons: bool,
+    _use_grid_icons: bool,
 ) -> Result<PipelineData, ShellError> {
     let ls_colors = get_ls_colors(env_str);
 
     let cols = if let Some(col) = width_param {
         col as u16
-    }
-    else if let Some((Width(w), Height(_h))) = terminal_size::terminal_size() {
+    } else if let Some((Width(w), Height(_h))) = terminal_size::terminal_size() {
         w
-    }
-    else {
+    } else {
         80u16
     };
     let sep = if let Some(separator) = separator_param {

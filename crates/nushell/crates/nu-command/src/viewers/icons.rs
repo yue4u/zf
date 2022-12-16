@@ -130,7 +130,7 @@ lazy_static! {
     };
 }
 
-pub fn icon_for_file(file_path: &Path, span: Span) -> Result<char, ShellError> {
+pub fn _icon_for_file(file_path: &Path, span: Span) -> Result<char, ShellError> {
     let extensions = Box::new(FileExtensions);
     let fp = format!("{}", file_path.display());
 

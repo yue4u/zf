@@ -136,7 +136,7 @@ impl Terminal {
             state: ZFTerm::new(writer, TerminalSize::default()),
             completion_item_list,
             typing_particles: SceneLoader::load(refs::path::scenes::TYPING_PARTICLES).unwrap(),
-            bg_opacity: 0.5,
+            bg_opacity: 0.3,
         }
     }
 

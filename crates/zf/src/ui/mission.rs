@@ -88,6 +88,10 @@ impl Mission {
                 m.target_points += 1;
                 self.update_text();
             }
+            GameEvent::EnemyDestroied => {
+                m.enemies += 1;
+                self.update_text();
+            }
             _ => {}
         };
         Some(())

@@ -1,5 +1,4 @@
 use gdnative::prelude::{FromVariant, ToVariant};
-use std::fmt::Display;
 
 #[rustfmt::skip]
 #[allow(dead_code)]
@@ -20,6 +19,7 @@ pub mod scenes {
     pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
     pub const TARGET_DUMMY: &str = "res://scenes/TargetDummy.tscn";
+    pub const MISSION: &str = "res://scenes/Mission.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
     pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
@@ -46,19 +46,6 @@ pub enum SceneName {
     Unknown,
 }
 
-impl Display for SceneName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let scene_name = match &self {
-            SceneName::TutorialFire => "TutorialFire",
-            SceneName::Tutorial => "Tutorial",
-            SceneName::StartMenu => "StartMenu",
-            SceneName::Sandbox => "Sandbox",
-            SceneName::Unknown => "Unknown",
-        };
-        f.write_str(scene_name)
-    }
-}
-
 impl From<&str> for SceneName {
     fn from(value: &str) -> Self {
         match value {
@@ -83,6 +70,18 @@ impl SceneName {
     }
 }
 
+impl std::fmt::Display for SceneName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let scene_name = match &self {
+            SceneName::TutorialFire => "TutorialFire",
+            SceneName::Tutorial => "Tutorial",
+            SceneName::StartMenu => "StartMenu",
+            SceneName::Sandbox => "Sandbox",
+            SceneName::Unknown => "Unknown",
+        };
+        f.write_str(scene_name)
+    }
+}
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod health_bar_3_d {
@@ -204,9 +203,14 @@ pub mod launcher {
 pub mod base_level {
     pub const PROJECTILES: &str = "/root/Scene/Level/Projectiles";
     pub const UI_EXTRA: &str = "/root/Scene/UI/MarginContainer/UIExtra";
-    pub const PLAYER_STATUS: &str = "/root/Scene/UI/MarginContainer/UIExtra/PlayerStatus";
-    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
-    pub const H_BOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/HBoxContainer";
+    pub const H_BOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer";
+    pub const MISSION: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Mission";
+    pub const CONTROL_2: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Control2";
+    pub const CONTROL_3: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Control3";
+    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Control";
+    pub const PLAYER_STATUS: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/PlayerStatus";
+    pub const CONTROL_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
+    pub const H_BOX_CONTAINER_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/HBoxContainer";
     pub const LABEL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/Label";
 }
 
@@ -217,6 +221,12 @@ pub mod target_dummy {
     pub const AREA: &str = "/root/Scene/Area";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
     pub const HP: &str = "/root/Scene/HP";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod mission {
+
 }
 
 #[rustfmt::skip]
@@ -268,6 +278,7 @@ pub mod tutorial_fire {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod tutorial {
+    pub const TARGET_POINT_2: &str = "/root/Scene/Level/TargetPoint2";
     pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
@@ -312,6 +323,7 @@ pub mod sandbox {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod assets {
+    pub const PATH_FOLLOW_SHADER: &str = "res://assets/PathFollow.shader";
     pub const T_DUMMY_TSCN: &str = "res://assets/t-dummy.tscn";
     pub const UI_THEME_TRES: &str = "res://assets/UITheme.tres";
     pub const JET_BRAINS_MONO_TRES: &str = "res://assets/JetBrains_Mono.tres";

@@ -25,6 +25,7 @@ pub struct MissionTarget {
 #[derive(Debug, ToVariant, FromVariant)]
 pub enum GameEvent {
     HitTargetPoint,
+    EnemyDestroied,
     MissionComplete(String),
     LevelChange(SceneName),
 }

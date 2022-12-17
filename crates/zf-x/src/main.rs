@@ -82,7 +82,7 @@ pub fn main() -> io::Result<()> {
 "#
                 ));
 
-                let inner = &level_inner
+                let path_inner = &level_inner
                     .iter()
                     .map(|v| {
                         format!(
@@ -93,16 +93,38 @@ pub fn main() -> io::Result<()> {
                     })
                     .collect::<Vec<String>>()
                     .join("\n");
+
+                let display_inner = &level_inner
+                    .iter()
+                    .map(|v| {
+                        format!(
+                            "            SceneName::{} => \"{}\",",
+                            v.to_case(Case::UpperCamel),
+                            v.to_case(Case::UpperCamel),
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
                 code.push_str(&format!(
                     r#"impl SceneName {{
     pub fn path(&self) -> &'static str {{
         match self {{
-{inner}
+{path_inner}
             SceneName::Unknown => unreachable!(),
         }}
     }}
 }}
 
+impl std::fmt::Display for SceneName {{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
+        let scene_name = match &self {{
+{display_inner}
+            SceneName::Unknown => "Unknown",
+        }};
+        f.write_str(scene_name)
+    }}
+}}
 "#
                 ));
             }

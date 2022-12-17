@@ -1,17 +1,26 @@
-use gdnative::{api::TextureProgress, prelude::*};
+use gdnative::{
+    api::{object::ConnectFlags, TextureProgress},
+    prelude::*,
+};
 
 use crate::{
-    common::LookAtPlauer,
+    common::{find_ref, LookAtPlauer},
+    entities::GameEvent,
+    managers::VMManager,
     refs::{groups, path},
+    vm::VMSignal,
     weapons::Launcher,
 };
 
 #[derive(NativeClass)]
 #[inherit(Spatial)]
+#[register_with(Self::register_signals)]
 pub struct TDummy {
     hp: Option<Ref<TextureProgress>>,
     base_ref: Ref<Spatial>,
 }
+
+const ON_DESTROY: &'static str = "ON_DESTROY";
 
 #[methods]
 impl TDummy {
@@ -25,6 +34,10 @@ impl TDummy {
         }
     }
 
+    fn register_signals(builder: &ClassBuilder<Self>) {
+        builder.signal(ON_DESTROY).done();
+    }
+
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Spatial>) -> Option<()> {
         let hp = unsafe {
@@ -36,6 +49,19 @@ impl TDummy {
         .expect("expect can cast TextureProgress")
         .claim();
         self.hp = Some(hp);
+
+        let as_node = unsafe { base.get_node_as::<Node>(".")? };
+        let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+
+        base.connect(
+            ON_DESTROY,
+            vm_manager,
+            VMSignal::OnGameState.as_str(),
+            VariantArray::new_shared(),
+            ConnectFlags::DEFERRED.into(),
+        )
+        .expect("failed to connect hit_by_player");
+
         Some(())
     }
 
@@ -45,11 +71,12 @@ impl TDummy {
     }
 
     #[method]
-    pub fn damage(&self, _ammount: u32) {
+    pub fn damage(&self, #[base] base: TRef<Spatial>, _ammount: u32) {
         let hp = unsafe { self.hp.unwrap().assume_safe() };
         let hp_tmp = hp.value() - 0.5 * hp.max();
         hp.set_value(hp_tmp);
         if hp_tmp < 0. {
+            base.emit_signal(ON_DESTROY, &[GameEvent::EnemyDestroied.to_variant()]);
             unsafe { self.base_ref.assume_safe() }.queue_free()
         }
     }

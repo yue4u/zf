@@ -102,3 +102,71 @@ fn thruster(
     zf_ffi::cmd(args);
     Ok(Value::Nothing { span: call.head }.into_pipeline_data())
 }
+
+#[derive(Clone)]
+pub(crate) struct EngineRel;
+
+impl Command for EngineRel {
+    fn name(&self) -> &str {
+        "engine rel"
+    }
+
+    fn signature(&self) -> nu_protocol::Signature {
+        Signature::build(self.name())
+            .named(
+                "x",
+                SyntaxShape::Number,
+                "set relative x from orbit",
+                Some('x'),
+            )
+            .named(
+                "y",
+                SyntaxShape::Number,
+                "set relative y from orbit",
+                Some('y'),
+            )
+            .named(
+                "z",
+                SyntaxShape::Number,
+                "set relative z from orbit",
+                Some('z'),
+            )
+            .switch(
+                "reset",
+                "reset any unprovided relative pos from orbit",
+                Some('r'),
+            )
+    }
+
+    fn usage(&self) -> &str {
+        "Set relative pos from orbit"
+    }
+
+    fn run(
+        &self,
+        engine_state: &EngineState,
+        stack: &mut Stack,
+        call: &Call,
+        _input: PipelineData,
+    ) -> Result<PipelineData, ShellError> {
+        let reset = call.has_flag("reset");
+
+        let pos = ["x", "y", "z"]
+            .iter()
+            .map(|name| {
+                call.get_flag::<Value>(engine_state, stack, name)?
+                    .map(|v| v.as_float().map(|v| v as f32))
+                    .or_else(|| if reset { Some(Ok(0.)) } else { None })
+                    .transpose()
+            })
+            .collect::<Result<Vec<Option<f32>>, ShellError>>()?;
+
+        let args = CommandArgs::Engine(EngineCommand::Rel {
+            x: pos[0],
+            y: pos[1],
+            z: pos[2],
+        });
+        zf_ffi::cmd(args);
+        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
+    }
+}

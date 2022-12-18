@@ -44,6 +44,11 @@ pub enum EngineCommand {
     On,
     Off,
     Thruster(i8),
+    Rel {
+        x: Option<f32>,
+        y: Option<f32>,
+        z: Option<f32>,
+    },
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

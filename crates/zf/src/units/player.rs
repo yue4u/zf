@@ -25,7 +25,7 @@ pub struct Player {
     speed: RefCell<f64>,
     position: RefCell<Position>,
     rotation: RefCell<Rotation>,
-    engine: RefCell<EngineStatus>,
+    engine: EngineState,
 }
 
 impl From<Ref<Spatial>> for Player {
@@ -35,9 +35,17 @@ impl From<Ref<Spatial>> for Player {
             speed: RefCell::<f64>::default(),
             position: RefCell::<Position>::default(),
             rotation: RefCell::<Rotation>::default(),
-            engine: RefCell::<EngineStatus>::default(),
+            engine: EngineState::default(),
         }
     }
+}
+
+type EngineRelState = Vector3;
+
+#[derive(Debug, Default)]
+struct EngineState {
+    status: EngineStatus,
+    rel: EngineRelState,
 }
 
 #[derive(Debug)]
@@ -93,15 +101,25 @@ impl Player {
     }
 
     #[method]
-    fn on_cmd_parsed(&self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
+    fn on_cmd_parsed(&mut self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
         // tracing::debug!("{:?}",&input);
-        let current_status = self.engine.borrow();
         let next_status = match &input.cmd {
             CommandArgs::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
             CommandArgs::Engine(EngineCommand::Thruster(percent)) => {
                 Some(EngineStatus::On(*percent))
             }
             CommandArgs::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
+            CommandArgs::Engine(EngineCommand::Rel { x, y, z }) => {
+                let transform = base.transform();
+                let rel = Vector3::new(
+                    x.unwrap_or(transform.origin.x),
+                    y.unwrap_or(transform.origin.y),
+                    z.unwrap_or(transform.origin.z),
+                );
+
+                self.engine.rel = rel;
+                None
+            }
             CommandArgs::Fire(fire) => {
                 // tracing::info!("fire: {:?}", fire);
                 let weapon =
@@ -128,9 +146,8 @@ impl Player {
             EngineStatus::On(percent) => MAX_SPEED * (percent as f64) / 100.,
             EngineStatus::Off => 0.,
         };
-        drop(current_status);
 
-        self.engine.replace(next_status);
+        self.engine.status = next_status;
         self.speed.replace(speed);
 
         let res = input.into_result(Ok("ok".to_string()));
@@ -140,9 +157,19 @@ impl Player {
 
     #[method]
     fn _process(&mut self, #[base] base: &Spatial, delta: f64) -> Option<()> {
-        let transform = base.cast::<Spatial>()?.global_transform();
-        self.position.replace(transform.origin);
-        self.rotation.replace(transform.basis.to_euler());
+        let global_transform = base.cast::<Spatial>()?.global_transform();
+        self.position.replace(global_transform.origin);
+        self.rotation.replace(global_transform.basis.to_euler());
+
+        let local_transform = base.transform();
+
+        base.set_transform(Transform {
+            basis: local_transform.basis,
+            origin: local_transform
+                .origin
+                .linear_interpolate(self.engine.rel, delta as f32),
+        });
+
         let speed = *self.speed.borrow();
         (speed > 0.01).then_some(())?;
 
@@ -164,12 +191,14 @@ position: {}
 rotation: {}
 
 [b][color=#4FFFCA]Engine[/color][/b]
-engine: {:?}
+status: {:?}
+rel: {:?}
 "#,
             self.speed.borrow(),
             self.position.borrow().display(),
             self.rotation.borrow().display(),
-            self.engine.borrow()
+            self.engine.status,
+            self.engine.rel
         )
     }
 }

@@ -29,7 +29,7 @@ path_node = NodePath("../Path")
 curve = SubResource( 1 )
 
 [node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
-transform = Transform( 0.856225, -0.105297, -0.505757, -7.45058e-09, 0.979008, -0.203825, 0.516602, 0.174521, 0.838249, 0, 0, 0 )
+transform = Transform( 0.856225, -0.105297, -0.505758, -7.45058e-09, 0.979007, -0.203826, 0.516602, 0.174521, 0.838251, 0, 0, 0 )
 rotation_mode = 4
 
 [node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="0" instance=ExtResource( 2 )]

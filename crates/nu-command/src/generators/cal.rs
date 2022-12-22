@@ -5,7 +5,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, Spanned,
-    SyntaxShape, Value,
+    SyntaxShape, Type, Value,
 };
 use std::collections::VecDeque;
 
@@ -48,6 +48,8 @@ impl Command for Cal {
                 "Display the month names instead of integers",
                 None,
             )
+            .input_output_types(vec![(Type::Nothing, Type::Table(vec![]))])
+            .allow_variants_without_examples(true) // TODO: supply exhaustive examples
             .category(Category::Generators)
     }
 
@@ -184,12 +186,12 @@ impl MonthHelper {
         let next_month_naive_date =
             NaiveDate::from_ymd_opt(selected_year, selected_month, 1).ok_or(())?;
 
-        Ok(next_month_naive_date.pred().day())
+        Ok(next_month_naive_date.pred_opt().unwrap_or_default().day())
     }
 }
 
 fn get_current_date() -> (i32, u32, u32) {
-    let local_now_date = Local::now().date();
+    let local_now_date = Local::now().date_naive();
 
     let current_year: i32 = local_now_date.year();
     let current_month: u32 = local_now_date.month();
@@ -305,20 +307,14 @@ fn add_month_to_table(
         if should_show_year_column {
             indexmap.insert(
                 "year".to_string(),
-                Value::Int {
-                    val: month_helper.selected_year as i64,
-                    span: tag,
-                },
+                Value::int(month_helper.selected_year as i64, tag),
             );
         }
 
         if should_show_quarter_column {
             indexmap.insert(
                 "quarter".to_string(),
-                Value::Int {
-                    val: month_helper.quarter_number as i64,
-                    span: tag,
-                },
+                Value::int(month_helper.quarter_number as i64, tag),
             );
         }
 
@@ -329,10 +325,7 @@ fn add_month_to_table(
                     span: tag,
                 }
             } else {
-                Value::Int {
-                    val: month_helper.selected_month as i64,
-                    span: tag,
-                }
+                Value::int(month_helper.selected_month as i64, tag)
             };
 
             indexmap.insert("month".to_string(), month_value);
@@ -347,10 +340,7 @@ fn add_month_to_table(
             if should_add_day_number_to_table {
                 let adjusted_day_number = day_number - total_start_offset;
 
-                value = Value::Int {
-                    val: adjusted_day_number as i64,
-                    span: tag,
-                };
+                value = Value::int(adjusted_day_number as i64, tag);
 
                 if let Some(current_day) = current_day_option {
                     if current_day == adjusted_day_number {

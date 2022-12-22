@@ -39,7 +39,7 @@ impl Display for DataFrameValue {
 impl Default for DataFrameValue {
     fn default() -> Self {
         Self(Value::Nothing {
-            span: Span { start: 0, end: 0 },
+            span: Span::unknown(),
         })
     }
 }
@@ -316,7 +316,7 @@ impl NuDataFrame {
         let column = conversion::create_column(&series, row, row + 1, span)?;
 
         if column.len() == 0 {
-            Err(ShellError::AccessBeyondEnd(series.len(), span))
+            Err(ShellError::AccessEmptyContent(span))
         } else {
             let value = column
                 .into_iter()

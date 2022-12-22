@@ -23,14 +23,17 @@ pub fn create_default_context() -> EngineState {
 
         // Database-related
         // Adds all related commands to query databases
-        #[cfg(feature = "database")]
+        #[cfg(feature = "sqlite")]
         add_database_decls(&mut working_set);
 
         // Core
         bind_command! {
             Alias,
             Ast,
+            Break,
             Commandline,
+            Const,
+            Continue,
             Debug,
             Def,
             DefEnv,
@@ -47,6 +50,7 @@ pub fn create_default_context() -> EngineState {
             Extern,
             For,
             Help,
+            HelpOperators,
             Hide,
             HideEnv,
             If,
@@ -57,10 +61,15 @@ pub fn create_default_context() -> EngineState {
             OverlayNew,
             OverlayHide,
             Let,
+            Loop,
             Metadata,
             Module,
+            Mut,
+            Return,
+            Try,
             Use,
             Version,
+            While,
         };
 
         // Charts
@@ -84,6 +93,7 @@ pub fn create_default_context() -> EngineState {
             EachWhile,
             Empty,
             Every,
+            Filter,
             Find,
             First,
             Flatten,
@@ -124,6 +134,7 @@ pub fn create_default_context() -> EngineState {
             SplitList,
             Transpose,
             Uniq,
+            UniqBy,
             Upsert,
             Update,
             UpdateCells,
@@ -158,11 +169,16 @@ pub fn create_default_context() -> EngineState {
         bind_command! {
             Benchmark,
             Complete,
-            Exec,
             External,
             NuCheck,
             Sys,
         };
+
+        #[cfg(unix)]
+        bind_command! { Exec }
+
+        #[cfg(windows)]
+        bind_command! { RegistryQuery }
 
         #[cfg(any(
             target_os = "android",
@@ -177,7 +193,6 @@ pub fn create_default_context() -> EngineState {
 
         // Strings
         bind_command! {
-            BuildString,
             Char,
             Decode,
             Encode,
@@ -330,7 +345,6 @@ pub fn create_default_context() -> EngineState {
             ToText,
             ToToml,
             ToTsv,
-            ToCsv,
             Touch,
             Use,
             Upsert,
@@ -344,6 +358,7 @@ pub fn create_default_context() -> EngineState {
         bind_command! {
             Griddle,
             Table,
+            Explore,
         };
 
         // Conversions
@@ -357,6 +372,7 @@ pub fn create_default_context() -> EngineState {
             IntoDuration,
             IntoFilesize,
             IntoInt,
+            IntoRecord,
             IntoString,
         };
 
@@ -392,6 +408,23 @@ pub fn create_default_context() -> EngineState {
             MathStddev,
             MathSum,
             MathVariance,
+            MathSin,
+            MathCos,
+            MathTan,
+            MathSinH,
+            MathCosH,
+            MathTanH,
+            MathArcSin,
+            MathArcCos,
+            MathArcTan,
+            MathArcSinH,
+            MathArcCosH,
+            MathArcTanH,
+            MathPi,
+            MathTau,
+            MathEuler,
+            MathLn,
+            MathLog,
         };
 
         // Network
@@ -399,10 +432,7 @@ pub fn create_default_context() -> EngineState {
             Fetch,
             Post,
             Url,
-            UrlHost,
-            UrlPath,
-            UrlQuery,
-            UrlScheme,
+            UrlParse,
             Port,
         }
 

@@ -3,7 +3,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, SyntaxShape,
-    Value,
+    Type, Value,
 };
 
 #[derive(Clone)]
@@ -16,6 +16,7 @@ impl Command for StrJoin {
 
     fn signature(&self) -> Signature {
         Signature::build("str join")
+            .input_output_types(vec![(Type::List(Box::new(Type::String)), Type::String)])
             .optional(
                 "separator",
                 SyntaxShape::String,
@@ -77,18 +78,12 @@ impl Command for StrJoin {
             Example {
                 description: "Create a string from input",
                 example: "['nu', 'shell'] | str join",
-                result: Some(Value::String {
-                    val: "nushell".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("nushell", Span::test_data())),
             },
             Example {
                 description: "Create a string from input with a separator",
                 example: "['nu', 'shell'] | str join '-'",
-                result: Some(Value::String {
-                    val: "nu-shell".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("nu-shell", Span::test_data())),
             },
         ]
     }

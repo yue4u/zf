@@ -84,6 +84,18 @@ fn argument_subexpression() {
 }
 
 #[test]
+fn for_loop() {
+    let actual = nu!(
+        cwd: ".",
+        r#"
+            for i in 1..3 { print $i }
+        "#
+    );
+
+    assert_eq!(actual.out, "123");
+}
+
+#[test]
 fn subexpression_handles_dot() {
     Playground::setup("subexpression_handles_dot", |dirs, sandbox| {
         sandbox.with_files(vec![FileWithContentToBeTrimmed(
@@ -380,7 +392,7 @@ fn let_env_hides_variable() {
     );
 
     assert_eq!(actual.out, "hello world");
-    assert!(actual.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
 }
 
 #[test]
@@ -399,7 +411,7 @@ fn let_env_hides_variable_in_parent_scope() {
     );
 
     assert_eq!(actual.out, "hello world");
-    assert!(actual.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
 }
 
 #[test]
@@ -412,7 +424,7 @@ fn unlet_env_variable() {
             echo $env.TEST_VAR
         "#
     );
-    assert!(actual.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
 }
 
 #[test]
@@ -457,7 +469,7 @@ fn let_env_doesnt_leak() {
         "#
     );
 
-    assert!(actual.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
 }
 
 #[test]
@@ -506,7 +518,7 @@ fn load_env_doesnt_leak() {
         "#
     );
 
-    assert!(actual.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
 }
 
 #[test]
@@ -662,7 +674,7 @@ fn argument_subexpression_reports_errors() {
 fn can_process_one_row_from_internal_and_pipes_it_to_stdin_of_external() {
     let actual = nu!(
         cwd: ".",
-        r#"echo "nushelll" | nu --testbin chop"#
+        r#""nushelll" | nu --testbin chop"#
     );
 
     assert_eq!(actual.out, "nushell");
@@ -1232,7 +1244,7 @@ mod parse {
         > debug {flags}
 
         flags:
-        -h, --help: Display this help message
+        -h, --help: Display the help message for this command
         -r, --raw: Prints the raw value representation.
     */
 

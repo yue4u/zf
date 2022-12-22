@@ -3,7 +3,7 @@ use nu_parser::trim_quotes_str;
 use nu_protocol::ast::{Call, Expr};
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Spanned, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Spanned, SyntaxShape, Type, Value,
 };
 
 use std::path::Path;
@@ -22,6 +22,8 @@ impl Command for OverlayUse {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("overlay use")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
+            .allow_variants_without_examples(true)
             .required(
                 "name",
                 SyntaxShape::String,
@@ -36,6 +38,11 @@ impl Command for OverlayUse {
                 "prefix",
                 "Prepend module name to the imported commands and aliases",
                 Some('p'),
+            )
+            .switch(
+                "reload",
+                "If the overlay already exists, reload its definitions and environment.",
+                Some('r'),
             )
             .category(Category::Core)
     }
@@ -59,7 +66,7 @@ impl Command for OverlayUse {
         let mut name_arg: Spanned<String> = call.req(engine_state, caller_stack, 0)?;
         name_arg.item = trim_quotes_str(&name_arg.item).to_string();
 
-        let origin_module_id = if let Some(overlay_expr) = call.positional_nth(0) {
+        let maybe_origin_module_id = if let Some(overlay_expr) = call.positional_nth(0) {
             if let Expr::Overlay(module_id) = overlay_expr.expr {
                 module_id
             } else {
@@ -77,25 +84,8 @@ impl Command for OverlayUse {
             ));
         };
 
-        let overlay_name = if let Some(kw_expression) = call.positional_nth(1) {
-            // If renamed via the 'as' keyword, use the new name as the overlay name
-            if let Some(new_name_expression) = kw_expression.as_keyword() {
-                if let Some(new_name) = new_name_expression.as_string() {
-                    new_name
-                } else {
-                    return Err(ShellError::NushellFailedSpanned(
-                        "Wrong keyword type".to_string(),
-                        "keyword argument not a string".to_string(),
-                        new_name_expression.span,
-                    ));
-                }
-            } else {
-                return Err(ShellError::NushellFailedSpanned(
-                    "Wrong keyword type".to_string(),
-                    "keyword argument not a keyword".to_string(),
-                    kw_expression.span,
-                ));
-            }
+        let overlay_name = if let Some(name) = call.opt(engine_state, caller_stack, 1)? {
+            name
         } else if engine_state
             .find_overlay(name_arg.item.as_bytes())
             .is_some()
@@ -114,9 +104,7 @@ impl Command for OverlayUse {
             ));
         };
 
-        caller_stack.add_overlay(overlay_name);
-
-        if let Some(module_id) = origin_module_id {
+        if let Some(module_id) = maybe_origin_module_id {
             // Add environment variables only if:
             // a) adding a new overlay
             // b) refreshing an active overlay (the origin module changed)
@@ -127,21 +115,18 @@ impl Command for OverlayUse {
             if let Some(block_id) = module.env_block {
                 let maybe_path = find_in_dirs_env(&name_arg.item, engine_state, caller_stack)?;
 
+                let block = engine_state.get_block(block_id);
+                let mut callee_stack = caller_stack.gather_captures(&block.captures);
+
                 if let Some(path) = &maybe_path {
                     // Set the currently evaluated directory, if the argument is a valid path
                     let mut parent = path.clone();
                     parent.pop();
 
-                    let file_pwd = Value::String {
-                        val: parent.to_string_lossy().to_string(),
-                        span: call.head,
-                    };
+                    let file_pwd = Value::string(parent.to_string_lossy(), call.head);
 
-                    caller_stack.add_env_var("FILE_PWD".to_string(), file_pwd);
+                    callee_stack.add_env_var("FILE_PWD".to_string(), file_pwd);
                 }
-
-                let block = engine_state.get_block(block_id);
-                let mut callee_stack = caller_stack.gather_captures(&block.captures);
 
                 let _ = eval_block(
                     engine_state,
@@ -152,17 +137,19 @@ impl Command for OverlayUse {
                     call.redirect_stderr,
                 );
 
+                // The export-env block should see the env vars *before* activating this overlay
+                caller_stack.add_overlay(overlay_name);
+
                 // Merge the block's environment to the current stack
                 redirect_env(engine_state, caller_stack, &callee_stack);
-
-                if maybe_path.is_some() {
-                    // Remove the file-relative PWD, if the argument is a valid path
-                    caller_stack.remove_env_var(engine_state, "FILE_PWD");
-                }
+            } else {
+                caller_stack.add_overlay(overlay_name);
             }
+        } else {
+            caller_stack.add_overlay(overlay_name);
         }
 
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {
@@ -183,14 +170,14 @@ impl Command for OverlayUse {
             },
             Example {
                 description: "Create an overlay with a prefix",
-                example: r#"echo 'export def foo { "foo" }'
+                example: r#"'export def foo { "foo" }'
     overlay use --prefix spam
     spam foo"#,
                 result: None,
             },
             Example {
                 description: "Create an overlay from a file",
-                example: r#"echo 'export-env { let-env FOO = "foo" }' | save spam.nu
+                example: r#"'export-env { let-env FOO = "foo" }' | save spam.nu
     overlay use spam.nu
     $env.FOO"#,
                 result: None,

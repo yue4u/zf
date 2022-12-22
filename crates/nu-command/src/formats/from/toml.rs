@@ -1,7 +1,7 @@
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, Value,
+    Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, Type, Value,
 };
 
 #[derive(Clone)]
@@ -13,48 +13,38 @@ impl Command for FromToml {
     }
 
     fn signature(&self) -> Signature {
-        Signature::build("from toml").category(Category::Formats)
+        Signature::build("from toml")
+            .input_output_types(vec![(Type::String, Type::Record(vec![]))])
+            .category(Category::Formats)
     }
 
     fn usage(&self) -> &str {
-        "Parse text as .toml and create table."
+        "Parse text as .toml and create record."
     }
 
     fn examples(&self) -> Vec<Example> {
         vec![
             Example {
                 example: "'a = 1' | from toml",
-                description: "Converts toml formatted string to table",
+                description: "Converts toml formatted string to record",
                 result: Some(Value::Record {
                     cols: vec!["a".to_string()],
-                    vals: vec![Value::Int {
-                        val: 1,
-                        span: Span::test_data(),
-                    }],
+                    vals: vec![Value::int(1, Span::test_data())],
                     span: Span::test_data(),
                 }),
             },
             Example {
                 example: "'a = 1
 b = [1, 2]' | from toml",
-                description: "Converts toml formatted string to table",
+                description: "Converts toml formatted string to record",
                 result: Some(Value::Record {
                     cols: vec!["a".to_string(), "b".to_string()],
                     vals: vec![
-                        Value::Int {
-                            val: 1,
-                            span: Span::test_data(),
-                        },
+                        Value::int(1, Span::test_data()),
                         Value::List {
                             vals: vec![
-                                Value::Int {
-                                    val: 1,
-                                    span: Span::test_data(),
-                                },
-                                Value::Int {
-                                    val: 2,
-                                    span: Span::test_data(),
-                                },
+                                Value::int(1, Span::test_data()),
+                                Value::int(2, Span::test_data()),
                             ],
                             span: Span::test_data(),
                         },
@@ -67,16 +57,15 @@ b = [1, 2]' | from toml",
 
     fn run(
         &self,
-        engine_state: &EngineState,
+        __engine_state: &EngineState,
         _stack: &mut Stack,
         call: &Call,
         input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
         let span = call.head;
-        let config = engine_state.get_config();
-        let mut string_input = input.collect_string("", config)?;
+        let (mut string_input, metadata) = input.collect_string_strict(span)?;
         string_input.push('\n');
-        Ok(convert_string_to_value(string_input, span)?.into_pipeline_data())
+        Ok(convert_string_to_value(string_input, span)?.into_pipeline_data_with_metadata(metadata))
     }
 }
 

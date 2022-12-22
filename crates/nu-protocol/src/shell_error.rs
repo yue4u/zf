@@ -2,7 +2,7 @@ use miette::Diagnostic;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{ast::Operator, Span, Type};
+use crate::{ast::Operator, Span, Type, Value};
 
 /// The fundamental error type for the evaluation engine. These cases represent different kinds of errors
 /// the evaluator might face, along with helpful spans to label. An error renderer will take this error value
@@ -34,8 +34,8 @@ pub enum ShellError {
     /// Check the inputs to the operation and add guards for their sizes.
     /// Integers are generally of size i64, floats are generally f64.
     #[error("Operator overflow.")]
-    #[diagnostic(code(nu::shell::operator_overflow), url(docsrs))]
-    OperatorOverflow(String, #[label = "{0}"] Span),
+    #[diagnostic(code(nu::shell::operator_overflow), url(docsrs), help("{2}"))]
+    OperatorOverflow(String, #[label = "{0}"] Span, String),
 
     /// The pipelined input into a command was not of the expected type. For example, it might
     /// expect a string input, but received a table instead.
@@ -60,6 +60,19 @@ pub enum ShellError {
     #[diagnostic(code(nu::shell::type_mismatch), url(docsrs))]
     TypeMismatch(String, #[label = "needs {0}"] Span),
 
+    /// A command received an argument of the wrong type.
+    ///
+    /// ## Resolution
+    ///
+    /// Convert the argument type before passing it in, or change the command to accept the type.
+    #[error("Type mismatch")]
+    #[diagnostic(code(nu::shell::type_mismatch), url(docsrs))]
+    TypeMismatchGenericMessage {
+        err_message: String,
+        #[label = "{err_message}"]
+        span: Span,
+    },
+
     /// This value cannot be used with this operator.
     ///
     /// ## Resolution
@@ -69,6 +82,24 @@ pub enum ShellError {
     #[error("Unsupported operator: {0}.")]
     #[diagnostic(code(nu::shell::unsupported_operator), url(docsrs))]
     UnsupportedOperator(Operator, #[label = "unsupported operator"] Span),
+
+    /// This value cannot be used with this operator.
+    ///
+    /// ## Resolution
+    ///
+    /// Assignment requires that you assign to a variable or variable cell path.
+    #[error("Assignment operations require a variable.")]
+    #[diagnostic(code(nu::shell::assignment_requires_variable), url(docsrs))]
+    AssignmentRequiresVar(#[label = "needs to be a variable"] Span),
+
+    /// This value cannot be used with this operator.
+    ///
+    /// ## Resolution
+    ///
+    /// Assignment requires that you assign to a mutable variable or cell path.
+    #[error("Assignment to an immutable variable.")]
+    #[diagnostic(code(nu::shell::assignment_requires_mutable_variable), url(docsrs))]
+    AssignmentRequiresMutableVar(#[label = "needs to be a mutable variable"] Span),
 
     /// An operator was not recognized during evaluation.
     ///
@@ -345,6 +376,27 @@ Either make sure {0} is a string, or add a 'to_string' entry for it in ENV_CONVE
     #[diagnostic(code(nu::shell::access_beyond_end), url(docsrs))]
     AccessBeyondEnd(usize, #[label = "index too large (max: {0})"] Span),
 
+    /// You attempted to insert data at a list position higher than the end.
+    ///
+    /// ## Resolution
+    ///
+    /// To insert data into a list, assign to the last used index + 1.
+    #[error("Inserted at wrong row number (should be {0}).")]
+    #[diagnostic(code(nu::shell::access_beyond_end), url(docsrs))]
+    InsertAfterNextFreeIndex(
+        usize,
+        #[label = "can't insert at index (the next available index is {0})"] Span,
+    ),
+
+    /// You attempted to access an index when it's empty.
+    ///
+    /// ## Resolution
+    ///
+    /// Check your lengths and try again.
+    #[error("Row number too large (empty content).")]
+    #[diagnostic(code(nu::shell::access_beyond_end), url(docsrs))]
+    AccessEmptyContent(#[label = "index too large (empty content)"] Span),
+
     /// You attempted to access an index beyond the available length of a stream.
     ///
     /// ## Resolution
@@ -371,7 +423,8 @@ Either make sure {0} is a string, or add a 'to_string' entry for it in ENV_CONVE
     #[error("Cannot find column")]
     #[diagnostic(code(nu::shell::column_not_found), url(docsrs))]
     CantFindColumn(
-        #[label = "cannot find column"] Span,
+        String,
+        #[label = "cannot find column '{0}'"] Span,
         #[label = "value originates here"] Span,
     ),
 
@@ -383,7 +436,8 @@ Either make sure {0} is a string, or add a 'to_string' entry for it in ENV_CONVE
     #[error("Column already exists")]
     #[diagnostic(code(nu::shell::column_already_exists), url(docsrs))]
     ColumnAlreadyExists(
-        #[label = "column already exists"] Span,
+        String,
+        #[label = "column '{0}' already exists"] Span,
         #[label = "value originates here"] Span,
     ),
 
@@ -695,6 +749,15 @@ Either make sure {0} is a string, or add a 'to_string' entry for it in ENV_CONVE
     #[diagnostic(code(nu::parser::non_utf8), url(docsrs))]
     NonUtf8(#[label = "non-UTF8 string"] Span),
 
+    /// The given input must be valid UTF-8 for further processing.
+    ///
+    /// ## Resolution
+    ///
+    /// Check your input's encoding. Are there any funny characters/bytes?
+    #[error("Non-UTF8 string")]
+    #[diagnostic(code(nu::parser::non_utf8_custom), url(docsrs))]
+    NonUtf8Custom(String, #[label = "{0}"] Span),
+
     /// A custom value could not be converted to a Dataframe.
     ///
     /// ## Resolution
@@ -760,6 +823,19 @@ Either make sure {0} is a string, or add a 'to_string' entry for it in ENV_CONVE
         #[label = "'{0}' is deprecated. Please use '{1}' instead."] Span,
     ),
 
+    /// Attempted to use a deprecated parameter.
+    ///
+    /// ## Resolution
+    ///
+    /// Check the help for the command and update your script accordingly.
+    #[error("Deprecated parameter {0}")]
+    #[diagnostic(code(nu::shell::deprecated_command), url(docsrs))]
+    DeprecatedParameter(
+        String,
+        String,
+        #[label = "Parameter '{0}' is deprecated. Please use '{1}' instead."] Span,
+    ),
+
     /// Non-Unicode input received.
     ///
     /// ## Resolution
@@ -786,6 +862,18 @@ Either make sure {0} is a string, or add a 'to_string' entry for it in ENV_CONVE
     #[error("Eval block failed with pipeline input")]
     #[diagnostic(code(nu::shell::eval_block_with_input), url(docsrs))]
     EvalBlockWithInput(#[label("source value")] Span, #[related] Vec<ShellError>),
+
+    /// Break event, which may become an error if used outside of a loop
+    #[error("Break used outside of loop")]
+    Break(#[label = "used outside of loop"] Span),
+
+    /// Continue event, which may become an error if used outside of a loop
+    #[error("Continue used outside of loop")]
+    Continue(#[label = "used outside of loop"] Span),
+
+    /// Return event, which may become an error if used outside of a function
+    #[error("Return used outside of function")]
+    Return(#[label = "used outside of function"] Span, Box<Value>),
 }
 
 impl From<std::io::Error> for ShellError {

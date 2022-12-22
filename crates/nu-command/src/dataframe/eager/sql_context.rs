@@ -1,5 +1,5 @@
 use crate::dataframe::eager::sql_expr::parse_sql_expr;
-use polars::error::PolarsError;
+use polars::error::{ErrString, PolarsError};
 use polars::prelude::{col, DataFrame, DataType, IntoLazy, LazyFrame};
 use sqlparser::ast::{
     Expr as SqlExpr, Select, SelectItem, SetExpr, Statement, TableFactor, Value as SQLValue,
@@ -30,7 +30,7 @@ impl SQLContext {
         // Determine involved dataframe
         // Implicit join require some more work in query parsers, Explicit join are preferred for now.
         let tbl = select_stmt.from.get(0).ok_or_else(|| {
-            PolarsError::NotFound("No table found in select statement".to_string())
+            PolarsError::NotFound(ErrString::from("No table found in select statement"))
         })?;
         let mut alias_map = HashMap::new();
         let tbl_name = match &tbl.relation {
@@ -39,7 +39,7 @@ impl SQLContext {
                     .0
                     .get(0)
                     .ok_or_else(|| {
-                        PolarsError::NotFound("No table found in select statement".to_string())
+                        PolarsError::NotFound(ErrString::from("No table found in select statement"))
                     })?
                     .value
                     .to_string();
@@ -103,14 +103,14 @@ impl SQLContext {
                     let idx = match idx.parse::<usize>() {
                         Ok(0)| Err(_) => Err(
                         PolarsError::ComputeError(
-                            format!("Group By Error: Only positive number or expression are supported, got {idx}").into()
+                            format!("Group-By Error: Only positive number or expression are supported, got {idx}").into()
                         )),
                         Ok(idx) => Ok(idx)
                     }?;
                     Ok(projection[idx].clone())
                   }
                   SqlExpr::Value(_) => Err(
-                      PolarsError::ComputeError("Group By Error: Only positive number or expression are supported".into())
+                      PolarsError::ComputeError("Group-By Error: Only positive number or expression are supported".into())
                   ),
                   _ => parse_sql_expr(e)
                 }
@@ -124,7 +124,7 @@ impl SQLContext {
             // Return error on wild card, shouldn't process this
             if contain_wildcard {
                 return Err(PolarsError::ComputeError(
-                    "Group By Error: Can't processed wildcard in groupby".into(),
+                    "Group-By Error: Can't process wildcard in group-by".into(),
                 ));
             }
             // Default polars group by will have group by columns at the front
@@ -181,7 +181,7 @@ impl SQLContext {
         } else {
             let ast = ast
                 .get(0)
-                .ok_or_else(|| PolarsError::NotFound("No statement found".to_string()))?;
+                .ok_or_else(|| PolarsError::NotFound(ErrString::from("No statement found")))?;
             Ok(match ast {
                 Statement::Query(query) => {
                     let rs = match &*query.body {

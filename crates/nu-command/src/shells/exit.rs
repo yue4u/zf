@@ -2,7 +2,9 @@ use super::{get_current_shell, get_last_shell, get_shells};
 use nu_engine::{current_dir, CallExt};
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, ShellError, Signature, SyntaxShape, Value};
+use nu_protocol::{
+    Category, Example, PipelineData, ShellError, Signature, SyntaxShape, Type, Value,
+};
 
 #[derive(Clone)]
 pub struct Exit;
@@ -14,6 +16,7 @@ impl Command for Exit {
 
     fn signature(&self) -> Signature {
         Signature::build("exit")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .optional(
                 "exit_code",
                 SyntaxShape::Int,
@@ -53,10 +56,7 @@ impl Command for Exit {
         }
 
         let cwd = current_dir(engine_state, stack)?;
-        let cwd = Value::String {
-            val: cwd.to_string_lossy().to_string(),
-            span: call.head,
-        };
+        let cwd = Value::string(cwd.to_string_lossy(), call.head);
 
         let mut shells = get_shells(engine_state, stack, cwd);
         let mut current_shell = get_current_shell(engine_state, stack);
@@ -86,22 +86,16 @@ impl Command for Exit {
             );
             stack.add_env_var(
                 "NUSHELL_CURRENT_SHELL".into(),
-                Value::Int {
-                    val: current_shell as i64,
-                    span: call.head,
-                },
+                Value::int(current_shell as i64, call.head),
             );
             stack.add_env_var(
                 "NUSHELL_LAST_SHELL".into(),
-                Value::Int {
-                    val: last_shell as i64,
-                    span: call.head,
-                },
+                Value::int(last_shell as i64, call.head),
             );
 
             stack.add_env_var("PWD".into(), new_path);
 
-            Ok(PipelineData::new(call.head))
+            Ok(PipelineData::empty())
         }
     }
 

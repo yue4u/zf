@@ -2,7 +2,7 @@ use inflector::cases::snakecase::to_snake_case;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 
 use crate::operate;
@@ -16,10 +16,12 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("str snake-case")
+            .input_output_types(vec![(Type::String, Type::String)])
+            .vectorizes_over_list(true)
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "optionally convert text to snake_case by column paths",
+                "For a data structure input, convert strings at the given cell paths",
             )
             .category(Category::Strings)
     }
@@ -47,26 +49,17 @@ impl Command for SubCommand {
             Example {
                 description: "convert a string to snake_case",
                 example: r#" "NuShell" | str snake-case"#,
-                result: Some(Value::String {
-                    val: "nu_shell".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("nu_shell", Span::test_data())),
             },
             Example {
                 description: "convert a string to snake_case",
                 example: r#" "this_is_the_second_case" | str snake-case"#,
-                result: Some(Value::String {
-                    val: "this_is_the_second_case".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("this_is_the_second_case", Span::test_data())),
             },
             Example {
                 description: "convert a string to snake_case",
                 example: r#""this-is-the-first-case" | str snake-case"#,
-                result: Some(Value::String {
-                    val: "this_is_the_first_case".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("this_is_the_first_case", Span::test_data())),
             },
             Example {
                 description: "convert a column from a table to snake_case",
@@ -76,10 +69,7 @@ impl Command for SubCommand {
                         span: Span::test_data(),
                         cols: vec!["lang".to_string(), "gems".to_string()],
                         vals: vec![
-                            Value::String {
-                                val: "nu_test".to_string(),
-                                span: Span::test_data(),
-                            },
+                            Value::string("nu_test", Span::test_data()),
                             Value::test_int(100),
                         ],
                     }],

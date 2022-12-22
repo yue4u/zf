@@ -1,7 +1,7 @@
 use fancy_regex::Regex;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, ShellError, Signature, Span, Value};
+use nu_protocol::{Category, Example, PipelineData, ShellError, Signature, Span, Type, Value};
 use std::collections::BTreeMap;
 use std::{fmt, str};
 use unicode_segmentation::UnicodeSegmentation;
@@ -18,7 +18,9 @@ impl Command for Size {
     }
 
     fn signature(&self) -> Signature {
-        Signature::build("size").category(Category::Strings)
+        Signature::build("size")
+            .category(Category::Strings)
+            .input_output_types(vec![(Type::String, Type::Record(vec![]))])
     }
 
     fn usage(&self) -> &str {
@@ -53,26 +55,11 @@ impl Command for Size {
                         "graphemes".into(),
                     ],
                     vals: vec![
-                        Value::Int {
-                            val: 1,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 7,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 38,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 38,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 38,
-                            span: Span::test_data(),
-                        },
+                        Value::int(1, Span::test_data()),
+                        Value::int(7, Span::test_data()),
+                        Value::int(38, Span::test_data()),
+                        Value::int(38, Span::test_data()),
+                        Value::int(38, Span::test_data()),
                     ],
                     span: Span::test_data(),
                 }),
@@ -89,26 +76,11 @@ impl Command for Size {
                         "graphemes".into(),
                     ],
                     vals: vec![
-                        Value::Int {
-                            val: 1,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 6,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 18,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 6,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 6,
-                            span: Span::test_data(),
-                        },
+                        Value::int(1, Span::test_data()),
+                        Value::int(6, Span::test_data()),
+                        Value::int(18, Span::test_data()),
+                        Value::int(6, Span::test_data()),
+                        Value::int(6, Span::test_data()),
                     ],
                     span: Span::test_data(),
                 }),
@@ -125,26 +97,11 @@ impl Command for Size {
                         "graphemes".into(),
                     ],
                     vals: vec![
-                        Value::Int {
-                            val: 1,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 2,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 15,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 14,
-                            span: Span::test_data(),
-                        },
-                        Value::Int {
-                            val: 13,
-                            span: Span::test_data(),
-                        },
+                        Value::int(1, Span::test_data()),
+                        Value::int(2, Span::test_data()),
+                        Value::int(15, Span::test_data()),
+                        Value::int(14, Span::test_data()),
+                        Value::int(13, Span::test_data()),
                     ],
                     span: Span::test_data(),
                 }),
@@ -160,11 +117,19 @@ fn size(
 ) -> Result<PipelineData, ShellError> {
     let span = call.head;
     input.map(
-        move |v| match v.as_string() {
-            Ok(s) => counter(&s, span),
-            Err(_) => Value::Error {
-                error: ShellError::PipelineMismatch("string".into(), span, span),
-            },
+        move |v| {
+            // First, obtain the span. If this fails, propagate the error that results.
+            let value_span = match v.span() {
+                Err(v) => return Value::Error { error: v },
+                Ok(v) => v,
+            };
+            // Now, check if it's a string.
+            match v.as_string() {
+                Ok(s) => counter(&s, span),
+                Err(_) => Value::Error {
+                    error: ShellError::PipelineMismatch("string".into(), span, value_span),
+                },
+            }
         },
         engine_state.ctrlc.clone(),
     )

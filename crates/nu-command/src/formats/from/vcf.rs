@@ -4,8 +4,8 @@ use indexmap::map::IndexMap;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Config, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span,
-    Spanned, Value,
+    Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, Spanned, Type,
+    Value,
 };
 
 #[derive(Clone)]
@@ -17,7 +17,9 @@ impl Command for FromVcf {
     }
 
     fn signature(&self) -> Signature {
-        Signature::build("from vcf").category(Category::Formats)
+        Signature::build("from vcf")
+            .input_output_types(vec![(Type::String, Type::Table(vec![]))])
+            .category(Category::Formats)
     }
 
     fn usage(&self) -> &str {
@@ -26,14 +28,13 @@ impl Command for FromVcf {
 
     fn run(
         &self,
-        engine_state: &EngineState,
+        _engine_state: &EngineState,
         _stack: &mut Stack,
         call: &Call,
         input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
         let head = call.head;
-        let config = engine_state.get_config();
-        from_vcf(input, head, config)
+        from_vcf(input, head)
     }
 
     fn examples(&self) -> Vec<Example> {
@@ -56,14 +57,8 @@ END:VCARD' | from vcf",
                                     "params".to_string(),
                                 ],
                                 vals: vec![
-                                    Value::String {
-                                        val: "N".to_string(),
-                                        span: Span::test_data(),
-                                    },
-                                    Value::String {
-                                        val: "Foo".to_string(),
-                                        span: Span::test_data(),
-                                    },
+                                    Value::string("N", Span::test_data()),
+                                    Value::string("Foo", Span::test_data()),
                                     Value::Nothing {
                                         span: Span::test_data(),
                                     },
@@ -77,14 +72,8 @@ END:VCARD' | from vcf",
                                     "params".to_string(),
                                 ],
                                 vals: vec![
-                                    Value::String {
-                                        val: "FN".to_string(),
-                                        span: Span::test_data(),
-                                    },
-                                    Value::String {
-                                        val: "Bar".to_string(),
-                                        span: Span::test_data(),
-                                    },
+                                    Value::string("FN", Span::test_data()),
+                                    Value::string("Bar", Span::test_data()),
                                     Value::Nothing {
                                         span: Span::test_data(),
                                     },
@@ -98,14 +87,8 @@ END:VCARD' | from vcf",
                                     "params".to_string(),
                                 ],
                                 vals: vec![
-                                    Value::String {
-                                        val: "EMAIL".to_string(),
-                                        span: Span::test_data(),
-                                    },
-                                    Value::String {
-                                        val: "foo@bar.com".to_string(),
-                                        span: Span::test_data(),
-                                    },
+                                    Value::string("EMAIL", Span::test_data()),
+                                    Value::string("foo@bar.com", Span::test_data()),
                                     Value::Nothing {
                                         span: Span::test_data(),
                                     },
@@ -123,8 +106,8 @@ END:VCARD' | from vcf",
     }
 }
 
-fn from_vcf(input: PipelineData, head: Span, config: &Config) -> Result<PipelineData, ShellError> {
-    let input_string = input.collect_string("", config)?;
+fn from_vcf(input: PipelineData, head: Span) -> Result<PipelineData, ShellError> {
+    let (input_string, metadata) = input.collect_string_strict(head)?;
 
     let input_string = input_string
         .lines()
@@ -151,7 +134,7 @@ fn from_vcf(input: PipelineData, head: Span, config: &Config) -> Result<Pipeline
         vals: collected,
         span: head,
     }
-    .into_pipeline_data())
+    .into_pipeline_data_with_metadata(metadata))
 }
 
 fn contact_to_value(contact: VcardContact, span: Span) -> Value {

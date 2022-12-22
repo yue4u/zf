@@ -1,7 +1,9 @@
 use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, ShellError, Signature, Spanned, SyntaxShape};
+use nu_protocol::{
+    Category, Example, PipelineData, ShellError, Signature, Spanned, SyntaxShape, Type,
+};
 
 #[derive(Clone)]
 pub struct OverlayNew;
@@ -17,6 +19,8 @@ impl Command for OverlayNew {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("overlay new")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
+            .allow_variants_without_examples(true)
             .required("name", SyntaxShape::String, "Name of the overlay")
             // TODO:
             // .switch(
@@ -49,7 +53,7 @@ This command is a parser keyword. For details, check:
 
         stack.add_overlay(name_arg.item);
 
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {

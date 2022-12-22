@@ -1,15 +1,21 @@
+use crate::input_handler::{operate, CmdArgument};
 use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::ast::CellPath;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::Category;
-use nu_protocol::{Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value};
-use std::sync::Arc;
+use nu_protocol::{Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value};
 
 struct Arguments {
     length: Option<i64>,
     character: Option<String>,
-    column_paths: Vec<CellPath>,
+    cell_paths: Option<Vec<CellPath>>,
+}
+
+impl CmdArgument for Arguments {
+    fn take_cell_paths(&mut self) -> Option<Vec<CellPath>> {
+        self.cell_paths.take()
+    }
 }
 
 #[derive(Clone)]
@@ -22,6 +28,8 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("str rpad")
+            .input_output_types(vec![(Type::String, Type::String)])
+            .vectorizes_over_list(true)
             .required_named("length", SyntaxShape::Int, "length to pad to", Some('l'))
             .required_named(
                 "character",
@@ -32,7 +40,7 @@ impl Command for SubCommand {
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "optionally check if string contains pattern by column paths",
+                "For a data structure input, pad strings at the given cell paths",
             )
             .category(Category::Strings)
     }
@@ -52,7 +60,21 @@ impl Command for SubCommand {
         call: &Call,
         input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
-        operate(engine_state, stack, call, input)
+        let cell_paths: Vec<CellPath> = call.rest(engine_state, stack, 0)?;
+        let cell_paths = (!cell_paths.is_empty()).then_some(cell_paths);
+        let args = Arguments {
+            length: call.get_flag(engine_state, stack, "length")?,
+            character: call.get_flag(engine_state, stack, "character")?,
+            cell_paths,
+        };
+
+        if args.length.expect("this exists") < 0 {
+            return Err(ShellError::UnsupportedInput(
+                String::from("The length of the string cannot be negative"),
+                call.head,
+            ));
+        }
+        operate(action, args, input, call.head, engine_state.ctrlc.clone())
     }
 
     fn examples(&self) -> Vec<Example> {
@@ -60,80 +82,25 @@ impl Command for SubCommand {
             Example {
                 description: "Right-pad a string with asterisks until it's 10 characters wide",
                 example: "'nushell' | str rpad -l 10 -c '*'",
-                result: Some(Value::String {
-                    val: "nushell***".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("nushell***", Span::test_data())),
             },
             Example {
                 description: "Right-pad a string with zeroes until it's 10 characters wide",
                 example: "'123' | str rpad -l 10 -c '0'",
-                result: Some(Value::String {
-                    val: "1230000000".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("1230000000", Span::test_data())),
             },
             Example {
                 description: "Use rpad to truncate a string to its first three characters",
                 example: "'123456789' | str rpad -l 3 -c '0'",
-                result: Some(Value::String {
-                    val: "123".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("123", Span::test_data())),
             },
             Example {
                 description: "Use rpad to pad Unicode",
                 example: "'▉' | str rpad -l 10 -c '▉'",
-                result: Some(Value::String {
-                    val: "▉▉▉▉▉▉▉▉▉▉".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("▉▉▉▉▉▉▉▉▉▉", Span::test_data())),
             },
         ]
     }
-}
-
-fn operate(
-    engine_state: &EngineState,
-    stack: &mut Stack,
-    call: &Call,
-    input: PipelineData,
-) -> Result<PipelineData, ShellError> {
-    let options = Arc::new(Arguments {
-        length: call.get_flag(engine_state, stack, "length")?,
-        character: call.get_flag(engine_state, stack, "character")?,
-        column_paths: call.rest(engine_state, stack, 0)?,
-    });
-
-    if options.length.expect("this exists") < 0 {
-        return Err(ShellError::UnsupportedInput(
-            String::from("The length of the string cannot be negative"),
-            call.head,
-        ));
-    }
-
-    let head = call.head;
-    input.map(
-        move |v| {
-            if options.column_paths.is_empty() {
-                action(&v, &options, head)
-            } else {
-                let mut ret = v;
-                for path in &options.column_paths {
-                    let opt = options.clone();
-                    let r = ret.update_cell_path(
-                        &path.members,
-                        Box::new(move |old| action(old, &opt, head)),
-                    );
-                    if let Err(error) = r {
-                        return Value::Error { error };
-                    }
-                }
-                ret
-            }
-        },
-        engine_state.ctrlc.clone(),
-    )
 }
 
 fn action(

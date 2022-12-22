@@ -3,6 +3,20 @@ use nu_test_support::nu;
 use nu_test_support::playground::Playground;
 use std::path::PathBuf;
 
+#[test]
+fn cd_works_with_in_var() {
+    Playground::setup("cd_test_1", |dirs, _| {
+        let actual = nu!(
+            cwd: dirs.root(),
+            r#"
+                "cd_test_1" | cd $in; $env.PWD | path split | last
+            "#
+        );
+
+        assert_eq!("cd_test_1", actual.out);
+    })
+}
+
 // FIXME: jt: needs more work
 #[ignore]
 #[test]
@@ -274,4 +288,44 @@ fn test_change_windows_drive() {
             .join("test_file.txt")
             .exists());
     })
+}
+
+#[cfg(unix)]
+#[test]
+fn cd_permission_deined_folder() {
+    Playground::setup("cd_test_21", |dirs, sandbox| {
+        sandbox.mkdir("banned");
+        let actual = nu!(
+            cwd: dirs.test(),
+            r#"
+                chmod -x banned
+                cd banned
+            "#
+        );
+        assert!(actual.err.contains("Cannot change directory to"));
+        nu!(
+            cwd: dirs.test(),
+            r#"
+                chmod +x banned
+                rm banned
+            "#
+        );
+    });
+}
+// FIXME: cd_permission_deined_folder on windows
+#[ignore]
+#[cfg(windows)]
+#[test]
+fn cd_permission_deined_folder() {
+    Playground::setup("cd_test_21", |dirs, sandbox| {
+        sandbox.mkdir("banned");
+        let actual = nu!(
+            cwd: dirs.test(),
+            r#"
+                icacls banned /deny BUILTIN\Administrators:F
+                cd banned
+            "#
+        );
+        assert!(actual.err.contains("Folder is not able to read"));
+    });
 }

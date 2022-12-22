@@ -1,17 +1,23 @@
+use crate::input_handler::{operate, CmdArgument};
 use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::ast::CellPath;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value};
+use nu_protocol::{Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value};
 use std::cmp::Ordering;
-use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct SubCommand;
 
 struct Arguments {
-    range: Value,
-    column_paths: Vec<CellPath>,
+    indexes: Substring,
+    cell_paths: Option<Vec<CellPath>>,
+}
+
+impl CmdArgument for Arguments {
+    fn take_cell_paths(&mut self) -> Option<Vec<CellPath>> {
+        self.cell_paths.take()
+    }
 }
 
 #[derive(Clone)]
@@ -32,6 +38,8 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("str substring")
+            .input_output_types(vec![(Type::String, Type::String)])
+            .vectorizes_over_list(true)
             .required(
                 "range",
                 SyntaxShape::Any,
@@ -40,7 +48,7 @@ impl Command for SubCommand {
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "optionally substring text by column paths",
+                "For a data structure input, turn strings at the given cell paths into substrings",
             )
     }
 
@@ -59,18 +67,32 @@ impl Command for SubCommand {
         call: &Call,
         input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
-        operate(engine_state, stack, call, input)
+        let range = call.req(engine_state, stack, 0)?;
+        let indexes: Substring = process_arguments(&range, call.head)?.into();
+        let cell_paths: Vec<CellPath> = call.rest(engine_state, stack, 1)?;
+        let cell_paths = (!cell_paths.is_empty()).then_some(cell_paths);
+        let args = Arguments {
+            indexes,
+            cell_paths,
+        };
+        operate(action, args, input, call.head, engine_state.ctrlc.clone())
     }
 
     fn examples(&self) -> Vec<Example> {
         vec![
             Example {
-                description: "Get a substring \"nushell\" from the text \"good nushell\"",
+                description:
+                    "Get a substring \"nushell\" from the text \"good nushell\" using a range",
+                example: " 'good nushell' | str substring 5..12",
+                result: Some(Value::test_string("nushell")),
+            },
+            Example {
+                description: "Alternately, you can pass in a list",
                 example: " 'good nushell' | str substring [5 12]",
                 result: Some(Value::test_string("nushell")),
             },
             Example {
-                description: "Alternatively, you can use the form",
+                description: "Or a simple comma-separated string",
                 example: " 'good nushell' | str substring '5,12'",
                 result: Some(Value::test_string("nushell")),
             },
@@ -93,44 +115,8 @@ impl Command for SubCommand {
     }
 }
 
-fn operate(
-    engine_state: &EngineState,
-    stack: &mut Stack,
-    call: &Call,
-    input: PipelineData,
-) -> Result<PipelineData, ShellError> {
-    let options = Arc::new(Arguments {
-        range: call.req(engine_state, stack, 0)?,
-        column_paths: call.rest(engine_state, stack, 1)?,
-    });
-
-    let head = call.head;
-    let indexes: Arc<Substring> = Arc::new(process_arguments(&options, head)?.into());
-
-    input.map(
-        move |v| {
-            if options.column_paths.is_empty() {
-                action(&v, &indexes, head)
-            } else {
-                let mut ret = v;
-                for path in &options.column_paths {
-                    let indexes = indexes.clone();
-                    let r = ret.update_cell_path(
-                        &path.members,
-                        Box::new(move |old| action(old, &indexes, head)),
-                    );
-                    if let Err(error) = r {
-                        return Value::Error { error };
-                    }
-                }
-                ret
-            }
-        },
-        engine_state.ctrlc.clone(),
-    )
-}
-
-fn action(input: &Value, options: &Substring, head: Span) -> Value {
+fn action(input: &Value, args: &Arguments, head: Span) -> Value {
+    let options = &args.indexes;
     match input {
         Value::String { val: s, .. } => {
             let len: isize = s.len() as isize;
@@ -148,10 +134,7 @@ fn action(input: &Value, options: &Substring, head: Span) -> Value {
 
             if start < len && end >= 0 {
                 match start.cmp(&end) {
-                    Ordering::Equal => Value::String {
-                        val: "".to_string(),
-                        span: head,
-                    },
+                    Ordering::Equal => Value::string("", head),
                     Ordering::Greater => Value::Error {
                         error: ShellError::UnsupportedInput(
                             "End must be greater than or equal to Start".to_string(),
@@ -179,10 +162,7 @@ fn action(input: &Value, options: &Substring, head: Span) -> Value {
                     },
                 }
             } else {
-                Value::String {
-                    val: "".to_string(),
-                    span: head,
-                }
+                Value::string("", head)
             }
         }
         other => Value::Error {
@@ -197,8 +177,13 @@ fn action(input: &Value, options: &Substring, head: Span) -> Value {
     }
 }
 
-fn process_arguments(options: &Arguments, head: Span) -> Result<(isize, isize), ShellError> {
-    let search = match &options.range {
+fn process_arguments(range: &Value, head: Span) -> Result<(isize, isize), ShellError> {
+    let search = match range {
+        Value::Range { val, .. } => {
+            let start = val.from()?;
+            let end = val.to()?;
+            Ok(SubstringText(start.to_string(), end.to_string()))
+        }
         Value::List { vals, .. } => {
             if vals.len() > 2 {
                 Err(ShellError::UnsupportedInput(
@@ -313,10 +298,7 @@ mod tests {
 
     #[test]
     fn substrings_indexes() {
-        let word = Value::String {
-            val: "andres".to_string(),
-            span: Span::test_data(),
-        };
+        let word = Value::string("andres", Span::test_data());
 
         let cases = vec![
             expectation("a", (0, 1)),
@@ -346,15 +328,16 @@ mod tests {
 
         for expectation in &cases {
             let expected = expectation.expected;
-            let actual = action(&word, &expectation.options(), Span::test_data());
-
-            assert_eq!(
-                actual,
-                Value::String {
-                    val: expected.to_string(),
-                    span: Span::test_data()
-                }
+            let actual = action(
+                &word,
+                &super::Arguments {
+                    indexes: expectation.options(),
+                    cell_paths: None,
+                },
+                Span::test_data(),
             );
+
+            assert_eq!(actual, Value::string(expected, Span::test_data()));
         }
     }
 }

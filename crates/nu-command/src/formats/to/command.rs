@@ -1,6 +1,7 @@
+use nu_engine::get_full_help;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, PipelineData, ShellError, Signature};
+use nu_protocol::{Category, IntoPipelineData, PipelineData, ShellError, Signature, Type, Value};
 
 #[derive(Clone)]
 pub struct To;
@@ -15,16 +16,28 @@ impl Command for To {
     }
 
     fn signature(&self) -> nu_protocol::Signature {
-        Signature::build("to").category(Category::Formats)
+        Signature::build("to")
+            .category(Category::Formats)
+            .input_output_types(vec![(Type::Nothing, Type::String)])
     }
 
     fn run(
         &self,
-        _engine_state: &EngineState,
-        _stack: &mut Stack,
+        engine_state: &EngineState,
+        stack: &mut Stack,
         call: &Call,
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, ShellError> {
-        Ok(PipelineData::new(call.head))
+        Ok(Value::String {
+            val: get_full_help(
+                &To.signature(),
+                &To.examples(),
+                engine_state,
+                stack,
+                self.is_parser_keyword(),
+            ),
+            span: call.head,
+        }
+        .into_pipeline_data())
     }
 }

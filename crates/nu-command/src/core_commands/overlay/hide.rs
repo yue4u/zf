@@ -1,7 +1,9 @@
 use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, ShellError, Signature, Spanned, SyntaxShape};
+use nu_protocol::{
+    Category, Example, PipelineData, ShellError, Signature, Spanned, SyntaxShape, Type,
+};
 
 #[derive(Clone)]
 pub struct OverlayHide;
@@ -17,6 +19,7 @@ impl Command for OverlayHide {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("overlay hide")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .optional("name", SyntaxShape::String, "Overlay to hide")
             .switch(
                 "keep-custom",
@@ -88,7 +91,7 @@ impl Command for OverlayHide {
             stack.add_env_var(name, val);
         }
 
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {
@@ -105,7 +108,7 @@ impl Command for OverlayHide {
             },
             Example {
                 description: "Hide an overlay created from a file",
-                example: r#"echo 'export alias f = "foo"' | save spam.nu
+                example: r#"'export alias f = "foo"' | save spam.nu
     overlay use spam.nu
     overlay hide spam"#,
                 result: None,

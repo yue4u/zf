@@ -529,7 +529,7 @@ fn list_directory_contains_invalid_utf8() {
             let cwd = dirs.test();
             let path = cwd.join(s);
 
-            std::fs::create_dir_all(&path).expect("failed to create directory");
+            std::fs::create_dir_all(path).expect("failed to create directory");
 
             let actual = nu!(cwd: cwd, "ls");
 
@@ -558,4 +558,18 @@ fn list_ignores_ansi() {
 
         assert!(actual.err.is_empty());
     })
+}
+
+#[test]
+fn list_unknown_flag() {
+    let actual = nu!(
+        cwd: ".", pipeline(
+        r#"
+                ls -r
+            "#
+    ));
+
+    assert!(actual
+        .err
+        .contains("Available flags: --help(-h), --all(-a),"));
 }

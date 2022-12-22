@@ -1,6 +1,6 @@
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, Signature, SyntaxShape};
+use nu_protocol::{Category, Example, PipelineData, Signature, SyntaxShape, Type};
 
 #[derive(Clone)]
 pub struct ExportAlias;
@@ -16,6 +16,7 @@ impl Command for ExportAlias {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("export alias")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .required("name", SyntaxShape::String, "name of the alias")
             .required(
                 "initial_value",
@@ -38,10 +39,10 @@ impl Command for ExportAlias {
         &self,
         _engine_state: &EngineState,
         _stack: &mut Stack,
-        call: &Call,
+        _call: &Call,
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {
@@ -50,5 +51,9 @@ impl Command for ExportAlias {
             example: "export alias ll = ls -l",
             result: None,
         }]
+    }
+
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["aka", "abbr", "module"]
     }
 }

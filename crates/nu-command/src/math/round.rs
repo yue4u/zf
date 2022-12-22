@@ -2,7 +2,7 @@ use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -15,6 +15,8 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("math round")
+            .input_output_types(vec![(Type::Number, Type::Number)])
+            .vectorizes_over_list(true)
             .named(
                 "precision",
                 SyntaxShape::Number,
@@ -25,11 +27,11 @@ impl Command for SubCommand {
     }
 
     fn usage(&self) -> &str {
-        "Applies the round function to a list of numbers"
+        "Returns the input number rounded to the specified precision"
     }
 
     fn search_terms(&self) -> Vec<&str> {
-        vec!["approx", "rough"]
+        vec!["approx", "closest", "nearest"]
     }
 
     fn run(
@@ -62,18 +64,9 @@ impl Command for SubCommand {
                 example: "[1.555 2.333 -3.111] | math round -p 2",
                 result: Some(Value::List {
                     vals: vec![
-                        Value::Float {
-                            val: 1.56,
-                            span: Span::test_data(),
-                        },
-                        Value::Float {
-                            val: 2.33,
-                            span: Span::test_data(),
-                        },
-                        Value::Float {
-                            val: -3.11,
-                            span: Span::test_data(),
-                        },
+                        Value::float(1.56, Span::test_data()),
+                        Value::float(2.33, Span::test_data()),
+                        Value::float(-3.11, Span::test_data()),
                     ],
                     span: Span::test_data(),
                 }),

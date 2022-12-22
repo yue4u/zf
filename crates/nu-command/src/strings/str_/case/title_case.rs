@@ -2,7 +2,7 @@ use inflector::cases::titlecase::to_title_case;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 
 use crate::operate;
@@ -17,10 +17,12 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("str title-case")
+            .input_output_types(vec![(Type::String, Type::String)])
+            .vectorizes_over_list(true)
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "optionally convert text to Title Case by column paths",
+                "For a data structure input, convert strings at the given cell paths",
             )
             .category(Category::Strings)
     }
@@ -48,18 +50,12 @@ impl Command for SubCommand {
             Example {
                 description: "convert a string to Title Case",
                 example: "'nu-shell' | str title-case",
-                result: Some(Value::String {
-                    val: "Nu Shell".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("Nu Shell", Span::test_data())),
             },
             Example {
                 description: "convert a string to Title Case",
                 example: "'this is a test case' | str title-case",
-                result: Some(Value::String {
-                    val: "This Is A Test Case".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("This Is A Test Case", Span::test_data())),
             },
             Example {
                 description: "convert a column from a table to Title Case",
@@ -69,10 +65,7 @@ impl Command for SubCommand {
                         span: Span::test_data(),
                         cols: vec!["title".to_string(), "count".to_string()],
                         vals: vec![
-                            Value::String {
-                                val: "Nu Test".to_string(),
-                                span: Span::test_data(),
-                            },
+                            Value::string("Nu Test", Span::test_data()),
                             Value::test_int(100),
                         ],
                     }],

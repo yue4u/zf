@@ -2,7 +2,7 @@ use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -15,6 +15,8 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("bits xor")
+            .input_output_types(vec![(Type::Int, Type::Int)])
+            .vectorizes_over_list(true)
             .required(
                 "target",
                 SyntaxShape::Int,
@@ -52,10 +54,7 @@ impl Command for SubCommand {
             Example {
                 description: "Apply bits xor to two numbers",
                 example: "2 | bits xor 2",
-                result: Some(Value::Int {
-                    val: 0,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::int(0, Span::test_data())),
             },
             Example {
                 description: "Apply logical xor to a list of numbers",

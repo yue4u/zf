@@ -1,11 +1,11 @@
 use super::DescriptionMenu;
 use crate::{menus::NuMenuCompleter, NuHelpCompleter};
 use crossterm::event::{KeyCode, KeyModifiers};
-use nu_color_config::lookup_ansi_color_style;
+use nu_color_config::{color_record_to_nustyle, lookup_ansi_color_style};
 use nu_engine::eval_block;
 use nu_parser::parse;
 use nu_protocol::{
-    color_value_string, create_menus,
+    create_menus,
     engine::{EngineState, Stack, StateWorkingSet},
     extract_value, Config, IntoPipelineData, ParsedKeybinding, ParsedMenu, PipelineData,
     ShellError, Span, Value,
@@ -114,7 +114,7 @@ pub(crate) fn add_menus(
             let res = eval_block(&engine_state, &mut temp_stack, &block, input, false, false)?;
 
             if let PipelineData::Value(value, None) = res {
-                for menu in create_menus(&value, config)? {
+                for menu in create_menus(&value)? {
                     line_editor =
                         add_menu(line_editor, &menu, engine_state.clone(), stack, config)?;
                 }
@@ -159,14 +159,11 @@ macro_rules! add_style {
     ($name:expr, $cols: expr, $vals:expr, $span:expr, $config: expr, $menu:expr, $f:expr) => {
         $menu = match extract_value($name, $cols, $vals, $span) {
             Ok(text) => {
-                let text = match text {
-                    Value::String { val, .. } => val.clone(),
-                    Value::Record { cols, vals, span } => {
-                        color_value_string(span, cols, vals, $config).into_string("", $config)
-                    }
-                    _ => "green".to_string(),
+                let style = match text {
+                    Value::String { val, .. } => lookup_ansi_color_style(&val),
+                    Value::Record { .. } => color_record_to_nustyle(&text),
+                    _ => lookup_ansi_color_style("green"),
                 };
-                let style = lookup_ansi_color_style(&text);
                 $f($menu, style)
             }
             Err(_) => $menu,
@@ -251,7 +248,7 @@ pub(crate) fn add_columnar_menu(
         Value::Nothing { .. } => {
             Ok(line_editor.with_menu(ReedlineMenu::EngineCompleter(Box::new(columnar_menu))))
         }
-        Value::Block {
+        Value::Closure {
             val,
             captures,
             span,
@@ -337,7 +334,7 @@ pub(crate) fn add_list_menu(
         Value::Nothing { .. } => {
             Ok(line_editor.with_menu(ReedlineMenu::HistoryMenu(Box::new(list_menu))))
         }
-        Value::Block {
+        Value::Closure {
             val,
             captures,
             span,
@@ -459,7 +456,7 @@ pub(crate) fn add_description_menu(
                 completer,
             }))
         }
-        Value::Block {
+        Value::Closure {
             val,
             captures,
             span,
@@ -477,7 +474,7 @@ pub(crate) fn add_description_menu(
             }))
         }
         _ => Err(ShellError::UnsupportedConfigValue(
-            "block or omitted value".to_string(),
+            "closure or omitted value".to_string(),
             menu.source.into_abbreviated_string(config),
             menu.source.span()?,
         )),
@@ -491,7 +488,7 @@ fn add_menu_keybindings(keybindings: &mut Keybindings) {
         KeyCode::Tab,
         ReedlineEvent::UntilFound(vec![
             ReedlineEvent::Menu("completion_menu".to_string()),
-            ReedlineEvent::MenuNext,
+            ReedlineEvent::Edit(vec![EditCommand::Complete]),
         ]),
     );
 
@@ -822,6 +819,8 @@ fn event_from_record(
         "ctrld" => ReedlineEvent::CtrlD,
         "ctrlc" => ReedlineEvent::CtrlC,
         "enter" => ReedlineEvent::Enter,
+        "submit" => ReedlineEvent::Submit,
+        "submitornewline" => ReedlineEvent::SubmitOrNewline,
         "esc" | "escape" => ReedlineEvent::Esc,
         "up" => ReedlineEvent::Up,
         "down" => ReedlineEvent::Down,
@@ -962,6 +961,7 @@ fn edit_from_record(
             let char = extract_char(value, config)?;
             EditCommand::MoveLeftBefore(char)
         }
+        "complete" => EditCommand::Complete,
         e => {
             return Err(ShellError::UnsupportedConfigValue(
                 "reedline EditCommand".to_string(),
@@ -990,10 +990,7 @@ mod test {
     #[test]
     fn test_send_event() {
         let cols = vec!["send".to_string()];
-        let vals = vec![Value::String {
-            val: "Enter".to_string(),
-            span: Span::test_data(),
-        }];
+        let vals = vec![Value::string("Enter", Span::test_data())];
 
         let span = Span::test_data();
         let b = EventType::try_from_columns(&cols, &vals, &span).unwrap();
@@ -1013,10 +1010,7 @@ mod test {
     #[test]
     fn test_edit_event() {
         let cols = vec!["edit".to_string()];
-        let vals = vec![Value::String {
-            val: "Clear".to_string(),
-            span: Span::test_data(),
-        }];
+        let vals = vec![Value::string("Clear", Span::test_data())];
 
         let span = Span::test_data();
         let b = EventType::try_from_columns(&cols, &vals, &span).unwrap();
@@ -1040,14 +1034,8 @@ mod test {
     fn test_send_menu() {
         let cols = vec!["send".to_string(), "name".to_string()];
         let vals = vec![
-            Value::String {
-                val: "Menu".to_string(),
-                span: Span::test_data(),
-            },
-            Value::String {
-                val: "history_menu".to_string(),
-                span: Span::test_data(),
-            },
+            Value::string("Menu", Span::test_data()),
+            Value::string("history_menu", Span::test_data()),
         ];
 
         let span = Span::test_data();
@@ -1073,14 +1061,8 @@ mod test {
         // Menu event
         let cols = vec!["send".to_string(), "name".to_string()];
         let vals = vec![
-            Value::String {
-                val: "Menu".to_string(),
-                span: Span::test_data(),
-            },
-            Value::String {
-                val: "history_menu".to_string(),
-                span: Span::test_data(),
-            },
+            Value::string("Menu", Span::test_data()),
+            Value::string("history_menu", Span::test_data()),
         ];
 
         let menu_event = Value::Record {
@@ -1091,10 +1073,7 @@ mod test {
 
         // Enter event
         let cols = vec!["send".to_string()];
-        let vals = vec![Value::String {
-            val: "Enter".to_string(),
-            span: Span::test_data(),
-        }];
+        let vals = vec![Value::string("Enter", Span::test_data())];
 
         let enter_event = Value::Record {
             cols,
@@ -1135,14 +1114,8 @@ mod test {
         // Menu event
         let cols = vec!["send".to_string(), "name".to_string()];
         let vals = vec![
-            Value::String {
-                val: "Menu".to_string(),
-                span: Span::test_data(),
-            },
-            Value::String {
-                val: "history_menu".to_string(),
-                span: Span::test_data(),
-            },
+            Value::string("Menu", Span::test_data()),
+            Value::string("history_menu", Span::test_data()),
         ];
 
         let menu_event = Value::Record {
@@ -1153,10 +1126,7 @@ mod test {
 
         // Enter event
         let cols = vec!["send".to_string()];
-        let vals = vec![Value::String {
-            val: "Enter".to_string(),
-            span: Span::test_data(),
-        }];
+        let vals = vec![Value::string("Enter", Span::test_data())];
 
         let enter_event = Value::Record {
             cols,
@@ -1184,10 +1154,7 @@ mod test {
     #[test]
     fn test_error() {
         let cols = vec!["not_exist".to_string()];
-        let vals = vec![Value::String {
-            val: "Enter".to_string(),
-            span: Span::test_data(),
-        }];
+        let vals = vec![Value::string("Enter", Span::test_data())];
 
         let span = Span::test_data();
         let b = EventType::try_from_columns(&cols, &vals, &span);

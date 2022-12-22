@@ -3,7 +3,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, SyntaxShape,
-    Value,
+    Type, Value,
 };
 
 use super::{vertical_rotate_value, VerticalDirection};
@@ -16,8 +16,14 @@ impl Command for RollUp {
         "roll up"
     }
 
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["rotate", "shift", "move", "row"]
+    }
+
     fn signature(&self) -> Signature {
         Signature::build(self.name())
+            // TODO: It also operates on List
+            .input_output_types(vec![(Type::Table(vec![]), Type::Table(vec![]))])
             .named("by", SyntaxShape::Int, "Number of rows to roll", Some('b'))
             .category(Category::Filters)
     }

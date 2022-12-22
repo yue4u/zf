@@ -4,7 +4,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoInterruptiblePipelineData, PipelineData, ShellError, Signature, Spanned,
-    SyntaxShape, Value,
+    SyntaxShape, Type, Value,
 };
 use wax::{Glob as WaxGlob, WalkBehavior};
 
@@ -18,6 +18,7 @@ impl Command for Glob {
 
     fn signature(&self) -> Signature {
         Signature::build("glob")
+            .input_output_types(vec![(Type::Nothing, Type::List(Box::new(Type::String)))])
             .required("glob", SyntaxShape::String, "the glob expression")
             .named(
                 "depth",
@@ -84,7 +85,7 @@ impl Command for Glob {
     }
 
     fn extra_usage(&self) -> &str {
-        r#"For more glob pattern help please refer to https://github.com/olson-sean-k/wax"#
+        r#"For more glob pattern help, please refer to https://github.com/olson-sean-k/wax"#
     }
 
     fn run(
@@ -99,6 +100,16 @@ impl Command for Glob {
         let glob_pattern: Spanned<String> = call.req(engine_state, stack, 0)?;
         let depth = call.get_flag(engine_state, stack, "depth")?;
 
+        if glob_pattern.item.is_empty() {
+            return Err(ShellError::GenericError(
+                "glob pattern must not be empty".to_string(),
+                "glob pattern is empty".to_string(),
+                Some(glob_pattern.span),
+                Some("add characters to the glob pattern".to_string()),
+                Vec::new(),
+            ));
+        }
+
         let folder_depth = if let Some(depth) = depth {
             depth
         } else {
@@ -110,9 +121,9 @@ impl Command for Glob {
             Err(e) => {
                 return Err(ShellError::GenericError(
                     "error with glob pattern".to_string(),
-                    "".to_string(),
+                    format!("{}", e),
+                    Some(glob_pattern.span),
                     None,
-                    Some(format!("{}", e)),
                     Vec::new(),
                 ))
             }

@@ -7,7 +7,7 @@ mod tests;
 #[cfg(feature = "plugin")]
 use crate::config_files::NUSHELL_FOLDER;
 use crate::logger::{configure, logger};
-use log::info;
+use log::{info, Level};
 use miette::Result;
 #[cfg(feature = "plugin")]
 use nu_cli::read_plugin_file;
@@ -20,13 +20,12 @@ use nu_engine::{get_full_help, CallExt};
 use nu_parser::{escape_for_script_arg, escape_quote_string, parse};
 use nu_path::canonicalize_with;
 use nu_protocol::{
-    ast::{Call, Expr, Expression},
+    ast::{Call, Expr, Expression, PipelineElement},
     engine::{Command, EngineState, Stack, StateWorkingSet},
-    Category, Example, IntoPipelineData, PipelineData, RawStream, ShellError, Signature, Span,
-    Spanned, SyntaxShape, Value,
+    Category, Example, IntoPipelineData, PipelineData, RawStream, ShellError, Signature, Spanned,
+    SyntaxShape, Value,
 };
 use nu_utils::stdout_write_all_and_flush;
-use std::{cell::RefCell, path::Path};
 use std::{
     io::BufReader,
     sync::{
@@ -34,8 +33,7 @@ use std::{
         Arc,
     },
 };
-
-thread_local! { static IS_PERF: RefCell<bool> = RefCell::new(false) }
+use std::{path::Path, str::FromStr};
 
 // Inspired by fish's acquire_tty_or_exit
 #[cfg(unix)]
@@ -47,17 +45,18 @@ fn take_control(interactive: bool) {
     };
 
     let shell_pgid = unistd::getpgrp();
-    let owner_pgid = unistd::tcgetpgrp(nix::libc::STDIN_FILENO).expect("tcgetpgrp");
 
-    // Common case, nothing to do
-    if owner_pgid == shell_pgid {
-        return;
-    }
-
-    // This can apparently happen with sudo: https://github.com/fish-shell/fish-shell/issues/7388
-    if owner_pgid == unistd::getpid() {
-        let _ = unistd::setpgid(owner_pgid, owner_pgid);
-        return;
+    match unistd::tcgetpgrp(nix::libc::STDIN_FILENO) {
+        Ok(owner_pgid) if owner_pgid == shell_pgid => {
+            // Common case, nothing to do
+            return;
+        }
+        Ok(owner_pgid) if owner_pgid == unistd::getpid() => {
+            // This can apparently happen with sudo: https://github.com/fish-shell/fish-shell/issues/7388
+            let _ = unistd::setpgid(owner_pgid, owner_pgid);
+            return;
+        }
+        _ => (),
     }
 
     // Reset all signal handlers to default
@@ -97,13 +96,17 @@ fn take_control(interactive: bool) {
             _ => {
                 // fish also has other heuristics than "too many attempts" for the orphan check, but they're optional
                 if signal::killpg(Pid::from_raw(-shell_pgid.as_raw()), Signal::SIGTTIN).is_err() {
+                    if !interactive {
+                        // that's fine
+                        return;
+                    }
                     eprintln!("ERROR: failed to SIGTTIN ourselves");
                     std::process::exit(1);
                 }
             }
         }
     }
-    if !success {
+    if !success && interactive {
         eprintln!("ERROR: failed take control of the terminal, we might be orphaned");
         std::process::exit(1);
     }
@@ -264,17 +267,16 @@ fn main() -> Result<()> {
                     .expect("error setting number of threads");
             }
 
-            set_is_perf_value(binary_args.perf);
-
-            if binary_args.perf || binary_args.log_level.is_some() {
-                // since we're in this section, either perf is true or log_level has been set
-                // if log_level is set, just use it
-                // otherwise if perf is true, set the log_level to `info` which is what
-                // the perf calls are set to.
-                let level = binary_args
+            if binary_args.log_level.is_some() {
+                let mut level = binary_args
                     .log_level
                     .map(|level| level.item)
                     .unwrap_or_else(|| "info".to_string());
+
+                if Level::from_str(level.as_str()).is_err() {
+                    eprintln!("ERROR: log library did not recognize log level '{level}', using default 'info'");
+                    level = "info".to_string();
+                }
 
                 let target = binary_args
                     .log_target
@@ -288,7 +290,8 @@ fn main() -> Result<()> {
             if let Some(testbin) = &binary_args.testbin {
                 // Call out to the correct testbin
                 match testbin.item.as_str() {
-                    "echo_env" => test_bins::echo_env(),
+                    "echo_env" => test_bins::echo_env(true),
+                    "echo_env_stderr" => test_bins::echo_env(false),
                     "cococo" => test_bins::cococo(),
                     "meow" => test_bins::meow(),
                     "meowb" => test_bins::meowb(),
@@ -317,14 +320,13 @@ fn main() -> Result<()> {
                     exit_code: None,
                     span: redirect_stdin.span,
                     metadata: None,
+                    trim_end_newline: false,
                 }
             } else {
-                PipelineData::new(Span::new(0, 0))
+                PipelineData::empty()
             };
 
-            if is_perf_true() {
-                info!("redirect_stdin {}:{}:{}", file!(), line!(), column!());
-            }
+            info!("redirect_stdin {}:{}:{}", file!(), line!(), column!());
 
             // First, set up env vars as strings only
             gather_parent_env_vars(&mut engine_state, &init_cwd);
@@ -338,7 +340,6 @@ fn main() -> Result<()> {
                     &mut stack,
                     binary_args.plugin_file,
                     NUSHELL_FOLDER,
-                    is_perf_true(),
                 );
 
                 // only want to load config and env if relative argument is provided.
@@ -347,15 +348,10 @@ fn main() -> Result<()> {
                         &mut engine_state,
                         &mut stack,
                         binary_args.env_file,
-                        is_perf_true(),
                         true,
                     );
                 } else {
-                    config_files::read_default_env_file(
-                        &mut engine_state,
-                        &mut stack,
-                        is_perf_true(),
-                    )
+                    config_files::read_default_env_file(&mut engine_state, &mut stack)
                 }
 
                 if binary_args.config_file.is_some() {
@@ -363,7 +359,6 @@ fn main() -> Result<()> {
                         &mut engine_state,
                         &mut stack,
                         binary_args.config_file,
-                        is_perf_true(),
                         false,
                     );
                 }
@@ -373,12 +368,9 @@ fn main() -> Result<()> {
                     &mut engine_state,
                     &mut stack,
                     input,
-                    is_perf_true(),
                     binary_args.table_mode,
                 );
-                if is_perf_true() {
-                    info!("-c command execution {}:{}:{}", file!(), line!(), column!());
-                }
+                info!("-c command execution {}:{}:{}", file!(), line!(), column!());
                 match ret_val {
                     Ok(Some(exit_code)) => std::process::exit(exit_code as i32),
                     Ok(None) => Ok(()),
@@ -391,7 +383,6 @@ fn main() -> Result<()> {
                     &mut stack,
                     binary_args.plugin_file,
                     NUSHELL_FOLDER,
-                    is_perf_true(),
                 );
 
                 // only want to load config and env if relative argument is provided.
@@ -400,15 +391,10 @@ fn main() -> Result<()> {
                         &mut engine_state,
                         &mut stack,
                         binary_args.env_file,
-                        is_perf_true(),
                         true,
                     );
                 } else {
-                    config_files::read_default_env_file(
-                        &mut engine_state,
-                        &mut stack,
-                        is_perf_true(),
-                    )
+                    config_files::read_default_env_file(&mut engine_state, &mut stack)
                 }
 
                 if binary_args.config_file.is_some() {
@@ -416,7 +402,6 @@ fn main() -> Result<()> {
                         &mut engine_state,
                         &mut stack,
                         binary_args.config_file,
-                        is_perf_true(),
                         false,
                     );
                 }
@@ -427,7 +412,6 @@ fn main() -> Result<()> {
                     &mut engine_state,
                     &mut stack,
                     input,
-                    is_perf_true(),
                 );
 
                 let last_exit_code = stack.get_env_var(&engine_state, "LAST_EXIT_CODE");
@@ -439,9 +423,7 @@ fn main() -> Result<()> {
                         }
                     }
                 }
-                if is_perf_true() {
-                    info!("eval_file execution {}:{}:{}", file!(), line!(), column!());
-                }
+                info!("eval_file execution {}:{}:{}", file!(), line!(), column!());
 
                 ret_val
             } else {
@@ -459,12 +441,9 @@ fn main() -> Result<()> {
                     &mut engine_state,
                     &mut stack,
                     config_files::NUSHELL_FOLDER,
-                    is_perf_true(),
                     binary_args.execute,
                 );
-                if is_perf_true() {
-                    info!("repl eval {}:{}:{}", file!(), line!(), column!());
-                }
+                info!("repl eval {}:{}:{}", file!(), line!(), column!());
 
                 ret_val
             }
@@ -482,23 +461,15 @@ fn setup_config(
     is_login_shell: bool,
 ) {
     #[cfg(feature = "plugin")]
-    read_plugin_file(
-        engine_state,
-        stack,
-        plugin_file,
-        NUSHELL_FOLDER,
-        is_perf_true(),
-    );
+    read_plugin_file(engine_state, stack, plugin_file, NUSHELL_FOLDER);
 
-    if is_perf_true() {
-        info!("read_config_file {}:{}:{}", file!(), line!(), column!());
-    }
+    info!("read_config_file {}:{}:{}", file!(), line!(), column!());
 
-    config_files::read_config_file(engine_state, stack, env_file, is_perf_true(), true);
-    config_files::read_config_file(engine_state, stack, config_file, is_perf_true(), false);
+    config_files::read_config_file(engine_state, stack, env_file, true);
+    config_files::read_config_file(engine_state, stack, config_file, false);
 
     if is_login_shell {
-        config_files::read_loginshell_file(engine_state, stack, is_perf_true());
+        config_files::read_loginshell_file(engine_state, stack);
     }
 
     // Give a warning if we see `$config` for a few releases
@@ -541,17 +512,19 @@ fn parse_commandline_args(
 
     // We should have a successful parse now
     if let Some(pipeline) = block.pipelines.get(0) {
-        if let Some(Expression {
-            expr: Expr::Call(call),
-            ..
-        }) = pipeline.expressions.get(0)
+        if let Some(PipelineElement::Expression(
+            _,
+            Expression {
+                expr: Expr::Call(call),
+                ..
+            },
+        )) = pipeline.elements.get(0)
         {
             let redirect_stdin = call.get_named_arg("stdin");
             let login_shell = call.get_named_arg("login");
             let interactive_shell = call.get_named_arg("interactive");
             let commands: Option<Expression> = call.get_flag_expr("commands");
             let testbin: Option<Expression> = call.get_flag_expr("testbin");
-            let perf = call.has_flag("perf");
             #[cfg(feature = "plugin")]
             let plugin_file: Option<Expression> = call.get_flag_expr("plugin-config");
             let config_file: Option<Expression> = call.get_flag_expr("config");
@@ -594,8 +567,13 @@ fn parse_commandline_args(
             let help = call.has_flag("help");
 
             if help {
-                let full_help =
-                    get_full_help(&Nu.signature(), &Nu.examples(), engine_state, &mut stack);
+                let full_help = get_full_help(
+                    &Nu.signature(),
+                    &Nu.examples(),
+                    engine_state,
+                    &mut stack,
+                    true,
+                );
 
                 let _ = std::panic::catch_unwind(move || stdout_write_all_and_flush(full_help));
 
@@ -624,7 +602,6 @@ fn parse_commandline_args(
                 log_level,
                 log_target,
                 execute,
-                perf,
                 threads,
                 table_mode,
             });
@@ -632,14 +609,19 @@ fn parse_commandline_args(
     }
 
     // Just give the help and exit if the above fails
-    let full_help = get_full_help(&Nu.signature(), &Nu.examples(), engine_state, &mut stack);
+    let full_help = get_full_help(
+        &Nu.signature(),
+        &Nu.examples(),
+        engine_state,
+        &mut stack,
+        true,
+    );
     print!("{}", full_help);
     std::process::exit(1);
 }
 
 struct NushellCliArgs {
     redirect_stdin: Option<Spanned<String>>,
-    #[allow(dead_code)]
     login_shell: Option<Spanned<String>>,
     interactive_shell: Option<Spanned<String>>,
     commands: Option<Spanned<String>>,
@@ -651,7 +633,6 @@ struct NushellCliArgs {
     log_level: Option<Spanned<String>>,
     log_target: Option<Spanned<String>>,
     execute: Option<Spanned<String>>,
-    perf: bool,
     threads: Option<Value>,
     table_mode: Option<Value>,
 }
@@ -667,15 +648,14 @@ impl Command for Nu {
     fn signature(&self) -> Signature {
         let signature = Signature::build("nu")
             .usage("The nushell language and shell.")
-            .switch("stdin", "redirect the stdin", None)
+            .switch(
+                "stdin",
+                "redirect standard input to a command (with `-c`) or a script file",
+                None,
+            )
             .switch("login", "start as a login shell", Some('l'))
             .switch("interactive", "start as an interactive shell", Some('i'))
             .switch("version", "print the version", Some('v'))
-            .switch(
-                "perf",
-                "start and print performance metrics during startup",
-                Some('p'),
-            )
             .named(
                 "testbin",
                 SyntaxShape::String,
@@ -703,7 +683,7 @@ impl Command for Nu {
             .named(
                 "log-level",
                 SyntaxShape::String,
-                "log level for performance logs",
+                "log level for diagnostic logs (error, warn, info, debug, trace). Off by default",
                 None,
             )
             .named(
@@ -770,7 +750,7 @@ impl Command for Nu {
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
         Ok(Value::String {
-            val: get_full_help(&Nu.signature(), &Nu.examples(), engine_state, stack),
+            val: get_full_help(&Nu.signature(), &Nu.examples(), engine_state, stack, true),
             span: call.head,
         }
         .into_pipeline_data())
@@ -790,16 +770,6 @@ impl Command for Nu {
             },
         ]
     }
-}
-
-pub fn is_perf_true() -> bool {
-    IS_PERF.with(|value| *value.borrow())
-}
-
-fn set_is_perf_value(value: bool) {
-    IS_PERF.with(|new_value| {
-        *new_value.borrow_mut() = value;
-    });
 }
 
 fn set_config_path(

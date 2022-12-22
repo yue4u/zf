@@ -3,7 +3,7 @@ use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, Spanned, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, Spanned, SyntaxShape, Type, Value,
 };
 use num_traits::CheckedShl;
 use std::fmt::Display;
@@ -18,6 +18,8 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("bits shl")
+            .input_output_types(vec![(Type::Int, Type::Int)])
+            .vectorizes_over_list(true)
             .required("bits", SyntaxShape::Int, "number of bits to shift left")
             .switch(
                 "signed",
@@ -74,26 +76,17 @@ impl Command for SubCommand {
             Example {
                 description: "Shift left a number by 7 bits",
                 example: "2 | bits shl 7",
-                result: Some(Value::Int {
-                    val: 256,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::int(256, Span::test_data())),
             },
             Example {
                 description: "Shift left a number with 1 byte by 7 bits",
                 example: "2 | bits shl 7 -n 1",
-                result: Some(Value::Int {
-                    val: 0,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::int(0, Span::test_data())),
             },
             Example {
                 description: "Shift left a signed number by 1 bit",
                 example: "0x7F | bits shl 1 -s",
-                result: Some(Value::Int {
-                    val: 254,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::int(254, Span::test_data())),
             },
             Example {
                 description: "Shift left a list of numbers",

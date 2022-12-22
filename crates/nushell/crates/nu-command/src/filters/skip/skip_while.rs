@@ -1,9 +1,9 @@
 use nu_engine::{eval_block, CallExt};
 use nu_protocol::{
     ast::Call,
-    engine::{CaptureBlock, Command, EngineState, Stack},
+    engine::{Closure, Command, EngineState, Stack},
     Category, Example, IntoInterruptiblePipelineData, PipelineData, ShellError, Signature, Span,
-    SyntaxShape, Value,
+    SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -16,9 +16,16 @@ impl Command for SkipWhile {
 
     fn signature(&self) -> Signature {
         Signature::build(self.name())
+            .input_output_types(vec![
+                (Type::Table(vec![]), Type::Table(vec![])),
+                (
+                    Type::List(Box::new(Type::Any)),
+                    Type::List(Box::new(Type::Any)),
+                ),
+            ])
             .required(
                 "predicate",
-                SyntaxShape::RowCondition,
+                SyntaxShape::Closure(Some(vec![SyntaxShape::Any, SyntaxShape::Int])),
                 "the predicate that skipped element must match",
             )
             .category(Category::Filters)
@@ -33,14 +40,36 @@ impl Command for SkipWhile {
     }
 
     fn examples(&self) -> Vec<Example> {
-        vec![Example {
-            description: "Skip while the element is negative",
-            example: "echo [-2 0 2 -1] | skip while $it < 0",
-            result: Some(Value::List {
-                vals: vec![Value::test_int(0), Value::test_int(2), Value::test_int(-1)],
-                span: Span::test_data(),
-            }),
-        }]
+        vec![
+            Example {
+                description: "Skip while the element is negative",
+                example: "[-2 0 2 -1] | skip while {|x| $x < 0 }",
+                result: Some(Value::List {
+                    vals: vec![Value::test_int(0), Value::test_int(2), Value::test_int(-1)],
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Skip while the element is negative using stored condition",
+                example: "let cond = {|x| $x < 0 }; [-2 0 2 -1] | skip while $cond",
+                result: Some(Value::List {
+                    vals: vec![Value::test_int(0), Value::test_int(2), Value::test_int(-1)],
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                description: "Skip while the field value is negative",
+                example: "[{a: -2} {a: 0} {a: 2} {a: -1}] | skip while {|x| $x.a < 0 }",
+                result: Some(Value::List {
+                    vals: vec![
+                        Value::test_record(vec!["a"], vec![Value::test_int(0)]),
+                        Value::test_record(vec!["a"], vec![Value::test_int(2)]),
+                        Value::test_record(vec!["a"], vec![Value::test_int(-1)]),
+                    ],
+                    span: Span::test_data(),
+                }),
+            },
+        ]
     }
 
     fn run(
@@ -53,7 +82,7 @@ impl Command for SkipWhile {
         let span = call.head;
         let metadata = input.metadata();
 
-        let capture_block: CaptureBlock = call.req(engine_state, stack, 0)?;
+        let capture_block: Closure = call.req(engine_state, stack, 0)?;
 
         let block = engine_state.get_block(capture_block.block_id).clone();
         let var_id = block.signature.get_positional(0).and_then(|arg| arg.var_id);
@@ -76,7 +105,7 @@ impl Command for SkipWhile {
                     &engine_state,
                     &mut stack,
                     &block,
-                    PipelineData::new(span),
+                    PipelineData::empty(),
                     redirect_stdout,
                     redirect_stderr,
                 )

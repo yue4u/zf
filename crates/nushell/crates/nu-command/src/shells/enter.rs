@@ -2,7 +2,9 @@ use super::{get_current_shell, get_shells};
 use nu_engine::{current_dir, CallExt};
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, ShellError, Signature, SyntaxShape, Value};
+use nu_protocol::{
+    Category, Example, PipelineData, ShellError, Signature, SyntaxShape, Type, Value,
+};
 
 /// Source a file for environment variables.
 #[derive(Clone)]
@@ -15,6 +17,7 @@ impl Command for Enter {
 
     fn signature(&self) -> Signature {
         Signature::build("enter")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .required(
                 "path",
                 SyntaxShape::Filepath,
@@ -53,25 +56,16 @@ impl Command for Enter {
             ));
         }
 
-        let new_path = Value::String {
-            val: new_path.to_string_lossy().to_string(),
-            span: call.head,
-        };
+        let new_path = Value::string(new_path.to_string_lossy(), call.head);
 
-        let cwd = Value::String {
-            val: cwd.to_string_lossy().to_string(),
-            span: call.head,
-        };
+        let cwd = Value::string(cwd.to_string_lossy(), call.head);
 
         let mut shells = get_shells(engine_state, stack, cwd);
         let mut current_shell = get_current_shell(engine_state, stack);
 
         stack.add_env_var(
             "NUSHELL_LAST_SHELL".into(),
-            Value::Int {
-                val: current_shell as i64,
-                span: call.head,
-            },
+            Value::int(current_shell as i64, call.head),
         );
 
         if current_shell + 1 > shells.len() {
@@ -91,15 +85,12 @@ impl Command for Enter {
         );
         stack.add_env_var(
             "NUSHELL_CURRENT_SHELL".into(),
-            Value::Int {
-                val: current_shell as i64,
-                span: call.head,
-            },
+            Value::int(current_shell as i64, call.head),
         );
 
         stack.add_env_var("PWD".into(), new_path);
 
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {

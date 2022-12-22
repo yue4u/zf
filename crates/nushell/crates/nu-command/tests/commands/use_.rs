@@ -97,7 +97,7 @@ fn use_eval_export_env_hide() {
 
         let actual = nu!(cwd: dirs.test(), pipeline(&inp.join("; ")));
 
-        assert!(actual.err.contains("cannot find column"));
+        assert!(actual.err.contains("not_found"));
     })
 }
 
@@ -182,4 +182,18 @@ fn use_export_env_combined() {
         let actual = nu!(cwd: dirs.test(), pipeline(&inp.join("; ")));
         assert_eq!(actual.out, "foo");
     })
+}
+
+#[test]
+fn use_module_creates_accurate_did_you_mean() {
+    let actual = nu!(
+    cwd: ".", pipeline(
+        r#"
+                module spam { export def foo [] { "foo" } }; use spam; foo
+            "#
+        )
+    );
+    assert!(actual.err.contains(
+        "command 'foo' was not found but it exists in module 'spam'; try using `spam foo`"
+    ));
 }

@@ -56,7 +56,6 @@ impl Command for DataTypes {
     }
 }
 
-#[allow(clippy::needless_collect)]
 fn command(
     _engine_state: &EngineState,
     _stack: &mut Stack,
@@ -83,10 +82,7 @@ fn command(
                 span: call.head,
             });
 
-            Value::String {
-                val: v.to_string(),
-                span: call.head,
-            }
+            Value::string(*v, call.head)
         })
         .collect();
 

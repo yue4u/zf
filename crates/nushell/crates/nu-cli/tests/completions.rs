@@ -5,7 +5,7 @@ use nu_parser::parse;
 use nu_protocol::engine::StateWorkingSet;
 use reedline::{Completer, Suggestion};
 use rstest::{fixture, rstest};
-use support::{file, folder, match_suggestions, new_engine};
+use support::{completions_helpers::new_quote_engine, file, folder, match_suggestions, new_engine};
 
 #[fixture]
 fn completer() -> NuCompleter {
@@ -28,6 +28,26 @@ fn completer_strings() -> NuCompleter {
     // Add record value as example
     let record = r#"def animals [] { ["cat", "dog", "eel" ] }
     def my-command [animal: string@animals] { print $animal }"#;
+    assert!(support::merge_input(record.as_bytes(), &mut engine, &mut stack, dir).is_ok());
+
+    // Instantiate a new completer
+    NuCompleter::new(std::sync::Arc::new(engine), stack)
+}
+
+#[fixture]
+fn extern_completer() -> NuCompleter {
+    // Create a new engine
+    let (dir, _, mut engine, mut stack) = new_engine();
+
+    // Add record value as example
+    let record = r#"
+        def animals [] { [ "cat", "dog", "eel" ] }
+        extern spam [
+            animal: string@animals
+            --foo (-f): string@animals
+            -b: string@animals
+        ]
+    "#;
     assert!(support::merge_input(record.as_bytes(), &mut engine, &mut stack, dir).is_ok());
 
     // Instantiate a new completer
@@ -412,6 +432,24 @@ fn command_watch_with_filecompletion() {
 }
 
 #[test]
+fn file_completion_quoted() {
+    let (_, _, engine, stack) = new_quote_engine();
+
+    let mut completer = NuCompleter::new(std::sync::Arc::new(engine), stack);
+
+    let target_dir = "open ";
+    let suggestions = completer.complete(target_dir, target_dir.len());
+
+    let expected_paths: Vec<String> = vec![
+        "`te st.txt`".to_string(),
+        "`te#st.txt`".to_string(),
+        "`te'st.txt`".to_string(),
+    ];
+
+    match_suggestions(expected_paths, suggestions)
+}
+
+#[test]
 fn flag_completions() {
     // Create a new engine
     let (_, _, engine, stack) = new_engine();
@@ -731,4 +769,46 @@ fn filecompletions_triggers_after_cursor() {
     ];
 
     match_suggestions(expected_paths, suggestions);
+}
+
+#[rstest]
+fn extern_custom_completion_positional(mut extern_completer: NuCompleter) {
+    let suggestions = extern_completer.complete("spam ", 5);
+    let expected: Vec<String> = vec!["cat".into(), "dog".into(), "eel".into()];
+    match_suggestions(expected, suggestions);
+}
+
+#[rstest]
+fn extern_custom_completion_long_flag_1(mut extern_completer: NuCompleter) {
+    let suggestions = extern_completer.complete("spam --foo=", 11);
+    let expected: Vec<String> = vec!["cat".into(), "dog".into(), "eel".into()];
+    match_suggestions(expected, suggestions);
+}
+
+#[rstest]
+fn extern_custom_completion_long_flag_2(mut extern_completer: NuCompleter) {
+    let suggestions = extern_completer.complete("spam --foo ", 11);
+    let expected: Vec<String> = vec!["cat".into(), "dog".into(), "eel".into()];
+    match_suggestions(expected, suggestions);
+}
+
+#[rstest]
+fn extern_custom_completion_long_flag_short(mut extern_completer: NuCompleter) {
+    let suggestions = extern_completer.complete("spam -f ", 8);
+    let expected: Vec<String> = vec!["cat".into(), "dog".into(), "eel".into()];
+    match_suggestions(expected, suggestions);
+}
+
+#[rstest]
+fn extern_custom_completion_short_flag(mut extern_completer: NuCompleter) {
+    let suggestions = extern_completer.complete("spam -b ", 8);
+    let expected: Vec<String> = vec!["cat".into(), "dog".into(), "eel".into()];
+    match_suggestions(expected, suggestions);
+}
+
+#[rstest]
+fn extern_complete_flags(mut extern_completer: NuCompleter) {
+    let suggestions = extern_completer.complete("spam -", 6);
+    let expected: Vec<String> = vec!["--foo".into(), "-b".into(), "-f".into()];
+    match_suggestions(expected, suggestions);
 }

@@ -169,6 +169,33 @@ fn add_overlay_from_file_decl() {
     assert_eq!(actual_repl.out, "foo");
 }
 
+#[test]
+fn add_overlay_from_const_file_decl() {
+    let inp = &[
+        r#"const file = 'samples/spam.nu'"#,
+        r#"overlay use $file"#,
+        r#"foo"#,
+    ];
+
+    let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
+
+    assert_eq!(actual.out, "foo");
+}
+
+#[test]
+fn add_overlay_from_const_module_name_decl() {
+    let inp = &[
+        r#"module spam { export def foo [] { "foo" } }"#,
+        r#"const mod = 'spam'"#,
+        r#"overlay use $mod"#,
+        r#"foo"#,
+    ];
+
+    let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
+
+    assert_eq!(actual.out, "foo");
+}
+
 // This one tests that the `nu_repl()` loop works correctly
 #[test]
 fn add_overlay_from_file_decl_cd() {
@@ -337,8 +364,8 @@ fn remove_overlay_env() {
     let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
     let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
 
-    assert!(actual.err.contains("cannot find column"));
-    assert!(actual_repl.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
+    assert!(actual_repl.err.contains("not_found"));
 }
 
 #[test]
@@ -448,8 +475,8 @@ fn remove_overlay_discard_env() {
     let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
     let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
 
-    assert!(actual.err.contains("cannot find column"));
-    assert!(actual_repl.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
+    assert!(actual_repl.err.contains("not_found"));
 }
 
 #[test]
@@ -496,8 +523,8 @@ fn remove_overlay_dont_keep_env() {
     let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
     let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
 
-    assert!(actual.err.contains("cannot find column"));
-    assert!(actual_repl.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
+    assert!(actual_repl.err.contains("not_found"));
 }
 
 #[test]
@@ -550,8 +577,8 @@ fn remove_overlay_dont_keep_overwritten_env() {
     let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
     let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
 
-    assert!(actual.err.contains("cannot find column"));
-    assert!(actual_repl.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
+    assert!(actual_repl.err.contains("not_found"));
 }
 
 #[test]
@@ -604,8 +631,8 @@ fn remove_overlay_dont_keep_env_in_latest_overlay() {
     let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
     let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
 
-    assert!(actual.err.contains("cannot find column"));
-    assert!(actual_repl.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
+    assert!(actual_repl.err.contains("not_found"));
 }
 
 #[test]
@@ -683,6 +710,23 @@ fn overlay_add_renamed() {
     let inp = &[
         r#"module spam { export def foo [] { "foo" } }"#,
         r#"overlay use spam as eggs --prefix"#,
+        r#"eggs foo"#,
+    ];
+
+    let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
+    let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
+
+    assert_eq!(actual.out, "foo");
+    assert_eq!(actual_repl.out, "foo");
+}
+
+#[test]
+fn overlay_add_renamed_const() {
+    let inp = &[
+        r#"module spam { export def foo [] { "foo" } }"#,
+        r#"const name = 'spam'"#,
+        r#"const new_name = 'eggs'"#,
+        r#"overlay use $name as $new_name --prefix"#,
         r#"eggs foo"#,
     ];
 
@@ -799,8 +843,8 @@ fn overlay_use_export_env_hide() {
     let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
     let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
 
-    assert!(actual.err.contains("cannot find column"));
-    assert!(actual_repl.err.contains("cannot find column"));
+    assert!(actual.err.contains("not_found"));
+    assert!(actual_repl.err.contains("not_found"));
 }
 
 #[test]
@@ -1054,4 +1098,71 @@ fn overlay_trim_double_quote_hide() {
     assert!(actual_repl.out != "foo");
     #[cfg(not(windows))]
     assert!(!actual_repl.err.is_empty());
+}
+
+#[test]
+fn overlay_use_and_restore_older_env_vars() {
+    let inp = &[
+        r#"module spam {
+            export-env {
+                let old_baz = $env.BAZ;
+                let-env BAZ = $old_baz + 'baz'
+            }
+        }"#,
+        r#"let-env BAZ = 'baz'"#,
+        r#"overlay use spam"#,
+        r#"overlay hide spam"#,
+        r#"let-env BAZ = 'new-baz'"#,
+        r#"overlay use --reload spam"#,
+        r#"$env.BAZ"#,
+    ];
+
+    let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
+    let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
+
+    assert_eq!(actual.out, "new-bazbaz");
+    assert_eq!(actual_repl.out, "new-bazbaz");
+}
+
+#[test]
+fn overlay_use_and_reload() {
+    let inp = &[
+        r#"module spam {
+            export def foo [] { 'foo' };
+            export alias fooalias = 'foo';
+            export-env {
+                let-env FOO = 'foo'
+            }
+        }"#,
+        r#"overlay use spam"#,
+        r#"def foo [] { 'newfoo' }"#,
+        r#"alias fooalias = 'newfoo'"#,
+        r#"let-env FOO = 'newfoo'"#,
+        r#"overlay use --reload spam"#,
+        r#"$'(foo)(fooalias)($env.FOO)'"#,
+    ];
+
+    let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
+    let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
+
+    assert_eq!(actual.out, "foofoofoo");
+    assert_eq!(actual_repl.out, "foofoofoo");
+}
+
+#[test]
+fn overlay_use_and_reolad_keep_custom() {
+    let inp = &[
+        r#"overlay new spam"#,
+        r#"def foo [] { 'newfoo' }"#,
+        r#"alias fooalias = 'newfoo'"#,
+        r#"let-env FOO = 'newfoo'"#,
+        r#"overlay use --reload spam"#,
+        r#"$'(foo)(fooalias)($env.FOO)'"#,
+    ];
+
+    let actual = nu!(cwd: "tests/overlays", pipeline(&inp.join("; ")));
+    let actual_repl = nu!(cwd: "tests/overlays", nu_repl_code(inp));
+
+    assert_eq!(actual.out, "newfoonewfoonewfoo");
+    assert_eq!(actual_repl.out, "newfoonewfoonewfoo");
 }

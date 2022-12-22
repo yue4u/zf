@@ -8,7 +8,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoInterruptiblePipelineData, PipelineData, ShellError, Signature, Span,
-    Spanned, SyntaxShape, Value,
+    Spanned, SyntaxShape, Type, Value,
 };
 
 use super::util::try_interaction;
@@ -25,7 +25,6 @@ const GLOB_PARAMS: nu_glob::MatchOptions = nu_glob::MatchOptions {
 #[derive(Clone)]
 pub struct Cp;
 
-#[allow(unused_must_use)]
 impl Command for Cp {
     fn name(&self) -> &str {
         "cp"
@@ -41,6 +40,7 @@ impl Command for Cp {
 
     fn signature(&self) -> Signature {
         Signature::build("cp")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .required("source", SyntaxShape::GlobPattern, "the place to copy from")
             .required("destination", SyntaxShape::Filepath, "the place to copy to")
             .switch(
@@ -74,10 +74,7 @@ impl Command for Cp {
         let src: Spanned<String> = call.req(engine_state, stack, 0)?;
         let src = {
             Spanned {
-                item: match strip_ansi_escapes::strip(&src.item) {
-                    Ok(item) => String::from_utf8(item).unwrap_or(src.item),
-                    Err(_) => src.item,
-                },
+                item: nu_utils::strip_ansi_string_unlikely(src.item),
                 span: src.span,
             }
         };
@@ -326,8 +323,10 @@ fn interactive_copy(
     span: Span,
     copy_impl: impl Fn(PathBuf, PathBuf, Span) -> Value,
 ) -> Value {
-    let (interaction, confirmed) =
-        try_interaction(interactive, "cp: overwrite", &dst.to_string_lossy());
+    let (interaction, confirmed) = try_interaction(
+        interactive,
+        format!("cp: overwrite '{}'? ", dst.to_string_lossy()),
+    );
     if let Err(e) = interaction {
         Value::Error {
             error: ShellError::GenericError(

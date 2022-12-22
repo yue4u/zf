@@ -2,7 +2,7 @@ use nu_engine::CallExt;
 use nu_protocol::ast::{Call, CellPath};
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, IntoPipelineData, PipelineData, Signature, Span, SyntaxShape, Value,
+    Category, Example, IntoPipelineData, PipelineData, Signature, Span, SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -15,6 +15,7 @@ impl Command for Empty {
 
     fn signature(&self) -> Signature {
         Signature::build("is-empty")
+            .input_output_types(vec![(Type::Any, Type::Bool)])
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
@@ -42,27 +43,18 @@ impl Command for Empty {
             Example {
                 description: "Check if a string is empty",
                 example: "'' | is-empty",
-                result: Some(Value::Bool {
-                    val: true,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::boolean(true, Span::test_data())),
             },
             Example {
                 description: "Check if a list is empty",
                 example: "[] | is-empty",
-                result: Some(Value::Bool {
-                    val: true,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::boolean(true, Span::test_data())),
             },
             Example {
                 // TODO: revisit empty cell path semantics for a record.
                 description: "Check if more than one column are empty",
                 example: "[[meal size]; [arepa small] [taco '']] | is-empty meal size",
-                result: Some(Value::Bool {
-                    val: false,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::boolean(false, Span::test_data())),
             },
         ]
     }
@@ -83,54 +75,33 @@ fn empty(
                 let val = val.clone();
                 match val.follow_cell_path(&column.members, false) {
                     Ok(Value::Nothing { .. }) => {}
-                    Ok(_) => {
-                        return Ok(Value::Bool {
-                            val: false,
-                            span: head,
-                        }
-                        .into_pipeline_data())
-                    }
+                    Ok(_) => return Ok(Value::boolean(false, head).into_pipeline_data()),
                     Err(err) => return Err(err),
                 }
             }
         }
 
-        Ok(Value::Bool {
-            val: true,
-            span: head,
-        }
-        .into_pipeline_data())
+        Ok(Value::boolean(true, head).into_pipeline_data())
     } else {
         match input {
+            PipelineData::Empty => Ok(PipelineData::Empty),
             PipelineData::ExternalStream { stdout, .. } => match stdout {
                 Some(s) => {
                     let bytes = s.into_bytes();
 
                     match bytes {
-                        Ok(s) => Ok(Value::Bool {
-                            val: s.item.is_empty(),
-                            span: head,
-                        }
-                        .into_pipeline_data()),
+                        Ok(s) => Ok(Value::boolean(s.item.is_empty(), head).into_pipeline_data()),
                         Err(err) => Err(err),
                     }
                 }
-                None => Ok(Value::Bool {
-                    val: true,
-                    span: head,
-                }
-                .into_pipeline_data()),
+                None => Ok(Value::boolean(true, head).into_pipeline_data()),
             },
-            PipelineData::ListStream(s, ..) => Ok(Value::Bool {
-                val: s.count() == 0,
-                span: head,
+            PipelineData::ListStream(s, ..) => {
+                Ok(Value::boolean(s.count() == 0, head).into_pipeline_data())
             }
-            .into_pipeline_data()),
-            PipelineData::Value(value, ..) => Ok(Value::Bool {
-                val: value.is_empty(),
-                span: head,
+            PipelineData::Value(value, ..) => {
+                Ok(Value::boolean(value.is_empty(), head).into_pipeline_data())
             }
-            .into_pipeline_data()),
         }
     }
 }

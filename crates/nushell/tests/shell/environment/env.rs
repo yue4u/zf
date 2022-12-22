@@ -78,6 +78,14 @@ fn env_shorthand_multi() {
 }
 
 #[test]
+fn env_assignment() {
+    let actual = nu!(cwd: ".", r#"
+        $env.FOOBAR = "barbaz"; $env.FOOBAR
+    "#);
+    assert_eq!(actual.out, "barbaz");
+}
+
+#[test]
 fn let_env_file_pwd_env_var_fails() {
     let actual = nu!(cwd: ".", r#"let-env FILE_PWD = 'foo'"#);
 
@@ -108,6 +116,17 @@ fn passes_with_env_env_var_to_external_process() {
         with-env [FOO foo] {nu --testbin echo_env FOO}
         "#);
     assert_eq!(actual.out, "foo");
+}
+
+#[test]
+fn has_file_pwd() {
+    Playground::setup("has_file_pwd", |dirs, sandbox| {
+        sandbox.with_files(vec![FileWithContent("spam.nu", "$env.FILE_PWD")]);
+
+        let actual = nu!(cwd: dirs.test(), "nu spam.nu");
+
+        assert!(actual.out.ends_with("has_file_pwd"));
+    })
 }
 
 // FIXME: autoenv not currently implemented

@@ -120,6 +120,25 @@ fn command_not_found_error_suggests_typo_fix() {
     assert!(actual.err.contains("benchmark"));
 }
 
+#[test]
+fn command_substitution_wont_output_extra_newline() {
+    let actual = nu!(
+        cwd: ".",
+        r#"
+        with-env [FOO "bar"] { echo $"prefix (nu --testbin echo_env FOO) suffix" }
+        "#
+    );
+    assert_eq!(actual.out, "prefix bar suffix");
+
+    let actual = nu!(
+        cwd: ".",
+        r#"
+        with-env [FOO "bar"] { (nu --testbin echo_env FOO) }
+        "#
+    );
+    assert_eq!(actual.out, "bar");
+}
+
 mod it_evaluation {
     use super::nu;
     use nu_test_support::fs::Stub::{EmptyFile, FileWithContent, FileWithContentToBeTrimmed};
@@ -314,11 +333,10 @@ mod nu_commands {
     }
 
     #[test]
-    #[ignore = "For now we have no way to check LAST_EXIT_CODE in tests, ignore it for now"]
     fn failed_with_proper_exit_code() {
         Playground::setup("external failed", |dirs, _sandbox| {
             let actual = nu!(cwd: dirs.test(), r#"
-            nu -c "cargo build; print $env.LAST_EXIT_CODE"
+            nu -c "cargo build | complete | get exit_code"
             "#);
 
             // cargo for non rust project's exit code is 101.

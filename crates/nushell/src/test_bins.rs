@@ -11,11 +11,15 @@ use nu_protocol::{CliError, PipelineData, Span, Value};
 /// Echo's value of env keys from args
 /// Example: nu --testbin env_echo FOO BAR
 /// If it it's not present echo's nothing
-pub fn echo_env() {
+pub fn echo_env(to_stdout: bool) {
     let args = args();
     for arg in args {
         if let Ok(v) = std::env::var(arg) {
-            println!("{}", v);
+            if to_stdout {
+                println!("{}", v);
+            } else {
+                eprintln!("{}", v);
+            }
         }
     }
 }
@@ -147,10 +151,7 @@ pub fn nu_repl() {
 
     stack.add_env_var(
         "PWD".to_string(),
-        Value::String {
-            val: cwd.to_string_lossy().to_string(),
-            span: Span::test_data(),
-        },
+        Value::string(cwd.to_string_lossy(), Span::test_data()),
     );
 
     let mut last_output = String::new();
@@ -172,7 +173,7 @@ pub fn nu_repl() {
         // Check for pre_prompt hook
         let config = engine_state.get_config();
         if let Some(hook) = config.hooks.pre_prompt.clone() {
-            if let Err(err) = eval_hook(&mut engine_state, &mut stack, vec![], &hook) {
+            if let Err(err) = eval_hook(&mut engine_state, &mut stack, None, vec![], &hook) {
                 outcome_err(&engine_state, &err);
             }
         }
@@ -190,7 +191,7 @@ pub fn nu_repl() {
         // Check for pre_execution hook
         let config = engine_state.get_config();
         if let Some(hook) = config.hooks.pre_execution.clone() {
-            if let Err(err) = eval_hook(&mut engine_state, &mut stack, vec![], &hook) {
+            if let Err(err) = eval_hook(&mut engine_state, &mut stack, None, vec![], &hook) {
                 outcome_err(&engine_state, &err);
             }
         }
@@ -216,7 +217,7 @@ pub fn nu_repl() {
             outcome_err(&engine_state, &err);
         }
 
-        let input = PipelineData::new(Span::test_data());
+        let input = PipelineData::empty();
         let config = engine_state.get_config();
 
         match eval_block(&engine_state, &mut stack, &block, input, false, false) {

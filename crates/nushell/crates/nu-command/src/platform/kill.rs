@@ -3,7 +3,7 @@ use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{ast::Call, span};
 use nu_protocol::{
     Category, Example, IntoInterruptiblePipelineData, IntoPipelineData, PipelineData, ShellError,
-    Signature, Spanned, SyntaxShape, Value,
+    Signature, Spanned, SyntaxShape, Type, Value,
 };
 use std::process::{Command as CommandSys, Stdio};
 
@@ -21,6 +21,8 @@ impl Command for Kill {
 
     fn signature(&self) -> Signature {
         let signature = Signature::build("kill")
+            .input_output_types(vec![(Type::Nothing, Type::Any)])
+            .allow_variants_without_examples(true)
             .required(
                 "pid",
                 SyntaxShape::Int,
@@ -41,6 +43,10 @@ impl Command for Kill {
             "signal decimal number to be sent instead of the default 15 (unsupported on Windows)",
             Some('s'),
         )
+    }
+
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["stop", "end", "close"]
     }
 
     fn run(
@@ -189,6 +195,7 @@ impl Command for Kill {
                 example: "kill --force 12345",
                 result: None,
             },
+            #[cfg(not(target_os = "windows"))]
             Example {
                 description: "Send INT signal",
                 example: "kill -s 2 12345",

@@ -3,7 +3,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, SyntaxShape,
-    Value,
+    Type, Value,
 };
 
 use super::{horizontal_rotate_value, HorizontalDirection};
@@ -16,8 +16,13 @@ impl Command for RollRight {
         "roll right"
     }
 
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["rotate", "shift", "move", "column"]
+    }
+
     fn signature(&self) -> Signature {
         Signature::build(self.name())
+            .input_output_types(vec![(Type::Table(vec![]), Type::Table(vec![]))])
             .named(
                 "by",
                 SyntaxShape::Int,

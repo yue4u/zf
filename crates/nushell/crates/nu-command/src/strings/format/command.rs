@@ -2,9 +2,9 @@ use nu_engine::{eval_expression, CallExt};
 use nu_parser::parse_expression;
 use nu_protocol::ast::{Call, PathMember};
 use nu_protocol::engine::{Command, EngineState, Stack, StateWorkingSet};
-use nu_protocol::Type;
 use nu_protocol::{
-    Category, Example, ListStream, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, ListStream, PipelineData, ShellError, Signature, Span, SyntaxShape, Type,
+    Value,
 };
 
 #[derive(Clone)]
@@ -17,6 +17,10 @@ impl Command for Format {
 
     fn signature(&self) -> Signature {
         Signature::build("format")
+            .input_output_types(vec![(
+                Type::Table(vec![]),
+                Type::List(Box::new(Type::String)),
+            )])
             .required(
                 "pattern",
                 SyntaxShape::String,
@@ -41,7 +45,7 @@ impl Command for Format {
         let specified_pattern: Result<Value, ShellError> = call.req(engine_state, stack, 0);
         let input_val = input.into_value(call.head);
         // add '$it' variable to support format like this: $it.column1.column2.
-        let it_id = working_set.add_variable(b"$it".to_vec(), call.head, Type::Any);
+        let it_id = working_set.add_variable(b"$it".to_vec(), call.head, Type::Any, false);
         stack.add_var(it_id, input_val.clone());
 
         match specified_pattern {
@@ -51,7 +55,11 @@ impl Command for Format {
                 let string_span = pattern.span()?;
                 // the string span is start as `"`, we don't need the character
                 // to generate proper span for sub expression.
-                let ops = extract_formatting_operations(string_pattern, string_span.start + 1);
+                let ops = extract_formatting_operations(
+                    string_pattern,
+                    call.head,
+                    string_span.start + 1,
+                )?;
 
                 format(
                     input_val,
@@ -74,7 +82,7 @@ impl Command for Format {
             },
             Example {
                 description: "Print elements from some columns of a table",
-                example: "echo [[col1, col2]; [v1, v2] [v3, v4]] | format '{col2}'",
+                example: "[[col1, col2]; [v1, v2] [v3, v4]] | format '{col2}'",
                 result: Some(Value::List {
                     vals: vec![Value::test_string("v2"), Value::test_string("v4")],
                     span: Span::test_data(),
@@ -108,7 +116,11 @@ enum FormatOperation {
 /// formatted according to the input pattern.
 /// FormatOperation::ValueNeedEval contains expression which need to eval, it has the following form:
 /// "$it.column1.column2" or "$variable"
-fn extract_formatting_operations(input: String, span_start: usize) -> Vec<FormatOperation> {
+fn extract_formatting_operations(
+    input: String,
+    error_span: Span,
+    span_start: usize,
+) -> Result<Vec<FormatOperation>, ShellError> {
     let mut output = vec![];
 
     let mut characters = input.char_indices();
@@ -144,22 +156,23 @@ fn extract_formatting_operations(input: String, span_start: usize) -> Vec<Format
             column_name.push(ch);
         }
 
+        if column_span_end < column_span_start {
+            return Err(ShellError::DelimiterError(
+                "there are unmatched curly braces".to_string(),
+                error_span,
+            ));
+        }
+
         if !column_name.is_empty() {
             if column_need_eval {
                 output.push(FormatOperation::ValueNeedEval(
                     column_name.clone(),
-                    Span {
-                        start: span_start + column_span_start,
-                        end: span_start + column_span_end,
-                    },
+                    Span::new(span_start + column_span_start, span_start + column_span_end),
                 ));
             } else {
                 output.push(FormatOperation::ValueFromColumn(
                     column_name.clone(),
-                    Span {
-                        start: span_start + column_span_start,
-                        end: span_start + column_span_end,
-                    },
+                    Span::new(span_start + column_span_start, span_start + column_span_end),
                 ));
             }
         }
@@ -168,7 +181,7 @@ fn extract_formatting_operations(input: String, span_start: usize) -> Vec<Format
             break;
         }
     }
-    output
+    Ok(output)
 }
 
 /// Format the incoming PipelineData according to the pattern
@@ -269,7 +282,7 @@ fn format_record(
                 }
             }
             FormatOperation::ValueNeedEval(_col_name, span) => {
-                let (exp, may_parse_err) = parse_expression(working_set, &[*span], &[]);
+                let (exp, may_parse_err) = parse_expression(working_set, &[*span], &[], false);
                 match may_parse_err {
                     None => {
                         let parsed_result = eval_expression(engine_state, stack, &exp);

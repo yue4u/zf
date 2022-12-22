@@ -2,8 +2,12 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoInterruptiblePipelineData, PipelineData, RawStream, ShellError,
-    Signature, Span, Value,
+    Signature, Span, Type, Value,
 };
+use once_cell::sync::Lazy;
+// regex can be replaced with fancy-regex once it suppports `split()`
+// https://github.com/fancy-regex/fancy-regex/issues/104
+use regex::Regex;
 
 #[derive(Clone)]
 pub struct Lines;
@@ -19,6 +23,7 @@ impl Command for Lines {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("lines")
+            .input_output_types(vec![(Type::String, Type::List(Box::new(Type::String)))])
             .switch("skip-empty", "skip empty lines", Some('s'))
             .category(Category::Filters)
     }
@@ -33,16 +38,18 @@ impl Command for Lines {
         let head = call.head;
         let ctrlc = engine_state.ctrlc.clone();
         let skip_empty = call.has_flag("skip-empty");
+
+        // match \r\n or \n
+        static LINE_BREAK_REGEX: Lazy<Regex> =
+            Lazy::new(|| Regex::new(r"\r\n|\n").expect("unable to compile regex"));
         match input {
             #[allow(clippy::needless_collect)]
             // Collect is needed because the string may not live long enough for
             // the Rc structure to continue using it. If split could take ownership
             // of the split values, then this wouldn't be needed
             PipelineData::Value(Value::String { val, span }, ..) => {
-                let split_char = if val.contains("\r\n") { "\r\n" } else { "\n" };
-
-                let mut lines = val
-                    .split(split_char)
+                let mut lines = LINE_BREAK_REGEX
+                    .split(&val)
                     .map(|s| s.to_string())
                     .collect::<Vec<String>>();
 
@@ -64,19 +71,14 @@ impl Command for Lines {
 
                 Ok(iter.into_pipeline_data(engine_state.ctrlc.clone()))
             }
+            PipelineData::Empty => Ok(PipelineData::Empty),
             PipelineData::ListStream(stream, ..) => {
-                let mut split_char = "\n";
-
                 let iter = stream
                     .into_iter()
                     .filter_map(move |value| {
                         if let Value::String { val, span } = value {
-                            if split_char != "\r\n" && val.contains("\r\n") {
-                                split_char = "\r\n";
-                            }
-
-                            let mut lines = val
-                                .split(split_char)
+                            let mut lines = LINE_BREAK_REGEX
+                                .split(&val)
                                 .filter_map(|s| {
                                     if skip_empty && s.trim().is_empty() {
                                         None
@@ -111,7 +113,7 @@ impl Command for Lines {
                 format!("Not supported input: {}", val.as_string()?),
                 head,
             )),
-            PipelineData::ExternalStream { stdout: None, .. } => Ok(PipelineData::new(head)),
+            PipelineData::ExternalStream { stdout: None, .. } => Ok(PipelineData::empty()),
             PipelineData::ExternalStream {
                 stdout: Some(stream),
                 ..
@@ -129,7 +131,7 @@ impl Command for Lines {
     fn examples(&self) -> Vec<Example> {
         vec![Example {
             description: "Split multi-line string into lines",
-            example: "echo $'two(char nl)lines' | lines",
+            example: r#"$"two\nlines" | lines"#,
             result: Some(Value::List {
                 vals: vec![Value::test_string("two"), Value::test_string("lines")],
                 span: Span::test_data(),
@@ -152,6 +154,9 @@ impl Iterator for RawStreamLinesAdapter {
     type Item = Result<Value, ShellError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        static LINE_BREAK_REGEX: Lazy<Regex> =
+            Lazy::new(|| Regex::new(r"\r\n|\n").expect("unable to compile regex"));
+
         loop {
             if !self.queue.is_empty() {
                 let s = self.queue.remove(0usize);
@@ -168,10 +173,10 @@ impl Iterator for RawStreamLinesAdapter {
                 // inner is complete, feed out remaining state
                 if self.inner_complete {
                     if !self.incomplete_line.is_empty() {
-                        let r = Some(Ok(Value::String {
-                            val: self.incomplete_line.to_string(),
-                            span: self.span,
-                        }));
+                        let r = Some(Ok(Value::string(
+                            self.incomplete_line.to_string(),
+                            self.span,
+                        )));
                         self.incomplete_line = String::new();
                         return r;
                     }
@@ -187,11 +192,8 @@ impl Iterator for RawStreamLinesAdapter {
                                 Value::String { val, span } => {
                                     self.span = span;
 
-                                    let split_char =
-                                        if val.contains("\r\n") { "\r\n" } else { "\n" };
-
-                                    let mut lines = val
-                                        .split(split_char)
+                                    let mut lines = LINE_BREAK_REGEX
+                                        .split(&val)
                                         .map(|s| s.to_string())
                                         .collect::<Vec<_>>();
 
@@ -250,5 +252,17 @@ impl RawStreamLinesAdapter {
             queue: Vec::<String>::new(),
             inner_complete: false,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_examples() {
+        use crate::test_examples;
+
+        test_examples(Lines {})
     }
 }

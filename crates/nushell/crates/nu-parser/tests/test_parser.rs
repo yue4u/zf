@@ -1,7 +1,7 @@
 use nu_parser::ParseError;
 use nu_parser::*;
 use nu_protocol::{
-    ast::{Expr, Expression},
+    ast::{Expr, Expression, PipelineElement},
     engine::{Command, EngineState, Stack, StateWorkingSet},
     Signature, SyntaxShape,
 };
@@ -54,10 +54,13 @@ pub fn parse_int() {
     assert!(expressions.len() == 1);
     assert!(matches!(
         expressions[0],
-        Expression {
-            expr: Expr::Int(3),
-            ..
-        }
+        PipelineElement::Expression(
+            _,
+            Expression {
+                expr: Expr::Int(3),
+                ..
+            }
+        )
     ))
 }
 
@@ -72,7 +75,11 @@ pub fn parse_binary_with_hex_format() {
     assert!(block.len() == 1);
     let expressions = &block[0];
     assert!(expressions.len() == 1);
-    assert_eq!(expressions[0].expr, Expr::Binary(vec![0x13]))
+    if let PipelineElement::Expression(_, expr) = &expressions[0] {
+        assert_eq!(expr.expr, Expr::Binary(vec![0x13]))
+    } else {
+        panic!("Not an expression")
+    }
 }
 
 #[test]
@@ -86,7 +93,11 @@ pub fn parse_binary_with_incomplete_hex_format() {
     assert!(block.len() == 1);
     let expressions = &block[0];
     assert!(expressions.len() == 1);
-    assert_eq!(expressions[0].expr, Expr::Binary(vec![0x03]))
+    if let PipelineElement::Expression(_, expr) = &expressions[0] {
+        assert_eq!(expr.expr, Expr::Binary(vec![0x03]))
+    } else {
+        panic!("Not an expression")
+    }
 }
 
 #[test]
@@ -100,7 +111,11 @@ pub fn parse_binary_with_binary_format() {
     assert!(block.len() == 1);
     let expressions = &block[0];
     assert!(expressions.len() == 1);
-    assert_eq!(expressions[0].expr, Expr::Binary(vec![0b10101000]))
+    if let PipelineElement::Expression(_, expr) = &expressions[0] {
+        assert_eq!(expr.expr, Expr::Binary(vec![0b10101000]))
+    } else {
+        panic!("Not an expression")
+    }
 }
 
 #[test]
@@ -114,7 +129,11 @@ pub fn parse_binary_with_incomplete_binary_format() {
     assert!(block.len() == 1);
     let expressions = &block[0];
     assert!(expressions.len() == 1);
-    assert_eq!(expressions[0].expr, Expr::Binary(vec![0b00000010]))
+    if let PipelineElement::Expression(_, expr) = &expressions[0] {
+        assert_eq!(expr.expr, Expr::Binary(vec![0b00000010]))
+    } else {
+        panic!("Not an expression")
+    }
 }
 
 #[test]
@@ -128,7 +147,11 @@ pub fn parse_binary_with_octal_format() {
     assert!(block.len() == 1);
     let expressions = &block[0];
     assert!(expressions.len() == 1);
-    assert_eq!(expressions[0].expr, Expr::Binary(vec![0o250]))
+    if let PipelineElement::Expression(_, expr) = &expressions[0] {
+        assert_eq!(expr.expr, Expr::Binary(vec![0o250]))
+    } else {
+        panic!("Not an expression")
+    }
 }
 
 #[test]
@@ -142,7 +165,11 @@ pub fn parse_binary_with_incomplete_octal_format() {
     assert!(block.len() == 1);
     let expressions = &block[0];
     assert!(expressions.len() == 1);
-    assert_eq!(expressions[0].expr, Expr::Binary(vec![0o2]))
+    if let PipelineElement::Expression(_, expr) = &expressions[0] {
+        assert_eq!(expr.expr, Expr::Binary(vec![0o2]))
+    } else {
+        panic!("Not an expression")
+    }
 }
 
 #[test]
@@ -156,7 +183,11 @@ pub fn parse_binary_with_invalid_octal_format() {
     assert!(block.len() == 1);
     let expressions = &block[0];
     assert!(expressions.len() == 1);
-    assert!(!matches!(&expressions[0].expr, Expr::Binary(_)))
+    if let PipelineElement::Expression(_, expr) = &expressions[0] {
+        assert!(!matches!(&expr.expr, Expr::Binary(_)))
+    } else {
+        panic!("Not an expression")
+    }
 }
 
 #[test]
@@ -172,47 +203,11 @@ pub fn parse_binary_with_multi_byte_char() {
     assert!(block.len() == 1);
     let expressions = &block[0];
     assert!(expressions.len() == 1);
-    assert!(!matches!(&expressions[0].expr, Expr::Binary(_)))
-}
-
-#[test]
-pub fn parse_string() {
-    let engine_state = EngineState::new();
-    let mut working_set = StateWorkingSet::new(&engine_state);
-
-    let (block, err) = parse(&mut working_set, None, b"\"hello nushell\"", true, &[]);
-
-    assert!(err.is_none());
-    assert!(block.len() == 1);
-    let expressions = &block[0];
-    assert!(expressions.len() == 1);
-    assert_eq!(
-        expressions[0].expr,
-        Expr::String("hello nushell".to_string())
-    )
-}
-
-#[test]
-pub fn parse_escaped_string() {
-    let engine_state = EngineState::new();
-    let mut working_set = StateWorkingSet::new(&engine_state);
-
-    let (block, err) = parse(
-        &mut working_set,
-        None,
-        b"\"hello \\u006e\\u0075\\u0073hell\"",
-        true,
-        &[],
-    );
-
-    assert!(err.is_none());
-    assert!(block.len() == 1);
-    let expressions = &block[0];
-    assert!(expressions.len() == 1);
-    assert_eq!(
-        expressions[0].expr,
-        Expr::String("hello nushell".to_string())
-    )
+    if let PipelineElement::Expression(_, expr) = &expressions[0] {
+        assert!(!matches!(&expr.expr, Expr::Binary(_)))
+    } else {
+        panic!("Not an expression")
+    }
 }
 
 #[test]
@@ -231,10 +226,13 @@ pub fn parse_call() {
     let expressions = &block[0];
     assert_eq!(expressions.len(), 1);
 
-    if let Expression {
-        expr: Expr::Call(call),
-        ..
-    } = &expressions[0]
+    if let PipelineElement::Expression(
+        _,
+        Expression {
+            expr: Expr::Call(call),
+            ..
+        },
+    ) = &expressions[0]
     {
         assert_eq!(call.decl_id, 0);
     }
@@ -337,10 +335,13 @@ fn test_nothing_comparisson_eq() {
     assert!(expressions.len() == 1);
     assert!(matches!(
         &expressions[0],
-        Expression {
-            expr: Expr::BinaryOp(..),
-            ..
-        }
+        PipelineElement::Expression(
+            _,
+            Expression {
+                expr: Expr::BinaryOp(..),
+                ..
+            }
+        )
     ))
 }
 
@@ -357,11 +358,266 @@ fn test_nothing_comparisson_neq() {
     assert!(expressions.len() == 1);
     assert!(matches!(
         &expressions[0],
-        Expression {
-            expr: Expr::BinaryOp(..),
-            ..
-        }
+        PipelineElement::Expression(
+            _,
+            Expression {
+                expr: Expr::BinaryOp(..),
+                ..
+            }
+        )
     ))
+}
+
+mod string {
+    use super::*;
+
+    #[test]
+    pub fn parse_string() {
+        let engine_state = EngineState::new();
+        let mut working_set = StateWorkingSet::new(&engine_state);
+
+        let (block, err) = parse(&mut working_set, None, b"\"hello nushell\"", true, &[]);
+
+        assert!(err.is_none());
+        assert!(block.len() == 1);
+        let expressions = &block[0];
+        assert!(expressions.len() == 1);
+        if let PipelineElement::Expression(_, expr) = &expressions[0] {
+            assert_eq!(expr.expr, Expr::String("hello nushell".to_string()))
+        } else {
+            panic!("Not an expression")
+        }
+    }
+
+    #[test]
+    pub fn parse_escaped_string() {
+        let engine_state = EngineState::new();
+        let mut working_set = StateWorkingSet::new(&engine_state);
+
+        let (block, err) = parse(
+            &mut working_set,
+            None,
+            b"\"hello \\u006e\\u0075\\u0073hell\"",
+            true,
+            &[],
+        );
+
+        assert!(err.is_none());
+        assert!(block.len() == 1);
+        let expressions = &block[0];
+        assert!(expressions.len() == 1);
+        if let PipelineElement::Expression(_, expr) = &expressions[0] {
+            assert_eq!(expr.expr, Expr::String("hello nushell".to_string()))
+        } else {
+            panic!("Not an expression")
+        }
+    }
+
+    mod interpolation {
+        use nu_protocol::Span;
+
+        use super::*;
+
+        #[test]
+        pub fn parse_string_interpolation() {
+            let engine_state = EngineState::new();
+            let mut working_set = StateWorkingSet::new(&engine_state);
+
+            let (block, err) = parse(&mut working_set, None, b"$\"hello (39 + 3)\"", true, &[]);
+
+            assert!(err.is_none());
+            assert!(block.len() == 1);
+
+            let expressions = &block[0];
+            assert!(expressions.len() == 1);
+
+            if let PipelineElement::Expression(_, expr) = &expressions[0] {
+                let subexprs: Vec<&Expr>;
+                match expr {
+                    Expression {
+                        expr: Expr::StringInterpolation(expressions),
+                        ..
+                    } => {
+                        subexprs = expressions.iter().map(|e| &e.expr).collect();
+                    }
+                    _ => panic!("Expected an `Expr::StringInterpolation`"),
+                }
+
+                assert_eq!(subexprs.len(), 2);
+
+                assert_eq!(subexprs[0], &Expr::String("hello ".to_string()));
+
+                assert!(matches!(subexprs[1], &Expr::FullCellPath(..)));
+            } else {
+                panic!("Not an expression")
+            }
+        }
+
+        #[test]
+        pub fn parse_string_interpolation_escaped_parenthesis() {
+            let engine_state = EngineState::new();
+            let mut working_set = StateWorkingSet::new(&engine_state);
+
+            let (block, err) = parse(&mut working_set, None, b"$\"hello \\(39 + 3)\"", true, &[]);
+
+            assert!(err.is_none());
+
+            assert!(block.len() == 1);
+            let expressions = &block[0];
+
+            assert!(expressions.len() == 1);
+
+            if let PipelineElement::Expression(_, expr) = &expressions[0] {
+                let subexprs: Vec<&Expr>;
+                match expr {
+                    Expression {
+                        expr: Expr::StringInterpolation(expressions),
+                        ..
+                    } => {
+                        subexprs = expressions.iter().map(|e| &e.expr).collect();
+                    }
+                    _ => panic!("Expected an `Expr::StringInterpolation`"),
+                }
+
+                assert_eq!(subexprs.len(), 1);
+
+                assert_eq!(subexprs[0], &Expr::String("hello (39 + 3)".to_string()));
+            } else {
+                panic!("Not an expression")
+            }
+        }
+
+        #[test]
+        pub fn parse_string_interpolation_escaped_backslash_before_parenthesis() {
+            let engine_state = EngineState::new();
+            let mut working_set = StateWorkingSet::new(&engine_state);
+
+            let (block, err) = parse(
+                &mut working_set,
+                None,
+                b"$\"hello \\\\(39 + 3)\"",
+                true,
+                &[],
+            );
+
+            assert!(err.is_none());
+
+            assert!(block.len() == 1);
+            let expressions = &block[0];
+
+            assert!(expressions.len() == 1);
+
+            if let PipelineElement::Expression(_, expr) = &expressions[0] {
+                let subexprs: Vec<&Expr>;
+                match expr {
+                    Expression {
+                        expr: Expr::StringInterpolation(expressions),
+                        ..
+                    } => {
+                        subexprs = expressions.iter().map(|e| &e.expr).collect();
+                    }
+                    _ => panic!("Expected an `Expr::StringInterpolation`"),
+                }
+
+                assert_eq!(subexprs.len(), 2);
+
+                assert_eq!(subexprs[0], &Expr::String("hello \\".to_string()));
+
+                assert!(matches!(subexprs[1], &Expr::FullCellPath(..)));
+            } else {
+                panic!("Not an expression")
+            }
+        }
+
+        #[test]
+        pub fn parse_string_interpolation_backslash_count_reset_by_expression() {
+            let engine_state = EngineState::new();
+            let mut working_set = StateWorkingSet::new(&engine_state);
+
+            let (block, err) = parse(
+                &mut working_set,
+                None,
+                b"$\"\\(1 + 3)\\(7 - 5)\"",
+                true,
+                &[],
+            );
+
+            assert!(err.is_none());
+
+            assert!(block.len() == 1);
+            let expressions = &block[0];
+
+            assert!(expressions.len() == 1);
+
+            if let PipelineElement::Expression(_, expr) = &expressions[0] {
+                let subexprs: Vec<&Expr>;
+                match expr {
+                    Expression {
+                        expr: Expr::StringInterpolation(expressions),
+                        ..
+                    } => {
+                        subexprs = expressions.iter().map(|e| &e.expr).collect();
+                    }
+                    _ => panic!("Expected an `Expr::StringInterpolation`"),
+                }
+
+                assert_eq!(subexprs.len(), 1);
+                assert_eq!(subexprs[0], &Expr::String("(1 + 3)(7 - 5)".to_string()));
+            } else {
+                panic!("Not an expression")
+            }
+        }
+
+        #[test]
+        pub fn parse_nested_expressions() {
+            let engine_state = EngineState::new();
+            let mut working_set = StateWorkingSet::new(&engine_state);
+
+            working_set.add_variable(
+                "foo".to_string().into_bytes(),
+                Span::new(0, 0),
+                nu_protocol::Type::CellPath,
+                false,
+            );
+
+            let (_block, err) = parse(
+                &mut working_set,
+                None,
+                br#"
+                $"(($foo))"
+                "#,
+                true,
+                &[],
+            );
+
+            assert!(err.is_none());
+        }
+
+        #[test]
+        pub fn parse_path_expression() {
+            let engine_state = EngineState::new();
+            let mut working_set = StateWorkingSet::new(&engine_state);
+
+            working_set.add_variable(
+                "foo".to_string().into_bytes(),
+                Span::new(0, 0),
+                nu_protocol::Type::CellPath,
+                false,
+            );
+
+            let (_block, err) = parse(
+                &mut working_set,
+                None,
+                br#"
+                $"Hello ($foo.bar)"
+                "#,
+                true,
+                &[],
+            );
+
+            assert!(err.is_none());
+        }
+    }
 }
 
 mod range {
@@ -382,18 +638,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    None,
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::Inclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        None,
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::Inclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -411,18 +670,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    None,
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::RightExclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        None,
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::RightExclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -440,18 +702,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    None,
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::Inclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        None,
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::Inclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -469,18 +734,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    None,
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::RightExclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        None,
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::RightExclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -500,18 +768,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    None,
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::Inclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        None,
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::Inclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -537,18 +808,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    None,
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::RightExclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        None,
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::RightExclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -566,18 +840,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    None,
-                    None,
-                    RangeOperator {
-                        inclusion: RangeInclusion::Inclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        None,
+                        None,
+                        RangeOperator {
+                            inclusion: RangeInclusion::Inclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -595,18 +872,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    None,
-                    None,
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::Inclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        None,
+                        None,
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::Inclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -624,18 +904,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    None,
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::Inclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        None,
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::Inclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -653,18 +936,21 @@ mod range {
         assert!(expressions.len() == 1);
         assert!(matches!(
             expressions[0],
-            Expression {
-                expr: Expr::Range(
-                    Some(_),
-                    Some(_),
-                    Some(_),
-                    RangeOperator {
-                        inclusion: RangeInclusion::Inclusive,
-                        ..
-                    }
-                ),
-                ..
-            }
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Range(
+                        Some(_),
+                        Some(_),
+                        Some(_),
+                        RangeOperator {
+                            inclusion: RangeInclusion::Inclusive,
+                            ..
+                        }
+                    ),
+                    ..
+                }
+            )
         ))
     }
 
@@ -937,7 +1223,7 @@ mod input_types {
                 .required("cond", SyntaxShape::Expression, "condition to check")
                 .required(
                     "then_block",
-                    SyntaxShape::Block(Some(vec![])),
+                    SyntaxShape::Block,
                     "block to run if check succeeds",
                 )
                 .optional(
@@ -968,7 +1254,6 @@ mod input_types {
             working_set.add_decl(Box::new(GroupBy));
             working_set.add_decl(Box::new(LsTest));
             working_set.add_decl(Box::new(ToCustom));
-            working_set.add_decl(Box::new(Let));
             working_set.add_decl(Box::new(AggMin));
             working_set.add_decl(Box::new(Collect));
             working_set.add_decl(Box::new(WithColumn));
@@ -998,8 +1283,14 @@ mod input_types {
         let expressions = &block[0];
         assert!(expressions.len() == 3);
 
-        match &expressions[0].expr {
-            Expr::Call(call) => {
+        match &expressions[0] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set
                     .find_decl(b"ls", &Type::Any)
                     .expect("Error merging delta");
@@ -1008,16 +1299,28 @@ mod input_types {
             _ => panic!("Expected expression Call not found"),
         }
 
-        match &expressions[1].expr {
-            Expr::Call(call) => {
+        match &expressions[1] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set.find_decl(b"to-custom", &Type::Any).unwrap();
                 assert_eq!(call.decl_id, expected_id)
             }
             _ => panic!("Expected expression Call not found"),
         }
 
-        match &expressions[2].expr {
-            Expr::Call(call) => {
+        match &expressions[2] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set
                     .find_decl(b"group-by", &Type::Custom("custom".into()))
                     .unwrap();
@@ -1042,8 +1345,14 @@ mod input_types {
         assert!(block.len() == 3);
 
         let expressions = &block[2];
-        match &expressions[1].expr {
-            Expr::Call(call) => {
+        match &expressions[1] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set
                     .find_decl(b"agg", &Type::Custom("custom".into()))
                     .unwrap();
@@ -1067,8 +1376,14 @@ mod input_types {
         assert!(block.len() == 2);
 
         let expressions = &block[1];
-        match &expressions[1].expr {
-            Expr::Call(call) => {
+        match &expressions[1] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set
                     .find_decl(b"agg", &Type::Custom("custom".into()))
                     .unwrap();
@@ -1093,8 +1408,14 @@ mod input_types {
         assert!(block.len() == 3);
 
         let expressions = &block[1];
-        match &expressions[1].expr {
-            Expr::Call(call) => {
+        match &expressions[1] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set.find_decl(b"to-custom", &Type::Any).unwrap();
                 assert_eq!(call.decl_id, expected_id)
             }
@@ -1102,8 +1423,14 @@ mod input_types {
         }
 
         let expressions = &block[2];
-        match &expressions[1].expr {
-            Expr::Call(call) => {
+        match &expressions[1] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set.find_decl(b"to-custom", &Type::Any).unwrap();
                 assert_eq!(call.decl_id, expected_id)
             }
@@ -1127,16 +1454,28 @@ mod input_types {
         let expressions = &block[0];
         assert!(expressions.len() == 2);
 
-        match &expressions[0].expr {
-            Expr::Call(call) => {
+        match &expressions[0] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set.find_decl(b"ls", &Type::Any).unwrap();
                 assert_eq!(call.decl_id, expected_id)
             }
             _ => panic!("Expected expression Call not found"),
         }
 
-        match &expressions[1].expr {
-            Expr::Call(call) => {
+        match &expressions[1] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set.find_decl(b"group-by", &Type::Any).unwrap();
                 assert_eq!(call.decl_id, expected_id)
             }
@@ -1160,8 +1499,14 @@ mod input_types {
         engine_state.merge_delta(delta).unwrap();
 
         let expressions = &block[0];
-        match &expressions[3].expr {
-            Expr::Call(call) => {
+        match &expressions[3] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let arg = &call.arguments[0];
                 match arg {
                     Argument::Positional(a) => match &a.expr {
@@ -1172,8 +1517,14 @@ mod input_types {
                                 let expressions = &block[0];
                                 assert!(expressions.len() == 2);
 
-                                match &expressions[1].expr {
-                                    Expr::Call(call) => {
+                                match &expressions[1] {
+                                    PipelineElement::Expression(
+                                        _,
+                                        Expression {
+                                            expr: Expr::Call(call),
+                                            ..
+                                        },
+                                    ) => {
                                         let working_set = StateWorkingSet::new(&engine_state);
                                         let expected_id =
                                             working_set.find_decl(b"min", &Type::Any).unwrap();
@@ -1207,8 +1558,14 @@ mod input_types {
         assert!(block.len() == 1);
 
         let expressions = &block[0];
-        match &expressions[2].expr {
-            Expr::Call(call) => {
+        match &expressions[2] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set
                     .find_decl(b"with-column", &Type::Custom("custom".into()))
                     .unwrap();
@@ -1217,8 +1574,14 @@ mod input_types {
             _ => panic!("Expected expression Call not found"),
         }
 
-        match &expressions[3].expr {
-            Expr::Call(call) => {
+        match &expressions[3] {
+            PipelineElement::Expression(
+                _,
+                Expression {
+                    expr: Expr::Call(call),
+                    ..
+                },
+            ) => {
                 let expected_id = working_set
                     .find_decl(b"collect", &Type::Custom("custom".into()))
                     .unwrap();
@@ -1235,11 +1598,11 @@ mod input_types {
 
         let mut working_set = StateWorkingSet::new(&engine_state);
         let inputs = vec![
-            r#"let a = 'b'; ($a == 'b') || ($a == 'b')"#,
-            r#"let a = 'b'; ($a == 'b') || ($a == 'b') && ($a == 'b')"#,
-            r#"let a = 1; ($a == 1) || ($a == 2) && ($a == 3)"#,
-            r#"let a = 'b'; if ($a == 'b') || ($a == 'b') { true } else { false }"#,
-            r#"let a = 1; if ($a == 1) || ($a > 0) { true } else { false }"#,
+            r#"let a = 'b'; ($a == 'b') or ($a == 'b')"#,
+            r#"let a = 'b'; ($a == 'b') or ($a == 'b') and ($a == 'b')"#,
+            r#"let a = 1; ($a == 1) or ($a == 2) and ($a == 3)"#,
+            r#"let a = 'b'; if ($a == 'b') or ($a == 'b') { true } else { false }"#,
+            r#"let a = 1; if ($a == 1) or ($a > 0) { true } else { false }"#,
         ];
 
         for input in inputs {
@@ -1248,5 +1611,24 @@ mod input_types {
             assert!(err.is_none(), "testing: {}", input);
             assert!(block.len() == 2, "testing: {}", input);
         }
+    }
+
+    #[test]
+    fn else_errors_correctly() {
+        let mut engine_state = EngineState::new();
+        add_declations(&mut engine_state);
+
+        let mut working_set = StateWorkingSet::new(&engine_state);
+        let (_, err) = parse(
+            &mut working_set,
+            None,
+            b"if false { 'a' } else { $foo }",
+            true,
+            &[],
+        );
+
+        let err = err.unwrap();
+
+        assert!(matches!(err, ParseError::VariableNotFound(_)));
     }
 }

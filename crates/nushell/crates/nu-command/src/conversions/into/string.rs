@@ -1,12 +1,26 @@
+use crate::input_handler::{operate, CmdArgument};
 use nu_engine::CallExt;
 use nu_protocol::{
     ast::{Call, CellPath},
     engine::{Command, EngineState, Stack},
     into_code, Category, Config, Example, IntoPipelineData, PipelineData, ShellError, Signature,
-    Span, SyntaxShape, Value,
+    Span, SyntaxShape, Type, Value,
 };
 use nu_utils::get_system_locale;
 use num_format::ToFormattedString;
+
+struct Arguments {
+    decimals_value: Option<i64>,
+    decimals: bool,
+    cell_paths: Option<Vec<CellPath>>,
+    config: Config,
+}
+
+impl CmdArgument for Arguments {
+    fn take_cell_paths(&mut self) -> Option<Vec<CellPath>> {
+        self.cell_paths.take()
+    }
+}
 
 #[derive(Clone)]
 pub struct SubCommand;
@@ -18,11 +32,20 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("into string")
-            // FIXME - need to support column paths
+            .input_output_types(vec![
+                (Type::Binary, Type::String),
+                (Type::Int, Type::String),
+                (Type::Number, Type::String),
+                (Type::String, Type::String),
+                (Type::Bool, Type::String),
+                (Type::Filesize, Type::String),
+                (Type::Date, Type::String),
+            ])
+            .allow_variants_without_examples(true) // https://github.com/nushell/nushell/issues/7032
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "column paths to convert to string (for table input)",
+                "for a data structure input, convert data at the given cell paths",
             )
             .named(
                 "decimals",
@@ -56,34 +79,22 @@ impl Command for SubCommand {
             Example {
                 description: "convert integer to string and append three decimal places",
                 example: "5 | into string -d 3",
-                result: Some(Value::String {
-                    val: "5.000".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("5.000", Span::test_data())),
             },
             Example {
                 description: "convert decimal to string and round to nearest integer",
                 example: "1.7 | into string -d 0",
-                result: Some(Value::String {
-                    val: "2".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("2", Span::test_data())),
             },
             Example {
                 description: "convert decimal to string",
                 example: "1.7 | into string -d 1",
-                result: Some(Value::String {
-                    val: "1.7".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("1.7", Span::test_data())),
             },
             Example {
                 description: "convert decimal to string and limit to 2 decimals",
                 example: "1.734 | into string -d 2",
-                result: Some(Value::String {
-                    val: "1.73".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("1.73", Span::test_data())),
             },
             Example {
                 description: "try to convert decimal to string and provide negative decimal points",
@@ -100,32 +111,24 @@ impl Command for SubCommand {
             Example {
                 description: "convert decimal to string",
                 example: "4.3 | into string",
-                result: Some(Value::String {
-                    val: "4.3".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("4.3", Span::test_data())),
             },
             Example {
                 description: "convert string to string",
                 example: "'1234' | into string",
-                result: Some(Value::String {
-                    val: "1234".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("1234", Span::test_data())),
             },
             Example {
                 description: "convert boolean to string",
                 example: "true | into string",
-                result: Some(Value::String {
-                    val: "true".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("true", Span::test_data())),
             },
-            Example {
-                description: "convert date to string",
-                example: "date now | into string",
-                result: None,
-            },
+            // TODO: This should work but does not; see https://github.com/nushell/nushell/issues/7032
+            // Example {
+            //     description: "convert date to string",
+            //     example: "'2020-10-10 10:00:00 +02:00' | into datetime | into string",
+            //     result: Some(Value::test_string("Sat Oct 10 10:00:00 2020")),
+            // },
             Example {
                 description: "convert filepath to string",
                 example: "ls Cargo.toml | get name | into string",
@@ -133,8 +136,8 @@ impl Command for SubCommand {
             },
             Example {
                 description: "convert filesize to string",
-                example: "ls Cargo.toml | get size | into string",
-                result: None,
+                example: "1KiB | into string",
+                result: Some(Value::test_string("1,024 B")),
             },
         ]
     }
@@ -149,9 +152,6 @@ fn string_helper(
     let decimals = call.has_flag("decimals");
     let head = call.head;
     let decimals_value: Option<i64> = call.get_flag(engine_state, stack, "decimals")?;
-    let column_paths: Vec<CellPath> = call.rest(engine_state, stack, 0)?;
-    let config = engine_state.get_config().clone();
-
     if let Some(decimal_val) = decimals_value {
         if decimals && decimal_val.is_negative() {
             return Err(ShellError::UnsupportedInput(
@@ -160,6 +160,15 @@ fn string_helper(
             ));
         }
     }
+    let cell_paths = call.rest(engine_state, stack, 0)?;
+    let cell_paths = (!cell_paths.is_empty()).then_some(cell_paths);
+    let config = engine_state.get_config().clone();
+    let args = Arguments {
+        decimals_value,
+        decimals,
+        cell_paths,
+        config,
+    };
 
     match input {
         PipelineData::ExternalStream { stdout: None, .. } => Ok(Value::String {
@@ -179,45 +188,18 @@ fn string_helper(
             }
             .into_pipeline_data())
         }
-        _ => input.map(
-            move |v| {
-                if column_paths.is_empty() {
-                    action(&v, head, decimals, decimals_value, false, &config)
-                } else {
-                    let mut ret = v;
-                    for path in &column_paths {
-                        let config = config.clone();
-                        let r = ret.update_cell_path(
-                            &path.members,
-                            Box::new(move |old| {
-                                action(old, head, decimals, decimals_value, false, &config)
-                            }),
-                        );
-                        if let Err(error) = r {
-                            return Value::Error { error };
-                        }
-                    }
-
-                    ret
-                }
-            },
-            engine_state.ctrlc.clone(),
-        ),
+        _ => operate(action, args, input, head, engine_state.ctrlc.clone()),
     }
 }
 
-pub fn action(
-    input: &Value,
-    span: Span,
-    decimals: bool,
-    digits: Option<i64>,
-    group_digits: bool,
-    config: &Config,
-) -> Value {
+fn action(input: &Value, args: &Arguments, span: Span) -> Value {
+    let decimals = args.decimals;
+    let digits = args.decimals_value;
+    let config = &args.config;
     match input {
         Value::Int { val, .. } => {
             let decimal_value = digits.unwrap_or(0) as usize;
-            let res = format_int(*val, group_digits, decimal_value);
+            let res = format_int(*val, false, decimal_value);
             Value::String { val: res, span }
         }
         Value::Float { val, .. } => {

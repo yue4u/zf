@@ -1,8 +1,9 @@
-use std::collections::VecDeque;
-
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, IntoPipelineData, PipelineData, Signature, Span, Value};
+use nu_protocol::{
+    Category, Example, IntoPipelineData, PipelineData, PipelineMetadata, Signature, Span, Type,
+    Value,
+};
 
 #[derive(Clone)]
 pub struct Uniq;
@@ -14,6 +15,17 @@ impl Command for Uniq {
 
     fn signature(&self) -> Signature {
         Signature::build("uniq")
+            .input_output_types(vec![
+                (
+                    Type::List(Box::new(Type::Any)),
+                    Type::List(Box::new(Type::Any)),
+                ),
+                (
+                    // -c
+                    Type::List(Box::new(Type::Any)),
+                    Type::Table(vec![]),
+                ),
+            ])
             .switch(
                 "count",
                 "Return a table containing the distinct input values together with their counts",
@@ -26,7 +38,7 @@ impl Command for Uniq {
             )
             .switch(
                 "ignore-case",
-                "Ignore differences in case when comparing input values",
+                "Compare input values case-insensitively",
                 Some('i'),
             )
             .switch(
@@ -52,7 +64,19 @@ impl Command for Uniq {
         call: &Call,
         input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-        uniq(engine_state, stack, call, input)
+        let mapper = Box::new(move |ms: ItemMapperState| -> ValueCounter {
+            item_mapper(ms.item, ms.flag_ignore_case)
+        });
+
+        let metadata = input.metadata();
+        uniq(
+            engine_state,
+            stack,
+            call,
+            input.into_iter().collect(),
+            mapper,
+            metadata,
+        )
     }
 
     fn examples(&self) -> Vec<Example> {
@@ -112,90 +136,135 @@ impl Command for Uniq {
     }
 }
 
-fn to_lowercase(value: nu_protocol::Value) -> nu_protocol::Value {
-    match value {
-        Value::String { val: s, span } => Value::String {
-            val: s.to_lowercase(),
-            span,
-        },
-        other => other,
+pub struct ItemMapperState {
+    pub item: Value,
+    pub flag_ignore_case: bool,
+}
+
+fn item_mapper(item: Value, flag_ignore_case: bool) -> ValueCounter {
+    ValueCounter::new(item, flag_ignore_case)
+}
+
+pub struct ValueCounter {
+    val: Value,
+    val_to_compare: Value,
+    count: i64,
+}
+
+impl PartialEq<Self> for ValueCounter {
+    fn eq(&self, other: &Self) -> bool {
+        self.val == other.val
     }
 }
 
-fn uniq(
-    _engine_state: &EngineState,
+impl ValueCounter {
+    fn new(val: Value, flag_ignore_case: bool) -> Self {
+        Self::new_vals_to_compare(val.clone(), flag_ignore_case, val)
+    }
+    pub fn new_vals_to_compare(val: Value, flag_ignore_case: bool, vals_to_compare: Value) -> Self {
+        ValueCounter {
+            val,
+            val_to_compare: if flag_ignore_case {
+                clone_to_lowercase(&vals_to_compare)
+            } else {
+                vals_to_compare
+            },
+            count: 1,
+        }
+    }
+}
+
+fn clone_to_lowercase(value: &Value) -> Value {
+    match value {
+        Value::String { val: s, span } => Value::String {
+            val: s.clone().to_lowercase(),
+            span: *span,
+        },
+        Value::List { vals: vec, span } => Value::List {
+            vals: vec
+                .clone()
+                .into_iter()
+                .map(|v| clone_to_lowercase(&v))
+                .collect(),
+            span: *span,
+        },
+        Value::Record { cols, vals, span } => Value::Record {
+            cols: cols.clone(),
+            vals: vals
+                .clone()
+                .into_iter()
+                .map(|v| clone_to_lowercase(&v))
+                .collect(),
+            span: *span,
+        },
+        other => other.clone(),
+    }
+}
+
+fn generate_results_with_count(head: Span, uniq_values: Vec<ValueCounter>) -> Vec<Value> {
+    uniq_values
+        .into_iter()
+        .map(|item| Value::Record {
+            cols: vec!["value".to_string(), "count".to_string()],
+            vals: vec![item.val, Value::int(item.count, head)],
+            span: head,
+        })
+        .collect()
+}
+
+pub fn uniq(
+    engine_state: &EngineState,
     _stack: &mut Stack,
     call: &Call,
-    input: PipelineData,
+    input: Vec<Value>,
+    item_mapper: Box<dyn Fn(ItemMapperState) -> ValueCounter>,
+    metadata: Option<PipelineMetadata>,
 ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
+    let ctrlc = engine_state.ctrlc.clone();
     let head = call.head;
-    let should_show_count = call.has_flag("count");
-    let show_repeated = call.has_flag("repeated");
-    let ignore_case = call.has_flag("ignore-case");
-    let only_uniques = call.has_flag("unique");
-    let metadata = input.metadata();
+    let flag_show_count = call.has_flag("count");
+    let flag_show_repeated = call.has_flag("repeated");
+    let flag_ignore_case = call.has_flag("ignore-case");
+    let flag_only_uniques = call.has_flag("unique");
 
-    let uniq_values = {
-        let counter = &mut Vec::new();
-        for line in input.into_iter() {
-            let item = if ignore_case {
-                to_lowercase(line)
-            } else {
-                line
-            };
-
-            if counter.is_empty() {
-                counter.push((item, 1));
-            } else {
-                // check if the value item already exists in our collection. if it does, increase counter, otherwise add it to the collection
-                match counter.iter_mut().find(|x| x.0 == item) {
-                    Some(x) => x.1 += 1,
-                    None => counter.push((item, 1)),
-                }
+    let mut uniq_values = input
+        .into_iter()
+        .map_while(|item| {
+            if nu_utils::ctrl_c::was_pressed(&ctrlc) {
+                return None;
             }
-        }
-        counter.to_vec()
-    };
+            Some(item_mapper(ItemMapperState {
+                item,
+                flag_ignore_case,
+            }))
+        })
+        .fold(Vec::<ValueCounter>::new(), |mut counter, item| {
+            match counter
+                .iter_mut()
+                .find(|x| x.val_to_compare == item.val_to_compare)
+            {
+                Some(x) => x.count += 1,
+                None => counter.push(item),
+            };
+            counter
+        });
 
-    let uv = uniq_values.to_vec();
-    let mut values = if show_repeated {
-        uv.into_iter().filter(|i| i.1 > 1).collect()
-    } else {
-        uv
-    };
-
-    if only_uniques {
-        values = values.into_iter().filter(|i| i.1 == 1).collect::<_>()
+    if flag_show_repeated {
+        uniq_values.retain(|value_count_pair| value_count_pair.count > 1);
     }
 
-    let mut values_vec_deque = VecDeque::new();
-
-    if should_show_count {
-        for item in values {
-            values_vec_deque.push_back({
-                let cols = vec!["value".to_string(), "count".to_string()];
-                let vals = vec![
-                    item.0,
-                    Value::Int {
-                        val: item.1,
-                        span: head,
-                    },
-                ];
-                Value::Record {
-                    cols,
-                    vals,
-                    span: head,
-                }
-            });
-        }
-    } else {
-        for item in values {
-            values_vec_deque.push_back(item.0);
-        }
+    if flag_only_uniques {
+        uniq_values.retain(|value_count_pair| value_count_pair.count == 1);
     }
+
+    let result = if flag_show_count {
+        generate_results_with_count(head, uniq_values)
+    } else {
+        uniq_values.into_iter().map(|v| v.val).collect()
+    };
 
     Ok(Value::List {
-        vals: values_vec_deque.into_iter().collect(),
+        vals: result,
         span: head,
     }
     .into_pipeline_data()

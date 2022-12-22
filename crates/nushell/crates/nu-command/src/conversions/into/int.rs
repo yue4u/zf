@@ -1,14 +1,21 @@
+use crate::input_handler::{operate, CmdArgument};
 use nu_engine::CallExt;
 use nu_protocol::{
     ast::{Call, CellPath},
     engine::{Command, EngineState, Stack},
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 
 struct Arguments {
-    radix: Option<Value>,
-    column_paths: Vec<CellPath>,
+    radix: u32,
+    cell_paths: Option<Vec<CellPath>>,
     little_endian: bool,
+}
+
+impl CmdArgument for Arguments {
+    fn take_cell_paths(&mut self) -> Option<Vec<CellPath>> {
+        self.cell_paths.take()
+    }
 }
 
 #[derive(Clone)]
@@ -21,12 +28,22 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("into int")
+            .input_output_types(vec![
+                (Type::String, Type::Int),
+                (Type::Number, Type::Int),
+                (Type::Bool, Type::Int),
+                // Unix timestamp in seconds
+                (Type::Date, Type::Int),
+                // TODO: Users should do this by dividing a Filesize by a Filesize explicitly
+                (Type::Filesize, Type::Int),
+            ])
+            .vectorizes_over_list(true)
             .named("radix", SyntaxShape::Number, "radix of integer", Some('r'))
             .switch("little-endian", "use little-endian byte decoding", None)
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "column paths to convert to int (for table input)",
+                "for a data structure input, convert data at the given cell paths",
             )
             .category(Category::Conversions)
     }
@@ -46,14 +63,36 @@ impl Command for SubCommand {
         call: &Call,
         input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-        into_int(engine_state, stack, call, input)
+        let cell_paths = call.rest(engine_state, stack, 0)?;
+        let cell_paths = (!cell_paths.is_empty()).then_some(cell_paths);
+
+        let radix = call.get_flag::<Value>(engine_state, stack, "radix")?;
+        let radix: u32 = match radix {
+            Some(Value::Int { val, span }) => {
+                if !(2..=36).contains(&val) {
+                    return Err(ShellError::UnsupportedInput(
+                        "Radix must lie in the range [2, 36]".to_string(),
+                        span,
+                    ));
+                }
+                val as u32
+            }
+            Some(_) => 10,
+            None => 10,
+        };
+        let args = Arguments {
+            radix,
+            little_endian: call.has_flag("little-endian"),
+            cell_paths,
+        };
+        operate(action, args, input, call.head, engine_state.ctrlc.clone())
     }
 
     fn examples(&self) -> Vec<Example> {
         vec![
             Example {
                 description: "Convert string to integer in table",
-                example: "echo [[num]; ['-5'] [4] [1.5]] | into int num",
+                example: "[[num]; ['-5'] [4] [1.5]] | into int num",
                 result: None,
             },
             Example {
@@ -74,10 +113,7 @@ impl Command for SubCommand {
             Example {
                 description: "Convert file size to integer",
                 example: "4KB | into int",
-                result: Some(Value::Int {
-                    val: 4000,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::int(4000, Span::test_data())),
             },
             Example {
                 description: "Convert bool to integer",
@@ -121,59 +157,9 @@ impl Command for SubCommand {
     }
 }
 
-fn into_int(
-    engine_state: &EngineState,
-    stack: &mut Stack,
-    call: &Call,
-    input: PipelineData,
-) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-    let head = call.head;
-
-    let options = Arguments {
-        radix: call.get_flag(engine_state, stack, "radix")?,
-        little_endian: call.has_flag("little-endian"),
-        column_paths: call.rest(engine_state, stack, 0)?,
-    };
-
-    let radix: u32 = match options.radix {
-        Some(Value::Int { val, .. }) => val as u32,
-        Some(_) => 10,
-        None => 10,
-    };
-
-    if let Some(val) = &options.radix {
-        if !(2..=36).contains(&radix) {
-            return Err(ShellError::UnsupportedInput(
-                "Radix must lie in the range [2, 36]".to_string(),
-                val.span()?,
-            ));
-        }
-    }
-
-    input.map(
-        move |v| {
-            if options.column_paths.is_empty() {
-                action(&v, head, radix, options.little_endian)
-            } else {
-                let mut ret = v;
-                for path in &options.column_paths {
-                    let r = ret.update_cell_path(
-                        &path.members,
-                        Box::new(move |old| action(old, head, radix, options.little_endian)),
-                    );
-                    if let Err(error) = r {
-                        return Value::Error { error };
-                    }
-                }
-
-                ret
-            }
-        },
-        engine_state.ctrlc.clone(),
-    )
-}
-
-pub fn action(input: &Value, span: Span, radix: u32, little_endian: bool) -> Value {
+fn action(input: &Value, args: &Arguments, span: Span) -> Value {
+    let radix = args.radix;
+    let little_endian = args.little_endian;
     match input {
         Value::Int { val: _, .. } => {
             if radix == 10 {
@@ -244,20 +230,14 @@ pub fn action(input: &Value, span: Span, radix: u32, little_endian: bool) -> Val
                 }
                 val.resize(8, 0);
 
-                Value::Int {
-                    val: LittleEndian::read_i64(&val),
-                    span: *span,
-                }
+                Value::int(LittleEndian::read_i64(&val), *span)
             } else {
                 while val.len() < 8 {
                     val.insert(0, 0);
                 }
                 val.resize(8, 0);
 
-                Value::Int {
-                    val: BigEndian::read_i64(&val),
-                    span: *span,
-                }
+                Value::int(BigEndian::read_i64(&val), *span)
             }
         }
         _ => Value::Error {
@@ -280,13 +260,13 @@ fn convert_int(input: &Value, head: Span, radix: u32) -> Value {
             // octal
             {
                 match int_from_string(val, head) {
-                    Ok(x) => return Value::Int { val: x, span: head },
+                    Ok(x) => return Value::int(x, head),
                     Err(e) => return Value::Error { error: e },
                 }
             } else if val.starts_with("00") {
                 // It's a padded string
                 match i64::from_str_radix(val, radix) {
-                    Ok(n) => return Value::Int { val: n, span: head },
+                    Ok(n) => return Value::int(n, head),
                     Err(e) => {
                         return Value::Error {
                             error: ShellError::CantConvert(
@@ -311,7 +291,7 @@ fn convert_int(input: &Value, head: Span, radix: u32) -> Value {
         }
     };
     match i64::from_str_radix(i.trim(), radix) {
-        Ok(n) => Value::Int { val: n, span: head },
+        Ok(n) => Value::int(n, head),
         Err(_reason) => Value::Error {
             error: ShellError::CantConvert("string".to_string(), "int".to_string(), head, None),
         },
@@ -401,21 +381,45 @@ mod test {
         let word = Value::test_string("10");
         let expected = Value::test_int(10);
 
-        let actual = action(&word, Span::test_data(), 10, false);
+        let actual = action(
+            &word,
+            &Arguments {
+                radix: 10,
+                cell_paths: None,
+                little_endian: false,
+            },
+            Span::test_data(),
+        );
         assert_eq!(actual, expected);
     }
 
     #[test]
     fn turns_binary_to_integer() {
         let s = Value::test_string("0b101");
-        let actual = action(&s, Span::test_data(), 10, false);
+        let actual = action(
+            &s,
+            &Arguments {
+                radix: 10,
+                cell_paths: None,
+                little_endian: false,
+            },
+            Span::test_data(),
+        );
         assert_eq!(actual, Value::test_int(5));
     }
 
     #[test]
     fn turns_hex_to_integer() {
         let s = Value::test_string("0xFF");
-        let actual = action(&s, Span::test_data(), 16, false);
+        let actual = action(
+            &s,
+            &Arguments {
+                radix: 16,
+                cell_paths: None,
+                little_endian: false,
+            },
+            Span::test_data(),
+        );
         assert_eq!(actual, Value::test_int(255));
     }
 
@@ -423,7 +427,15 @@ mod test {
     fn communicates_parsing_error_given_an_invalid_integerlike_string() {
         let integer_str = Value::test_string("36anra");
 
-        let actual = action(&integer_str, Span::test_data(), 10, false);
+        let actual = action(
+            &integer_str,
+            &Arguments {
+                radix: 10,
+                cell_paths: None,
+                little_endian: false,
+            },
+            Span::test_data(),
+        );
 
         assert_eq!(actual.get_type(), Error)
     }

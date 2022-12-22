@@ -4,7 +4,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, Spanned,
-    SyntaxShape, Value,
+    SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -19,6 +19,7 @@ impl Command for FromSsv {
 
     fn signature(&self) -> Signature {
         Signature::build("from ssv")
+            .input_output_types(vec![(Type::String, Type::Table(vec![]))])
             .switch(
                 "noheaders",
                 "don't treat the first row as column names",
@@ -43,13 +44,13 @@ impl Command for FromSsv {
             example: r#"'FOO   BAR
 1   2' | from ssv"#,
             description: "Converts ssv formatted string to table",
-            result: Some(Value::List { vals: vec![Value::Record { cols: vec!["FOO".to_string(), "BAR".to_string()], vals: vec![Value::String { val: "1".to_string(), span: Span::test_data() }, Value::String { val: "2".to_string(), span: Span::test_data() }], span: Span::test_data() }], span: Span::test_data() }),
+            result: Some(Value::List { vals: vec![Value::Record { cols: vec!["FOO".to_string(), "BAR".to_string()], vals: vec![Value::string("1", Span::test_data()), Value::string("2", Span::test_data())], span: Span::test_data() }], span: Span::test_data() }),
         }, Example {
             example: r#"'FOO   BAR
 1   2' | from ssv -n"#,
             description: "Converts ssv formatted string to table but not treating the first row as column names",
             result: Some(
-                Value::List { vals: vec![Value::Record { cols: vec!["column1".to_string(), "column2".to_string()], vals: vec![Value::String { val: "FOO".to_string(), span: Span::test_data() }, Value::String { val: "BAR".to_string(), span: Span::test_data() }], span: Span::test_data() }, Value::Record { cols: vec!["column1".to_string(), "column2".to_string()], vals: vec![Value::String { val: "1".to_string(), span: Span::test_data() }, Value::String { val: "2".to_string(), span: Span::test_data() }], span: Span::test_data() }], span: Span::test_data() }),
+                Value::List { vals: vec![Value::Record { cols: vec!["column1".to_string(), "column2".to_string()], vals: vec![Value::string("FOO", Span::test_data()), Value::string("BAR", Span::test_data())], span: Span::test_data() }, Value::Record { cols: vec!["column1".to_string(), "column2".to_string()], vals: vec![Value::string("1", Span::test_data()), Value::string("2", Span::test_data())], span: Span::test_data() }], span: Span::test_data() }),
         }]
     }
 
@@ -141,7 +142,7 @@ fn parse_aligned_columns<'a>(
     let parse_without_headers = |ls: Vec<&str>| {
         let mut indices = ls
             .iter()
-            .flat_map(|s| find_indices(*s))
+            .flat_map(|s| find_indices(s))
             .collect::<Vec<usize>>();
 
         indices.sort_unstable();
@@ -267,7 +268,6 @@ fn from_ssv(
     call: &Call,
     input: PipelineData,
 ) -> Result<PipelineData, ShellError> {
-    let config = engine_state.get_config();
     let name = call.head;
 
     let noheaders = call.has_flag("noheaders");
@@ -275,7 +275,7 @@ fn from_ssv(
     let minimum_spaces: Option<Spanned<usize>> =
         call.get_flag(engine_state, stack, "minimum-spaces")?;
 
-    let concat_string = input.collect_string("", config)?;
+    let (concat_string, metadata) = input.collect_string_strict(name)?;
     let split_at = match minimum_spaces {
         Some(number) => number.item,
         None => DEFAULT_MINIMUM_SPACES,
@@ -283,7 +283,7 @@ fn from_ssv(
 
     Ok(
         from_ssv_string_to_value(&concat_string, noheaders, aligned_columns, split_at, name)
-            .into_pipeline_data(),
+            .into_pipeline_data_with_metadata(metadata),
     )
 }
 

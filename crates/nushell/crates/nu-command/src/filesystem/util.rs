@@ -14,18 +14,9 @@ pub struct FileStructure {
     pub resources: Vec<Resource>,
 }
 
-#[allow(dead_code)]
 impl FileStructure {
     pub fn new() -> FileStructure {
         FileStructure { resources: vec![] }
-    }
-
-    pub fn contains_more_than_one_file(&self) -> bool {
-        self.resources.len() > 1
-    }
-
-    pub fn contains_files(&self) -> bool {
-        !self.resources.is_empty()
     }
 
     pub fn paths_applying_with<F>(
@@ -99,11 +90,9 @@ impl Resource {}
 
 pub fn try_interaction(
     interactive: bool,
-    prompt_msg: &str,
-    file_name: &str,
+    prompt: String,
 ) -> (Result<Option<bool>, Box<dyn Error>>, bool) {
     let interaction = if interactive {
-        let prompt = format!("{} '{}'? ", prompt_msg, file_name);
         match get_interactive_confirmation(prompt) {
             Ok(i) => Ok(Some(i)),
             Err(e) => Err(e),

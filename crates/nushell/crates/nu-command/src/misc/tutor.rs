@@ -4,7 +4,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, SyntaxShape,
-    Value,
+    Type, Value,
 };
 
 #[derive(Clone)]
@@ -17,6 +17,8 @@ impl Command for Tutor {
 
     fn signature(&self) -> Signature {
         Signature::build("tutor")
+            .input_output_types(vec![(Type::Nothing, Type::String)])
+            .allow_variants_without_examples(true)
             .optional(
                 "search",
                 SyntaxShape::String,
@@ -313,9 +315,9 @@ tutor each
 
 fn each_tutor() -> &'static str {
     r#"
-The `each` command gives us a way of working with each individual row or
-element of a list one at a time. It reads these in from the pipeline and
-runs a block on each element. A block is a group of pipelines.
+The `each` command gives us a way of working with the individual elements
+(sometimes called 'rows') of a list one at a time. It reads these in from
+the pipeline and runs a block on each one. A block is a group of pipelines.
 ```
 echo 1 2 3 | each { |it| $it + 10}
 ```
@@ -375,9 +377,9 @@ second block if the expression is false.
 
 fn shorthand_tutor() -> &'static str {
     r#"
-You can access cells in a table using a shorthand notation sometimes called a
-"column path" or "cell path". These paths allow you to go from a table to
-rows, columns, or cells inside of the table.
+You can access data in a structure via a shorthand notation called a "cell path",
+sometimes called a "column path". These paths allow you to go from a structure to
+rows, columns, or cells inside of the structure.
 
 Shorthand paths are made from rows numbers, column names, or both. You can use
 them on any variable or subexpression.
@@ -392,8 +394,8 @@ the shorthand path to retrieve only the cell data inside the "PWD" column.
 This will retrieve the cell data in the "name" column on the 5th row (note:
 row numbers are zero-based).
 
-Rows and columns don't need to come in any specific order. You can get the
-same value using:
+For tables, rows and columns don't need to come in any specific order. You can
+produce the same value using:
 ```
 (ls).4.name
 ```
@@ -418,13 +420,9 @@ fn display(help: &str, engine_state: &EngineState, stack: &mut Stack, span: Span
                     engine_state,
                     stack,
                     &Call::new(span),
-                    Value::String {
-                        val: item.to_string(),
-                        span: Span { start: 0, end: 0 },
-                    }
-                    .into_pipeline_data(),
+                    Value::string(item, Span::unknown()).into_pipeline_data(),
                 ) {
-                    let result = output.into_value(Span { start: 0, end: 0 });
+                    let result = output.into_value(Span::unknown());
                     match result.as_string() {
                         Ok(s) => {
                             build.push_str(&s);

@@ -2,7 +2,7 @@ use nu_engine::get_full_help;
 use nu_protocol::{
     ast::Call,
     engine::{Command, EngineState, Stack},
-    Category, Example, IntoPipelineData, PipelineData, Signature, Span, Value,
+    Category, Example, IntoPipelineData, PipelineData, Signature, Span, Type, Value,
 };
 
 #[derive(Clone)]
@@ -14,7 +14,9 @@ impl Command for ExportCommand {
     }
 
     fn signature(&self) -> Signature {
-        Signature::build("export").category(Category::Core)
+        Signature::build("export")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
+            .category(Category::Core)
     }
 
     fn usage(&self) -> &str {
@@ -43,6 +45,7 @@ impl Command for ExportCommand {
                 &ExportCommand.examples(),
                 engine_state,
                 stack,
+                self.is_parser_keyword(),
             ),
             span: call.head,
         }
@@ -53,10 +56,11 @@ impl Command for ExportCommand {
         vec![Example {
             description: "Export a definition from a module",
             example: r#"module utils { export def my-command [] { "hello" } }; use utils my-command; my-command"#,
-            result: Some(Value::String {
-                val: "hello".to_string(),
-                span: Span::test_data(),
-            }),
+            result: Some(Value::string("hello", Span::test_data())),
         }]
+    }
+
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["module"]
     }
 }

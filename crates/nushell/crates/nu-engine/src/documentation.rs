@@ -10,6 +10,7 @@ pub fn get_full_help(
     examples: &[Example],
     engine_state: &EngineState,
     stack: &mut Stack,
+    is_parser_keyword: bool,
 ) -> String {
     let config = engine_state.get_config();
     let doc_config = DocumentationConfig {
@@ -17,7 +18,14 @@ pub fn get_full_help(
         no_color: !config.use_ansi_coloring,
         brief: false,
     };
-    get_documentation(sig, examples, engine_state, stack, &doc_config)
+    get_documentation(
+        sig,
+        examples,
+        engine_state,
+        stack,
+        &doc_config,
+        is_parser_keyword,
+    )
 }
 
 #[derive(Default)]
@@ -34,6 +42,7 @@ fn get_documentation(
     engine_state: &EngineState,
     stack: &mut Stack,
     config: &DocumentationConfig,
+    is_parser_keyword: bool,
 ) -> String {
     // Create ansi colors
     const G: &str = "\x1b[32m"; // green
@@ -89,33 +98,69 @@ fn get_documentation(
         long_desc.push_str(&get_flags_section(sig))
     }
 
+    if !is_parser_keyword && !sig.input_output_types.is_empty() {
+        if sig.operates_on_cell_paths() {
+            let _ = writeln!(
+                long_desc,
+                "\n{}Signatures(Cell paths are supported){}:\n{}",
+                G, RESET, sig
+            );
+        } else {
+            let _ = writeln!(long_desc, "\n{}Signatures{}:\n{}", G, RESET, sig);
+        }
+    }
+
     if !sig.required_positional.is_empty()
         || !sig.optional_positional.is_empty()
         || sig.rest_positional.is_some()
     {
         let _ = write!(long_desc, "\n{G}Parameters{RESET}:\n");
         for positional in &sig.required_positional {
-            let text = format!(
-                "  {C}{}{RESET} <{BB}{:?}{RESET}>: {}",
-                positional.name,
-                document_shape(positional.shape.clone()),
-                positional.desc
-            );
+            let text = match &positional.shape {
+                SyntaxShape::Keyword(kw, shape) => {
+                    format!(
+                        "  {C}\"{}\" + {RESET}<{BB}{}{RESET}>: {}",
+                        String::from_utf8_lossy(kw),
+                        document_shape(*shape.clone()),
+                        positional.desc
+                    )
+                }
+                _ => {
+                    format!(
+                        "  {C}{}{RESET} <{BB}{}{RESET}>: {}",
+                        positional.name,
+                        document_shape(positional.shape.clone()),
+                        positional.desc
+                    )
+                }
+            };
             let _ = writeln!(long_desc, "{}", text);
         }
         for positional in &sig.optional_positional {
-            let text = format!(
-                "  (optional) {C}{}{RESET} <{BB}{:?}{RESET}>: {}",
-                positional.name,
-                document_shape(positional.shape.clone()),
-                positional.desc
-            );
+            let text = match &positional.shape {
+                SyntaxShape::Keyword(kw, shape) => {
+                    format!(
+                        "  (optional) {C}\"{}\" + {RESET}<{BB}{}{RESET}>: {}",
+                        String::from_utf8_lossy(kw),
+                        document_shape(*shape.clone()),
+                        positional.desc
+                    )
+                }
+                _ => {
+                    format!(
+                        "  (optional) {C}{}{RESET} <{BB}{}{RESET}>: {}",
+                        positional.name,
+                        document_shape(positional.shape.clone()),
+                        positional.desc
+                    )
+                }
+            };
             let _ = writeln!(long_desc, "{}", text);
         }
 
         if let Some(rest_positional) = &sig.rest_positional {
             let text = format!(
-                "  ...{C}{}{RESET} <{BB}{:?}{RESET}>: {}",
+                "  ...{C}{}{RESET} <{BB}{}{RESET}>: {}",
                 rest_positional.name,
                 document_shape(rest_positional.shape.clone()),
                 rest_positional.desc
@@ -141,15 +186,11 @@ fn get_documentation(
             match decl.run(
                 engine_state,
                 stack,
-                &Call::new(Span::new(0, 0)),
-                Value::String {
-                    val: example.example.to_string(),
-                    span: Span { start: 0, end: 0 },
-                }
-                .into_pipeline_data(),
+                &Call::new(Span::unknown()),
+                Value::string(example.example, Span::unknown()).into_pipeline_data(),
             ) {
                 Ok(output) => {
-                    let result = output.into_value(Span { start: 0, end: 0 });
+                    let result = output.into_value(Span::unknown());
                     match result.as_string() {
                         Ok(s) => {
                             let _ = write!(long_desc, "\n  > {}\n", s);
@@ -170,17 +211,11 @@ fn get_documentation(
 
     long_desc.push('\n');
 
-    let stripped_string = if config.no_color {
-        if let Ok(bytes) = strip_ansi_escapes::strip(&long_desc) {
-            String::from_utf8_lossy(&bytes).to_string()
-        } else {
-            long_desc
-        }
+    if config.no_color {
+        nu_utils::strip_ansi_string_likely(long_desc)
     } else {
         long_desc
-    };
-
-    stripped_string
+    }
 }
 
 // document shape helps showing more useful information

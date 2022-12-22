@@ -96,9 +96,11 @@ impl EvaluatedCall {
     pub fn req<T: FromValue>(&self, pos: usize) -> Result<T, ShellError> {
         if let Some(value) = self.nth(pos) {
             FromValue::from_value(&value)
+        } else if self.positional.is_empty() {
+            Err(ShellError::AccessEmptyContent(self.head))
         } else {
             Err(ShellError::AccessBeyondEnd(
-                self.positional.len(),
+                self.positional.len() - 1,
                 self.head,
             ))
         }
@@ -113,32 +115,32 @@ mod test {
     #[test]
     fn call_to_value() {
         let call = EvaluatedCall {
-            head: Span { start: 0, end: 10 },
+            head: Span::new(0, 10),
             positional: vec![
                 Value::Float {
                     val: 1.0,
-                    span: Span { start: 0, end: 10 },
+                    span: Span::new(0, 10),
                 },
                 Value::String {
                     val: "something".into(),
-                    span: Span { start: 0, end: 10 },
+                    span: Span::new(0, 10),
                 },
             ],
             named: vec![
                 (
                     Spanned {
                         item: "name".to_string(),
-                        span: Span { start: 0, end: 10 },
+                        span: Span::new(0, 10),
                     },
                     Some(Value::Float {
                         val: 1.0,
-                        span: Span { start: 0, end: 10 },
+                        span: Span::new(0, 10),
                     }),
                 ),
                 (
                     Spanned {
                         item: "flag".to_string(),
-                        span: Span { start: 0, end: 10 },
+                        span: Span::new(0, 10),
                     },
                     None,
                 ),

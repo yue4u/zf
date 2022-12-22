@@ -3,7 +3,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoInterruptiblePipelineData, PipelineData, Signature, Span, Spanned,
-    SyntaxShape, Value,
+    SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -16,12 +16,21 @@ impl Command for Window {
 
     fn signature(&self) -> Signature {
         Signature::build("window")
+            .input_output_types(vec![(
+                Type::List(Box::new(Type::Any)),
+                Type::List(Box::new(Type::List(Box::new(Type::Any)))),
+            )])
             .required("window_size", SyntaxShape::Int, "the size of each window")
             .named(
                 "stride",
                 SyntaxShape::Int,
                 "the number of rows to slide over between windows",
                 Some('s'),
+            )
+            .switch(
+                "remainder",
+                "yield last chunks even if they have fewer elements than size",
+                Some('r'),
             )
             .category(Category::Filters)
     }
@@ -34,40 +43,22 @@ impl Command for Window {
         let stream_test_1 = vec![
             Value::List {
                 vals: vec![
-                    Value::Int {
-                        val: 1,
-                        span: Span::test_data(),
-                    },
-                    Value::Int {
-                        val: 2,
-                        span: Span::test_data(),
-                    },
+                    Value::int(1, Span::test_data()),
+                    Value::int(2, Span::test_data()),
                 ],
                 span: Span::test_data(),
             },
             Value::List {
                 vals: vec![
-                    Value::Int {
-                        val: 2,
-                        span: Span::test_data(),
-                    },
-                    Value::Int {
-                        val: 3,
-                        span: Span::test_data(),
-                    },
+                    Value::int(2, Span::test_data()),
+                    Value::int(3, Span::test_data()),
                 ],
                 span: Span::test_data(),
             },
             Value::List {
                 vals: vec![
-                    Value::Int {
-                        val: 3,
-                        span: Span::test_data(),
-                    },
-                    Value::Int {
-                        val: 4,
-                        span: Span::test_data(),
-                    },
+                    Value::int(3, Span::test_data()),
+                    Value::int(4, Span::test_data()),
                 ],
                 span: Span::test_data(),
             },
@@ -76,40 +67,40 @@ impl Command for Window {
         let stream_test_2 = vec![
             Value::List {
                 vals: vec![
-                    Value::Int {
-                        val: 1,
-                        span: Span::test_data(),
-                    },
-                    Value::Int {
-                        val: 2,
-                        span: Span::test_data(),
-                    },
+                    Value::int(1, Span::test_data()),
+                    Value::int(2, Span::test_data()),
                 ],
                 span: Span::test_data(),
             },
             Value::List {
                 vals: vec![
-                    Value::Int {
-                        val: 4,
-                        span: Span::test_data(),
-                    },
-                    Value::Int {
-                        val: 5,
-                        span: Span::test_data(),
-                    },
+                    Value::int(4, Span::test_data()),
+                    Value::int(5, Span::test_data()),
                 ],
                 span: Span::test_data(),
             },
             Value::List {
                 vals: vec![
-                    Value::Int {
-                        val: 7,
-                        span: Span::test_data(),
-                    },
-                    Value::Int {
-                        val: 8,
-                        span: Span::test_data(),
-                    },
+                    Value::int(7, Span::test_data()),
+                    Value::int(8, Span::test_data()),
+                ],
+                span: Span::test_data(),
+            },
+        ];
+
+        let stream_test_3 = vec![
+            Value::List {
+                vals: vec![
+                    Value::int(1, Span::test_data()),
+                    Value::int(2, Span::test_data()),
+                    Value::int(3, Span::test_data()),
+                ],
+                span: Span::test_data(),
+            },
+            Value::List {
+                vals: vec![
+                    Value::int(4, Span::test_data()),
+                    Value::int(5, Span::test_data()),
                 ],
                 span: Span::test_data(),
             },
@@ -117,7 +108,7 @@ impl Command for Window {
 
         vec![
             Example {
-                example: "echo [1 2 3 4] | window 2",
+                example: "[1 2 3 4] | window 2",
                 description: "A sliding window of two elements",
                 result: Some(Value::List {
                     vals: stream_test_1,
@@ -129,6 +120,14 @@ impl Command for Window {
                 description: "A sliding window of two elements, with a stride of 3",
                 result: Some(Value::List {
                     vals: stream_test_2,
+                    span: Span::test_data(),
+                }),
+            },
+            Example {
+                example: "[1, 2, 3, 4, 5] | window 3 --stride 3 --remainder",
+                description: "A sliding window of equal stride that includes remainder. Equivalent to chunking",
+                result: Some(Value::List {
+                    vals: stream_test_3,
                     span: Span::test_data(),
                 }),
             },
@@ -146,6 +145,7 @@ impl Command for Window {
         let ctrlc = engine_state.ctrlc.clone();
         let metadata = input.metadata();
         let stride: Option<usize> = call.get_flag(engine_state, stack, "stride")?;
+        let remainder = call.has_flag("remainder");
 
         let stride = stride.unwrap_or(1);
 
@@ -155,8 +155,9 @@ impl Command for Window {
             group_size: group_size.item,
             input: Box::new(input.into_iter()),
             span: call.head,
-            previous: vec![],
+            previous: None,
             stride,
+            remainder,
         };
 
         Ok(each_group_iterator
@@ -169,15 +170,23 @@ struct EachWindowIterator {
     group_size: usize,
     input: Box<dyn Iterator<Item = Value> + Send>,
     span: Span,
-    previous: Vec<Value>,
+    previous: Option<Vec<Value>>,
     stride: usize,
+    remainder: bool,
 }
 
 impl Iterator for EachWindowIterator {
     type Item = Value;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut group = self.previous.clone();
+        let mut group = self.previous.take().unwrap_or_else(|| {
+            let mut vec = Vec::new();
+
+            // We default to a Vec of capacity size + stride as striding pushes n extra elements to the end
+            vec.try_reserve(self.group_size + self.stride).ok();
+
+            vec
+        });
         let mut current_count = 0;
 
         if group.is_empty() {
@@ -193,7 +202,13 @@ impl Iterator for EachWindowIterator {
                             break;
                         }
                     }
-                    None => return None,
+                    None => {
+                        if self.remainder {
+                            break;
+                        } else {
+                            return None;
+                        }
+                    }
                 }
             }
         } else {
@@ -211,23 +226,31 @@ impl Iterator for EachWindowIterator {
                             break;
                         }
                     }
-                    None => return None,
+                    None => {
+                        if self.remainder {
+                            break;
+                        } else {
+                            return None;
+                        }
+                    }
                 }
             }
 
-            for _ in 0..current_count {
-                let _ = group.remove(0);
-            }
+            // We now have elements + stride in our group, and need to
+            // drop the skipped elements. Drain to preserve allocation and capacity
+            // Dropping this iterator consumes it.
+            group.drain(..self.stride.min(group.len()));
         }
 
-        if group.is_empty() || current_count == 0 {
+        if group.is_empty() {
             return None;
         }
 
-        self.previous = group.clone();
+        let return_group = group.clone();
+        self.previous = Some(group);
 
         Some(Value::List {
-            vals: group,
+            vals: return_group,
             span: self.span,
         })
     }

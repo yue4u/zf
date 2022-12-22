@@ -5,7 +5,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoPipelineData, PipelineData, ShellError, Signature, Span, Spanned,
-    SyntaxShape, Value,
+    SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -22,12 +22,7 @@ impl Command for SeqDate {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("seq date")
-            .named(
-                "separator",
-                SyntaxShape::String,
-                "separator character (defaults to \\n)",
-                Some('s'),
-            )
+            .input_output_types(vec![(Type::Nothing, Type::List(Box::new(Type::String)))])
             .named(
                 "output-format",
                 SyntaxShape::String,
@@ -117,11 +112,6 @@ impl Command for SeqDate {
                     span,
                 }),
             },
-            Example {
-                description: "starting on May 5th, 2020, print the next 10 days in your locale's date format, colon separated",
-                example: "seq date -o %x -s ':' -d 10 -b '2020-05-01'",
-                result: None,
-            },
         ]
     }
 
@@ -132,7 +122,6 @@ impl Command for SeqDate {
         call: &Call,
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-        let separator: Option<Spanned<String>> = call.get_flag(engine_state, stack, "separator")?;
         let output_format: Option<Spanned<String>> =
             call.get_flag(engine_state, stack, "output-format")?;
         let input_format: Option<Spanned<String>> =
@@ -143,31 +132,6 @@ impl Command for SeqDate {
         let increment: Option<Spanned<i64>> = call.get_flag(engine_state, stack, "increment")?;
         let days: Option<Spanned<i64>> = call.get_flag(engine_state, stack, "days")?;
         let reverse = call.has_flag("reverse");
-
-        let sep: String = match separator {
-            Some(s) => {
-                if s.item == r"\t" {
-                    '\t'.to_string()
-                } else if s.item == r"\n" {
-                    '\n'.to_string()
-                } else if s.item == r"\r" {
-                    '\r'.to_string()
-                } else {
-                    let vec_s: Vec<char> = s.item.chars().collect();
-                    if vec_s.is_empty() {
-                        return Err(ShellError::GenericError(
-                            "Expected a single separator char from --separator".to_string(),
-                            "requires a single character string input".to_string(),
-                            Some(s.span),
-                            None,
-                            Vec::new(),
-                        ));
-                    };
-                    vec_s.iter().collect()
-                }
-            }
-            _ => '\n'.to_string(),
-        };
 
         let outformat = match output_format {
             Some(s) => Some(Value::string(s.item, s.span)),
@@ -202,7 +166,7 @@ impl Command for SeqDate {
         }
 
         Ok(
-            run_seq_dates(sep, outformat, informat, begin, end, inc, day_count, rev)?
+            run_seq_dates(outformat, informat, begin, end, inc, day_count, rev)?
                 .into_pipeline_data(),
         )
     }
@@ -218,7 +182,6 @@ pub fn parse_date_string(s: &str, format: &str) -> Result<NaiveDate, &'static st
 
 #[allow(clippy::too_many_arguments)]
 pub fn run_seq_dates(
-    separator: String,
     output_format: Option<Value>,
     input_format: Option<Value>,
     beginning_date: Option<String>,
@@ -227,10 +190,9 @@ pub fn run_seq_dates(
     day_count: Option<Value>,
     reverse: bool,
 ) -> Result<Value, ShellError> {
-    let today = Local::today().naive_local();
-    let mut step_size: i64 = increment
-        .as_i64()
-        .expect("unable to change increment to i64");
+    let today = Local::now().date_naive();
+    // if cannot convert , it will return error
+    let mut step_size: i64 = increment.as_i64()?;
 
     if step_size == 0 {
         return Err(ShellError::GenericError(
@@ -352,25 +314,19 @@ pub fn run_seq_dates(
         ));
     }
 
-    let mut ret_str = String::from("");
+    let mut ret = vec![];
     loop {
-        ret_str.push_str(&next.format(&out_format).to_string());
+        let date_string = &next.format(&out_format).to_string();
+        ret.push(Value::string(date_string, Span::test_data()));
         next += Duration::days(step_size);
 
         if is_out_of_range(next) {
             break;
         }
-
-        ret_str.push_str(&separator);
     }
 
-    let rows: Vec<Value> = ret_str
-        .lines()
-        .map(|v| Value::string(v, Span::test_data()))
-        .collect();
-
     Ok(Value::List {
-        vals: rows,
+        vals: ret,
         span: Span::test_data(),
     })
 }

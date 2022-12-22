@@ -179,6 +179,24 @@ impl VMManager {
                 get_tree(base).set_pause(true);
                 GameEvent::MissionComplete(result)
             }
+            GameEvent::MissionFailed => {
+                // let runtime = self.runtime.as_mut()?;
+                // let result = runtime
+                //     .eval(format!("fsays 'Mission completed: {}'", "Mission failed"))
+                //     .expect("fsays should work");
+                let label = unsafe { base.get_node_as::<Label>(base_level::LEVEL_RESULT).unwrap() };
+                label.set_text("Mission failed");
+                // cd00fff3 -> cdff0099
+                // a1e4c95f -> a17052b0
+                label.add_color_override("font_color", Color::from_html("#cdff0099").unwrap());
+                label.add_color_override(
+                    "font_color_shadow",
+                    Color::from_html("#a17052b0").unwrap(),
+                );
+                label.set_visible(true);
+                get_tree(base).set_pause(true);
+                GameEvent::MissionFailed
+            }
             as_is => as_is,
         };
 

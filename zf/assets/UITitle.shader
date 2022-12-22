@@ -7,23 +7,19 @@ float rand(vec2 co){
 
 void fragment() {
     vec4 tex = texture(TEXTURE, UV);
-    float t = TIME;
-    float r = rand(vec2(t, t));
+    float t = TIME / 1000.;
+    float r = rand(vec2(UV.y * 10., t));
 
-    bool glitch = fract(TIME) < .2 && (UV.x > r && UV.x < r + .1 || UV.y > r && UV.y < r + 0.2);
-    if(glitch) {
+    vec2 uvGlitch = UV;
 
-        vec2 uvGlitch = UV;
-        uvGlitch.x -= r / 5.0;
-        uvGlitch.y -= r / 5.0;
+    if (r < .01){
+        uvGlitch.x -= r * 10.;
+        uvGlitch.y -= r * 10.;
 
         tex = texture(TEXTURE, uvGlitch);
-        tex = COLOR * tex.a;
-        tex.r -= 2. * sin(10. * UV.x + TIME);
-        tex.g -= 2. * sin(20. * UV.y + TIME);
-        tex.b -= UV.x + UV.y;
+        tex.a = COLOR.a * tex.a;
         COLOR = tex;
+    }else{
+        COLOR = vec4(COLOR.rgb, tex.a * COLOR.a);
     }
-
-    COLOR = vec4(COLOR.rgb, tex.a * COLOR.a);
 }

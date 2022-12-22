@@ -4,12 +4,17 @@ use gdnative::{
 };
 
 use crate::{
+    common::find_ref,
+    entities::GameEvent,
+    managers::VMManager,
     refs::path::player_health_bar,
     units::{Player, PLAYER_HIT},
+    vm::VMSignal,
 };
 
 #[derive(NativeClass)]
 #[inherit(Node)]
+#[register_with(Self::register_signal)]
 pub struct PlayerHealthBar {
     current: u32,
     prev: f64,
@@ -30,6 +35,10 @@ impl PlayerHealthBar {
             max_label: None,
             progress_rect: None,
         }
+    }
+
+    pub fn register_signal<T: NativeClass>(builder: &ClassBuilder<T>) {
+        builder.signal(VMSignal::OnGameState.as_str()).done();
     }
 
     #[method]
@@ -63,6 +72,17 @@ impl PlayerHealthBar {
                 ConnectFlags::DEFERRED.into(),
             )
             .expect("failed to connect line edit");
+
+        let vm_manager = find_ref::<VMManager, Node>(base).unwrap();
+
+        base.connect(
+            VMSignal::OnGameState,
+            vm_manager,
+            VMSignal::OnGameState,
+            VariantArray::new_shared(),
+            ConnectFlags::DEFERRED.into(),
+        )
+        .expect("failed to connect vm");
     }
 
     #[method]
@@ -74,17 +94,23 @@ impl PlayerHealthBar {
     }
 
     #[method]
-    fn on_player_hit(&mut self, delta: u32) {
-        self.update(delta);
+    fn on_player_hit(&mut self, #[base] base: &Node, delta: u32) {
+        self.update(base, delta);
     }
 
-    pub fn update(&mut self, delta: u32) {
+    pub fn update(&mut self, base: &Node, delta: u32) {
         self.prev = self.current as f64;
         self.current = self.current.saturating_sub(delta);
 
         unsafe { self.current_label.as_ref().unwrap().assume_safe() }
             .set_text(self.current.to_string());
         self.update_shader_param();
+        if self.current == 0 {
+            base.emit_signal(
+                VMSignal::OnGameState,
+                &[GameEvent::MissionFailed.to_variant()],
+            );
+        }
     }
 
     fn update_shader_param(&self) {

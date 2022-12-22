@@ -122,7 +122,7 @@ impl Mission {
             enemies_all,
         } = self.mission.as_ref().unwrap();
         let text = format!(
-            r#"Mission: {scene}
+            r#"[b][color=#4FFFCA]Mission: {scene}[/color][/b]
 Target points: {target_points} / {target_points_all}
 Target enemies: {enemies} / {enemies_all}
 "#

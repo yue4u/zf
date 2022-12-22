@@ -13,7 +13,6 @@ pub mod scenes {
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
     pub const SANDBOX_2_D: &str = "res://scenes/Sandbox2D.tscn";
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
-    pub const LEVEL_RESULT: &str = "res://scenes/LevelResult.tscn";
     pub const SANDBOX_3_D: &str = "res://scenes/Sandbox3D.tscn";
     pub const PLAYER_STATUS: &str = "res://scenes/PlayerStatus.tscn";
     pub const PLAYER_HEALTH_BAR: &str = "res://scenes/PlayerHealthBar.tscn";
@@ -21,6 +20,7 @@ pub mod scenes {
     pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
     pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
+    pub const TITLE_LABEL: &str = "res://scenes/TitleLabel.tscn";
     pub const TARGET_DUMMY: &str = "res://scenes/TargetDummy.tscn";
     pub const MISSION: &str = "res://scenes/Mission.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
@@ -161,12 +161,6 @@ pub mod player_mjolnir {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod level_result {
-
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
 pub mod sandbox_3_d {
     pub const ORBIT: &str = "/root/Scene/Orbit";
     pub const IMMEDIATE_GEOMETRY: &str = "/root/Scene/Orbit/ImmediateGeometry";
@@ -225,6 +219,7 @@ pub mod launcher {
 #[allow(dead_code)]
 pub mod base_level {
     pub const PROJECTILES: &str = "/root/Scene/Level/Projectiles";
+    pub const LEVEL_RESULT: &str = "/root/Scene/UI/LevelResult";
     pub const UI_EXTRA: &str = "/root/Scene/UI/MarginContainer/UIExtra";
     pub const H_BOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer";
     pub const MISSION: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Mission";
@@ -235,7 +230,12 @@ pub mod base_level {
     pub const CONTROL_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
     pub const H_BOX_CONTAINER_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/HBoxContainer";
     pub const LABEL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/Label";
-    pub const LEVEL_RESULT: &str = "/root/Scene/LevelResult";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod title_label {
+    pub const TEXTURE_RECT: &str = "/root/Scene/TextureRect";
 }
 
 #[rustfmt::skip]
@@ -317,7 +317,7 @@ pub mod start_menu {
     pub const SCENE: &str = "/root/Scene/Level/scene";
     pub const ANIMATION_PLAYER: &str = "/root/Scene/Level/scene/AnimationPlayer";
     pub const CENTER_CONTAINER: &str = "/root/Scene/Level/CenterContainer";
-    pub const TITLE: &str = "/root/Scene/Level/CenterContainer/Title";
+    pub const LEVEL_RESULT: &str = "/root/Scene/Level/CenterContainer/LevelResult";
     pub const OMNI_LIGHT: &str = "/root/Scene/Level/OmniLight";
     pub const CAMERA: &str = "/root/Scene/Level/Camera";
 }
@@ -350,6 +350,7 @@ pub mod sandbox {
 #[allow(dead_code)]
 pub mod assets {
     pub const PATH_FOLLOW_SHADER: &str = "res://assets/PathFollow.shader";
+    pub const UI_FONT_MENU_TITLE_TRES: &str = "res://assets/UIFontMenuTitle.tres";
     pub const T_DUMMY_TSCN: &str = "res://assets/t-dummy.tscn";
     pub const UI_THEME_TRES: &str = "res://assets/UITheme.tres";
     pub const JET_BRAINS_MONO_TRES: &str = "res://assets/JetBrains_Mono.tres";
@@ -368,5 +369,5 @@ pub mod assets {
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
-    pub const LEVEL_RESULT_SHADER: &str = "res://assets/LevelResult.shader";
 }
+

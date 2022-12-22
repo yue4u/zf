@@ -27,6 +27,7 @@ pub enum GameEvent {
     HitTargetPoint,
     EnemyDestroied,
     MissionComplete(String),
+    MissionFailed,
     LevelChange(SceneName),
 }
 

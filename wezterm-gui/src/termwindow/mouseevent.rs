@@ -12,7 +12,6 @@ use mux::tab::SplitDirection;
 use mux::Mux;
 use std::convert::TryInto;
 use std::ops::Sub;
-use std::rc::Rc;
 use std::sync::Arc;
 use std::time::Duration;
 use termwiz::hyperlink::Hyperlink;
@@ -250,7 +249,7 @@ impl super::TermWindow {
         y: i64,
         context: &dyn WindowOps,
     ) {
-        let mux = Mux::get().unwrap();
+        let mux = Mux::get();
         let tab = match mux.get_active_tab_for_window(self.mux_window_id) {
             Some(tab) => tab,
             None => return,
@@ -347,7 +346,7 @@ impl super::TermWindow {
     fn mouse_event_ui_item(
         &mut self,
         item: UIItem,
-        pane: Rc<dyn Pane>,
+        pane: Arc<dyn Pane>,
         _y: i64,
         event: MouseEvent,
         context: &dyn WindowOps,
@@ -435,10 +434,10 @@ impl super::TermWindow {
                 TabBarItem::None | TabBarItem::LeftStatus | TabBarItem::RightStatus => {}
             },
             WMEK::Move => match item {
-                TabBarItem::None => {
+                TabBarItem::None | TabBarItem::LeftStatus | TabBarItem::RightStatus => {
                     context.set_window_drag_position(event.screen_coords);
                 }
-                _ => {}
+                TabBarItem::Tab { .. } | TabBarItem::NewTabButton { .. } => {}
             },
             WMEK::VertWheel(n) => {
                 self.activate_tab_relative(if n < 1 { 1 } else { -1 }, true)
@@ -453,7 +452,7 @@ impl super::TermWindow {
     pub fn mouse_event_above_scroll_thumb(
         &mut self,
         _item: UIItem,
-        pane: Rc<dyn Pane>,
+        pane: Arc<dyn Pane>,
         event: MouseEvent,
         context: &dyn WindowOps,
     ) {
@@ -478,7 +477,7 @@ impl super::TermWindow {
     pub fn mouse_event_below_scroll_thumb(
         &mut self,
         _item: UIItem,
-        pane: Rc<dyn Pane>,
+        pane: Arc<dyn Pane>,
         event: MouseEvent,
         context: &dyn WindowOps,
     ) {
@@ -503,7 +502,7 @@ impl super::TermWindow {
     pub fn mouse_event_scroll_thumb(
         &mut self,
         item: UIItem,
-        _pane: Rc<dyn Pane>,
+        _pane: Arc<dyn Pane>,
         event: MouseEvent,
         context: &dyn WindowOps,
     ) {
@@ -534,7 +533,7 @@ impl super::TermWindow {
 
     fn mouse_event_terminal(
         &mut self,
-        mut pane: Rc<dyn Pane>,
+        mut pane: Arc<dyn Pane>,
         position: ClickPosition,
         event: MouseEvent,
         context: &dyn WindowOps,
@@ -565,20 +564,20 @@ impl super::TermWindow {
                     // We're over a pane that isn't active
                     match &event.kind {
                         WMEK::Press(_) => {
-                            let mux = Mux::get().unwrap();
+                            let mux = Mux::get();
                             mux.get_active_tab_for_window(self.mux_window_id)
                                 .map(|tab| tab.set_active_idx(pos.index));
 
-                            pane = Rc::clone(&pos.pane);
+                            pane = Arc::clone(&pos.pane);
                             is_click_to_focus_pane = true;
                         }
                         WMEK::Move => {
                             if self.config.pane_focus_follows_mouse {
-                                let mux = Mux::get().unwrap();
+                                let mux = Mux::get();
                                 mux.get_active_tab_for_window(self.mux_window_id)
                                     .map(|tab| tab.set_active_idx(pos.index));
 
-                                pane = Rc::clone(&pos.pane);
+                                pane = Arc::clone(&pos.pane);
                                 context.invalidate();
                             }
                         }
@@ -586,7 +585,7 @@ impl super::TermWindow {
                         WMEK::VertWheel(_) => {
                             // Let wheel events route to the hovered pane,
                             // even if it doesn't have focus
-                            pane = Rc::clone(&pos.pane);
+                            pane = Arc::clone(&pos.pane);
                             context.invalidate();
                         }
                     }

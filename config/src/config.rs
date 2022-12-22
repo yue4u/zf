@@ -22,8 +22,9 @@ use crate::unix::UnixDomain;
 use crate::wsl::WslDomain;
 use crate::{
     default_config_with_overrides_applied, default_one_point_oh, default_one_point_oh_f64,
-    default_true, KeyMapPreference, LoadedConfig, MouseEventTriggerMods, RgbaColor, CONFIG_DIR,
-    CONFIG_FILE_OVERRIDE, CONFIG_OVERRIDES, CONFIG_SKIP, HOME_DIR,
+    default_true, GpuInfo, KeyMapPreference, LoadedConfig, MouseEventTriggerMods, RgbaColor,
+    WebGpuPowerPreference, CONFIG_DIR, CONFIG_FILE_OVERRIDE, CONFIG_OVERRIDES, CONFIG_SKIP,
+    HOME_DIR,
 };
 use anyhow::Context;
 use luahelper::impl_lua_conversion_dynamic;
@@ -189,6 +190,14 @@ pub struct Config {
     #[dynamic(default)]
     pub enable_kitty_keyboard: bool,
 
+    /// Whether the terminal should respond to requests to read the
+    /// title string.
+    /// Disabled by default for security concerns with shells that might
+    /// otherwise attempt to execute the response.
+    /// <https://marc.info/?l=bugtraq&m=104612710031920&w=2>
+    #[dynamic(default)]
+    pub enable_title_reporting: bool,
+
     /// Specifies the width of a new window, expressed in character cells
     #[dynamic(default = "default_initial_cols", validate = "validate_row_or_col")]
     pub initial_cols: u16,
@@ -261,6 +270,18 @@ pub struct Config {
 
     #[dynamic(default)]
     pub front_end: FrontEndSelection,
+
+    /// Whether to select the higher powered discrete GPU when
+    /// the system has a choice of integrated or discrete.
+    /// Defaults to low power.
+    #[dynamic(default)]
+    pub webgpu_power_preference: WebGpuPowerPreference,
+
+    #[dynamic(default)]
+    pub webgpu_force_fallback_adapter: bool,
+
+    #[dynamic(default)]
+    pub webgpu_preferred_adapter: Option<GpuInfo>,
 
     #[dynamic(default = "WslDomain::default_domains")]
     pub wsl_domains: Vec<WslDomain>,
@@ -375,6 +396,12 @@ pub struct Config {
     /// If true, tab bar titles are prefixed with the tab index
     #[dynamic(default = "default_true")]
     pub show_tab_index_in_tab_bar: bool,
+
+    #[dynamic(default = "default_true")]
+    pub show_tabs_in_tab_bar: bool,
+
+    #[dynamic(default = "default_true")]
+    pub show_new_tab_button_in_tab_bar: bool,
 
     /// If true, show_tab_index_in_tab_bar uses a zero-based index.
     /// The default is false and the tab shows a one-based index.

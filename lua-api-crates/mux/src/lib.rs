@@ -8,9 +8,8 @@ use mux::tab::{SplitDirection, SplitRequest, SplitSize, Tab, TabId};
 use mux::window::{Window, WindowId};
 use mux::Mux;
 use portable_pty::CommandBuilder;
-use std::cell::{Ref, RefMut};
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
 use wezterm_dynamic::{FromDynamic, ToDynamic};
 use wezterm_term::TerminalSize;
 
@@ -22,9 +21,8 @@ pub use pane::MuxPane;
 pub use tab::MuxTab;
 pub use window::MuxWindow;
 
-fn get_mux() -> mlua::Result<Rc<Mux>> {
-    Mux::get()
-        .ok_or_else(|| mlua::Error::external("cannot get Mux: not running on the mux thread?"))
+fn get_mux() -> mlua::Result<Arc<Mux>> {
+    Mux::try_get().ok_or_else(|| mlua::Error::external("cannot get Mux!?"))
 }
 
 pub fn register(lua: &Lua) -> anyhow::Result<()> {
@@ -67,7 +65,7 @@ pub fn register(lua: &Lua) -> anyhow::Result<()> {
         lua.create_function(|_, window_id: WindowId| {
             let mux = get_mux()?;
             let window = MuxWindow(window_id);
-            window.resolve(&mux)?;
+            let _resolved = window.resolve(&mux)?;
             Ok(window)
         })?,
     )?;

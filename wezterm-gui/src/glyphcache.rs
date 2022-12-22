@@ -1,19 +1,16 @@
 use super::utilsprites::RenderMetrics;
-use crate::cache::LfuCacheU64;
 use crate::customglyph::*;
+use crate::renderstate::RenderContext;
 use ::window::bitmaps::atlas::{Atlas, OutOfTextureSpace, Sprite};
 use ::window::bitmaps::{BitmapImage, Image, ImageTexture, Texture2d};
 use ::window::color::SrgbaPixel;
-use ::window::glium::backend::Context as GliumContext;
-use ::window::glium::texture::SrgbTexture2d;
-use ::window::glium::CapabilitiesSource;
-use ::window::{glium, Point, Rect};
-use anyhow::Context;
+use ::window::{Point, Rect};
 use config::{AllowSquareGlyphOverflow, TextStyle};
 use euclid::num::Zero;
+use lfucache::LfuCacheU64;
 use ordered_float::NotNan;
+use std::cell::RefCell;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::rc::Rc;
 use std::sync::{Arc, MutexGuard};
 use std::time::Instant;
@@ -132,7 +129,7 @@ impl<'a> std::hash::Hash for (dyn GlyphKeyTrait + 'a) {
 
 /// Caches a rendered glyph.
 /// The image data may be None for whitespace glyphs.
-pub struct CachedGlyph<T: Texture2d> {
+pub struct CachedGlyph {
     pub has_color: bool,
     pub brightness_adjust: f32,
     pub x_offset: PixelLength,
@@ -140,11 +137,11 @@ pub struct CachedGlyph<T: Texture2d> {
     pub x_advance: PixelLength,
     pub bearing_x: PixelLength,
     pub bearing_y: PixelLength,
-    pub texture: Option<Sprite<T>>,
+    pub texture: Option<Sprite>,
     pub scale: f64,
 }
 
-impl<T: Texture2d> std::fmt::Debug for CachedGlyph<T> {
+impl std::fmt::Debug for CachedGlyph {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::result::Result<(), std::fmt::Error> {
         fmt.debug_struct("CachedGlyph")
             .field("has_color", &self.has_color)
@@ -198,8 +195,8 @@ impl<'a> BitmapImage for DecodedImageHandle<'a> {
 
 #[derive(Debug)]
 pub struct DecodedImage {
-    frame_start: Instant,
-    current_frame: usize,
+    frame_start: RefCell<Instant>,
+    current_frame: RefCell<usize>,
     image: Arc<ImageData>,
 }
 
@@ -208,8 +205,8 @@ impl DecodedImage {
         // A single black pixel
         let image = ImageData::with_data(ImageDataType::new_single_frame(1, 1, vec![0, 0, 0, 0]));
         Self {
-            frame_start: Instant::now(),
-            current_frame: 0,
+            frame_start: RefCell::new(Instant::now()),
+            current_frame: RefCell::new(0),
             image: Arc::new(image),
         }
     }
@@ -228,15 +225,15 @@ impl DecodedImage {
                     0
                 };
                 Self {
-                    frame_start: Instant::now(),
-                    current_frame,
+                    frame_start: RefCell::new(Instant::now()),
+                    current_frame: RefCell::new(current_frame),
                     image: Arc::clone(image_data),
                 }
             }
 
             _ => Self {
-                frame_start: Instant::now(),
-                current_frame: 0,
+                frame_start: RefCell::new(Instant::now()),
+                current_frame: RefCell::new(0),
                 image: Arc::clone(image_data),
             },
         }
@@ -245,21 +242,21 @@ impl DecodedImage {
 
 /// A number of items here are HashMaps rather than LfuCaches;
 /// eviction is managed by recreating Self when the Atlas is filled
-pub struct GlyphCache<T: Texture2d> {
-    glyph_cache: HashMap<GlyphKey, Rc<CachedGlyph<T>>>,
-    pub atlas: Atlas<T>,
+pub struct GlyphCache {
+    glyph_cache: HashMap<GlyphKey, Rc<CachedGlyph>>,
+    pub atlas: Atlas,
     pub fonts: Rc<FontConfiguration>,
     pub image_cache: LfuCacheU64<DecodedImage>,
-    frame_cache: HashMap<[u8; 32], Sprite<T>>,
-    line_glyphs: HashMap<LineKey, Sprite<T>>,
-    pub block_glyphs: HashMap<SizedBlockKey, Sprite<T>>,
-    pub cursor_glyphs: HashMap<(Option<CursorShape>, u8), Sprite<T>>,
-    pub color: HashMap<(RgbColor, NotNan<f32>), Sprite<T>>,
+    frame_cache: HashMap<[u8; 32], Sprite>,
+    line_glyphs: HashMap<LineKey, Sprite>,
+    pub block_glyphs: HashMap<SizedBlockKey, Sprite>,
+    pub cursor_glyphs: HashMap<(Option<CursorShape>, u8), Sprite>,
+    pub color: HashMap<(RgbColor, NotNan<f32>), Sprite>,
 }
 
-impl GlyphCache<ImageTexture> {
+impl GlyphCache {
     pub fn new_in_memory(fonts: &Rc<FontConfiguration>, size: usize) -> anyhow::Result<Self> {
-        let surface = Rc::new(ImageTexture::new(size, size));
+        let surface: Rc<dyn Texture2d> = Rc::new(ImageTexture::new(size, size));
         let atlas = Atlas::new(&surface).expect("failed to create new texture atlas");
 
         Ok(Self {
@@ -281,36 +278,13 @@ impl GlyphCache<ImageTexture> {
     }
 }
 
-impl GlyphCache<SrgbTexture2d> {
+impl GlyphCache {
     pub fn new_gl(
-        backend: &Rc<GliumContext>,
+        backend: &RenderContext,
         fonts: &Rc<FontConfiguration>,
         size: usize,
     ) -> anyhow::Result<Self> {
-        let caps = backend.get_capabilities();
-        // You'd hope that allocating a texture would automatically
-        // include this check, but it doesn't, and instead, the texture
-        // silently fails to bind when attempting to render into it later.
-        // So! We check and raise here for ourselves!
-        let max_texture_size: usize = caps
-            .max_texture_size
-            .try_into()
-            .context("represent Capabilities.max_texture_size as usize")?;
-        if size > max_texture_size {
-            anyhow::bail!(
-                "Cannot use a texture of size {} as it is larger \
-                 than the max {} supported by your GPU",
-                size,
-                caps.max_texture_size
-            );
-        }
-        let surface = Rc::new(SrgbTexture2d::empty_with_format(
-            backend,
-            glium::texture::SrgbFormat::U8U8U8U8,
-            glium::texture::MipmapsOption::NoMipmap,
-            size as u32,
-            size as u32,
-        )?);
+        let surface = backend.allocate_texture_atlas(size)?;
         let atlas = Atlas::new(&surface).expect("failed to create new texture atlas");
 
         Ok(Self {
@@ -332,7 +306,7 @@ impl GlyphCache<SrgbTexture2d> {
     }
 }
 
-impl<T: Texture2d> GlyphCache<T> {
+impl GlyphCache {
     /// Resolve a glyph from the cache, rendering the glyph on-demand if
     /// the cache doesn't already hold the desired glyph.
     pub fn cached_glyph(
@@ -343,7 +317,7 @@ impl<T: Texture2d> GlyphCache<T> {
         font: &Rc<LoadedFont>,
         metrics: &RenderMetrics,
         num_cells: u8,
-    ) -> anyhow::Result<Rc<CachedGlyph<T>>> {
+    ) -> anyhow::Result<Rc<CachedGlyph>> {
         let key = BorrowedGlyphKey {
             font_idx: info.font_idx,
             glyph_pos: info.glyph_pos,
@@ -413,7 +387,7 @@ impl<T: Texture2d> GlyphCache<T> {
         font: &Rc<LoadedFont>,
         followed_by_space: bool,
         num_cells: u8,
-    ) -> anyhow::Result<Rc<CachedGlyph<T>>> {
+    ) -> anyhow::Result<Rc<CachedGlyph>> {
         let base_metrics;
         let idx_metrics;
         let brightness_adjust;
@@ -580,14 +554,14 @@ impl<T: Texture2d> GlyphCache<T> {
     }
 
     fn cached_image_impl(
-        frame_cache: &mut HashMap<[u8; 32], Sprite<T>>,
-        atlas: &mut Atlas<T>,
-        decoded: &mut DecodedImage,
+        frame_cache: &mut HashMap<[u8; 32], Sprite>,
+        atlas: &mut Atlas,
+        decoded: &DecodedImage,
         padding: Option<usize>,
-    ) -> anyhow::Result<(Sprite<T>, Option<Instant>)> {
+    ) -> anyhow::Result<(Sprite, Option<Instant>)> {
         let mut handle = DecodedImageHandle {
             h: decoded.image.data(),
-            current_frame: decoded.current_frame,
+            current_frame: *decoded.current_frame.borrow(),
         };
         match &*handle.h {
             ImageDataType::Rgba8 { hash, .. } => {
@@ -606,28 +580,31 @@ impl<T: Texture2d> GlyphCache<T> {
                 ..
             } => {
                 let mut next = None;
+                let mut decoded_frame_start = decoded.frame_start.borrow_mut();
+                let mut decoded_current_frame = decoded.current_frame.borrow_mut();
                 if frames.len() > 1 {
                     let now = Instant::now();
-                    let mut next_due = decoded.frame_start + durations[decoded.current_frame];
+
+                    let mut next_due = *decoded_frame_start + durations[*decoded_current_frame];
                     if now >= next_due {
                         // Advance to next frame
-                        decoded.current_frame += 1;
-                        if decoded.current_frame >= frames.len() {
-                            decoded.current_frame = 0;
+                        *decoded_current_frame = *decoded_current_frame + 1;
+                        if *decoded_current_frame >= frames.len() {
+                            *decoded_current_frame = 0;
                             // Skip potential 0-duration root frame
                             if durations[0].as_millis() == 0 && frames.len() > 1 {
-                                decoded.current_frame += 1;
+                                *decoded_current_frame = *decoded_current_frame + 1;
                             }
                         }
-                        decoded.frame_start = now;
-                        next_due = decoded.frame_start + durations[decoded.current_frame];
-                        handle.current_frame = decoded.current_frame;
+                        *decoded_frame_start = now;
+                        next_due = *decoded_frame_start + durations[*decoded_current_frame];
+                        handle.current_frame = *decoded_current_frame;
                     }
 
                     next.replace(next_due);
                 }
 
-                let hash = hashes[decoded.current_frame];
+                let hash = hashes[*decoded_current_frame];
 
                 if let Some(sprite) = frame_cache.get(&hash) {
                     return Ok((sprite.clone(), next));
@@ -639,7 +616,7 @@ impl<T: Texture2d> GlyphCache<T> {
 
                 return Ok((
                     sprite,
-                    Some(decoded.frame_start + durations[decoded.current_frame]),
+                    Some(*decoded_frame_start + durations[*decoded_current_frame]),
                 ));
             }
             ImageDataType::EncodedFile(_) => unreachable!(),
@@ -650,25 +627,21 @@ impl<T: Texture2d> GlyphCache<T> {
         &mut self,
         image_data: &Arc<ImageData>,
         padding: Option<usize>,
-    ) -> anyhow::Result<(Sprite<T>, Option<Instant>)> {
+    ) -> anyhow::Result<(Sprite, Option<Instant>)> {
         let id = image_data.id() as u64;
 
-        if let Some(decoded) = self.image_cache.get_mut(&id) {
+        if let Some(decoded) = self.image_cache.get(&id) {
             Self::cached_image_impl(&mut self.frame_cache, &mut self.atlas, decoded, padding)
         } else {
-            let mut decoded = DecodedImage::load(image_data);
-            let res = Self::cached_image_impl(
-                &mut self.frame_cache,
-                &mut self.atlas,
-                &mut decoded,
-                padding,
-            )?;
+            let decoded = DecodedImage::load(image_data);
+            let res =
+                Self::cached_image_impl(&mut self.frame_cache, &mut self.atlas, &decoded, padding)?;
             self.image_cache.put(id, decoded);
             Ok(res)
         }
     }
 
-    pub fn cached_color(&mut self, color: RgbColor, alpha: f32) -> anyhow::Result<Sprite<T>> {
+    pub fn cached_color(&mut self, color: RgbColor, alpha: f32) -> anyhow::Result<Sprite> {
         let key = (color, NotNan::new(alpha).unwrap());
 
         if let Some(s) = self.color.get(&key) {
@@ -693,7 +666,7 @@ impl<T: Texture2d> GlyphCache<T> {
         &mut self,
         block: BlockKey,
         metrics: &RenderMetrics,
-    ) -> anyhow::Result<Sprite<T>> {
+    ) -> anyhow::Result<Sprite> {
         let key = SizedBlockKey {
             block,
             size: metrics.into(),
@@ -704,7 +677,7 @@ impl<T: Texture2d> GlyphCache<T> {
         self.block_sprite(metrics, key)
     }
 
-    fn line_sprite(&mut self, key: LineKey, metrics: &RenderMetrics) -> anyhow::Result<Sprite<T>> {
+    fn line_sprite(&mut self, key: LineKey, metrics: &RenderMetrics) -> anyhow::Result<Sprite> {
         let mut buffer = Image::new(
             metrics.cell_size.width as usize,
             metrics.cell_size.height as usize,
@@ -907,7 +880,7 @@ impl<T: Texture2d> GlyphCache<T> {
         underline: Underline,
         overline: bool,
         metrics: &RenderMetrics,
-    ) -> anyhow::Result<Sprite<T>> {
+    ) -> anyhow::Result<Sprite> {
         let effective_underline = match (is_highlited_hyperlink, underline) {
             (true, Underline::None) => Underline::Single,
             (true, Underline::Single) => Underline::Double,

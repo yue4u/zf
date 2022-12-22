@@ -661,8 +661,7 @@ impl FontShaper for HarfbuzzShaper {
         let range = range.unwrap_or_else(|| 0..text.len());
 
         log::trace!(
-            "shape byte_len={} `{}` with presentation={presentation:?}",
-            text.len(),
+            "shape {range:?} `{}` with presentation={presentation:?}",
             text.escape_debug()
         );
         let start = std::time::Instant::now();
@@ -694,7 +693,7 @@ impl FontShaper for HarfbuzzShaper {
     fn metrics_for_idx(&self, font_idx: usize, size: f64, dpi: u32) -> anyhow::Result<FontMetrics> {
         let mut pair = self
             .load_fallback(font_idx)?
-            .ok_or_else(|| anyhow!("unable to load font idx {}!?", font_idx))?;
+            .ok_or_else(|| anyhow!("metrics_for_idx: there is no font with idx={font_idx}!?"))?;
 
         let key = MetricsKey {
             font_idx,
@@ -797,6 +796,21 @@ impl FontShaper for HarfbuzzShaper {
                 theoretical_height,
                 selected_size.height
             );
+
+            if metrics_idx + 1 >= self.handles.len() {
+                log::warn!(
+                    "metrics: I wanted to skip idx {} because diff={} factor={} \
+                    theoretical_height={} cell_height={}, but there are no more \
+                    fallback fonts. Metrics will likely be crazy.",
+                    metrics_idx,
+                    diff,
+                    factor,
+                    theoretical_height,
+                    selected_size.height
+                );
+                break;
+            }
+
             metrics_idx += 1;
         }
 

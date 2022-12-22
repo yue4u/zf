@@ -14,6 +14,8 @@ pub mod os;
 pub mod screen;
 mod spawn;
 
+pub use raw_window_handle;
+
 #[cfg(target_os = "macos")]
 pub(crate) const DEFAULT_DPI: f64 = 72.0;
 #[cfg(not(target_os = "macos"))]
@@ -184,6 +186,9 @@ pub enum WindowEvent {
 
     // Called when the files are dropped into the window
     DroppedFile(Vec<PathBuf>),
+
+    /// Called by menubar dispatching stuff on some systems
+    PerformKeyAssignment(config::keyassignment::KeyAssignment),
 }
 
 pub struct WindowEventSender {

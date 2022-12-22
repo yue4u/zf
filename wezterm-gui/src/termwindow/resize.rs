@@ -45,6 +45,11 @@ impl super::TermWindow {
         if last_state != self.window_state {
             self.load_os_parameters();
         }
+
+        if let Some(webgpu) = self.webgpu.as_mut() {
+            webgpu.resize(dimensions);
+        }
+
         // For simple, user-interactive resizes where the dpi doesn't change,
         // skip our scaling recalculation
         if live_resizing && self.dimensions.dpi == dimensions.dpi {
@@ -256,7 +261,7 @@ impl super::TermWindow {
 
         self.terminal_size = size;
 
-        let mux = Mux::get().unwrap();
+        let mux = Mux::get();
         if let Some(window) = mux.get_window(self.mux_window_id) {
             for tab in window.iter() {
                 tab.resize(size);

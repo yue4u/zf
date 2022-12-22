@@ -1,12 +1,11 @@
 use crate::customglyph::BlockKey;
 use crate::glyphcache::CachedGlyph;
-use ::window::bitmaps::Texture2d;
 use config::TextStyle;
 use std::rc::Rc;
 use wezterm_font::shaper::GlyphInfo;
 use wezterm_font::units::*;
 
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct ShapeCacheKey {
     pub style: TextStyle,
     pub text: String,
@@ -22,25 +21,17 @@ pub struct GlyphPosition {
 }
 
 #[derive(Debug)]
-pub struct ShapedInfo<T>
-where
-    T: Texture2d,
-    T: std::fmt::Debug,
-{
-    pub glyph: Rc<CachedGlyph<T>>,
+pub struct ShapedInfo {
+    pub glyph: Rc<CachedGlyph>,
     pub pos: GlyphPosition,
     pub block_key: Option<BlockKey>,
 }
 
-impl<T> ShapedInfo<T>
-where
-    T: Texture2d,
-    T: std::fmt::Debug,
-{
+impl ShapedInfo {
     /// Process the results from the shaper, stitching together glyph
     /// and positioning information
-    pub fn process(infos: &[GlyphInfo], glyphs: &[Rc<CachedGlyph<T>>]) -> Vec<ShapedInfo<T>> {
-        let mut pos: Vec<ShapedInfo<T>> = Vec::with_capacity(infos.len());
+    pub fn process(infos: &[GlyphInfo], glyphs: &[Rc<CachedGlyph>]) -> Vec<ShapedInfo> {
+        let mut pos: Vec<ShapedInfo> = Vec::with_capacity(infos.len());
 
         for (info, glyph) in infos.iter().zip(glyphs.iter()) {
             pos.push(ShapedInfo {
@@ -82,7 +73,7 @@ impl<'a> BorrowedShapeCacheKey<'a> {
     }
 }
 
-pub trait ShapeCacheKeyTrait {
+pub trait ShapeCacheKeyTrait: std::fmt::Debug {
     fn key<'k>(&'k self) -> BorrowedShapeCacheKey<'k>;
 }
 
@@ -123,12 +114,10 @@ impl<'a> std::hash::Hash for (dyn ShapeCacheKeyTrait + 'a) {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::glyphcache::GlyphCache;
     use crate::shapecache::{GlyphPosition, ShapedInfo};
     use crate::utilsprites::RenderMetrics;
     use config::{FontAttributes, TextStyle};
-    use k9::assert_equal as assert_eq;
     use std::rc::Rc;
     use termwiz::cell::CellAttributes;
     use termwiz::surface::{Line, SEQ_ZERO};
@@ -136,61 +125,62 @@ mod test {
     use wezterm_font::shaper::PresentationWidth;
     use wezterm_font::{FontConfiguration, LoadedFont};
 
-    fn cluster_and_shape<T>(
+    fn cluster_and_shape(
         render_metrics: &RenderMetrics,
-        glyph_cache: &mut GlyphCache<T>,
+        glyph_cache: &mut GlyphCache,
         style: &TextStyle,
         font: &Rc<LoadedFont>,
         text: &str,
-    ) -> Vec<GlyphPosition>
-    where
-        T: Texture2d,
-        T: std::fmt::Debug,
-    {
+    ) -> Vec<GlyphPosition> {
         let line = Line::from_text(text, &CellAttributes::default(), SEQ_ZERO, None);
         eprintln!("{:?}", line);
-        let cell_clusters = line.cluster(None);
-        assert_eq!(cell_clusters.len(), 1);
-        let cluster = &cell_clusters[0];
-        let presentation_width = PresentationWidth::with_cluster(&cluster);
-        let infos = font
-            .shape(
-                &cluster.text,
-                || {},
-                |_| {},
-                None,
-                Direction::LeftToRight,
-                None,
-                Some(&presentation_width),
-            )
-            .unwrap();
-        let glyphs = infos
-            .iter()
-            .map(|info| {
-                let cell_idx = cluster.byte_to_cell_idx(info.cluster as usize);
-                let num_cells = cluster.byte_to_cell_width(info.cluster as usize);
+        let mut all_infos = vec![];
+        let mut all_glyphs = vec![];
 
-                let followed_by_space = match line.get_cell(cell_idx + 1) {
-                    Some(cell) => cell.str() == " ",
-                    None => false,
-                };
+        for cluster in line.cluster(None) {
+            let presentation_width = PresentationWidth::with_cluster(&cluster);
+            let mut infos = font
+                .shape(
+                    &cluster.text,
+                    || {},
+                    |_| {},
+                    None,
+                    Direction::LeftToRight,
+                    None,
+                    Some(&presentation_width),
+                )
+                .unwrap();
+            let mut glyphs = infos
+                .iter()
+                .map(|info| {
+                    let cell_idx = cluster.byte_to_cell_idx(info.cluster as usize);
+                    let num_cells = cluster.byte_to_cell_width(info.cluster as usize);
 
-                glyph_cache
-                    .cached_glyph(
-                        info,
-                        &style,
-                        followed_by_space,
-                        font,
-                        render_metrics,
-                        num_cells,
-                    )
-                    .unwrap()
-            })
-            .collect::<Vec<_>>();
+                    let followed_by_space = match line.get_cell(cell_idx + 1) {
+                        Some(cell) => cell.str() == " ",
+                        None => false,
+                    };
 
-        eprintln!("infos: {:#?}", infos);
-        eprintln!("glyphs: {:#?}", glyphs);
-        ShapedInfo::process(&infos, &glyphs)
+                    glyph_cache
+                        .cached_glyph(
+                            info,
+                            &style,
+                            followed_by_space,
+                            font,
+                            render_metrics,
+                            num_cells,
+                        )
+                        .unwrap()
+                })
+                .collect::<Vec<_>>();
+
+            all_infos.append(&mut infos);
+            all_glyphs.append(&mut glyphs);
+        }
+
+        eprintln!("infos: {:#?}", all_infos);
+        eprintln!("glyphs: {:#?}", all_glyphs);
+        ShapedInfo::process(&all_infos, &all_glyphs)
             .into_iter()
             .map(|p| p.pos)
             .collect()

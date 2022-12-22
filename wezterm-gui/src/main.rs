@@ -15,7 +15,9 @@ use mux::ssh::RemoteSshDomain;
 use mux::Mux;
 use portable_pty::cmdbuilder::CommandBuilder;
 use promise::spawn::block_on;
+use std::borrow::Cow;
 use std::collections::HashMap;
+use std::env::current_dir;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -28,7 +30,6 @@ use wezterm_font::shaper::PresentationWidth;
 use wezterm_gui_subcommands::*;
 use wezterm_toast_notification::*;
 
-mod cache;
 mod colorease;
 mod commands;
 mod customglyph;
@@ -44,6 +45,7 @@ mod scripting;
 mod scrollbar;
 mod selection;
 mod shapecache;
+mod spawn;
 mod stats;
 mod tabbar;
 mod termwindow;
@@ -51,6 +53,10 @@ mod unicode_names;
 mod uniforms;
 mod update;
 mod utilsprites;
+
+#[cfg(feature = "dhat-heap")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
 
 pub use selection::SelectionMode;
 pub use termwindow::{set_window_class, set_window_position, TermWindow, ICON_DATA};
@@ -154,7 +160,7 @@ async fn async_run_ssh(opts: SshCommand) -> anyhow::Result<()> {
     };
 
     let domain: Arc<dyn Domain> = Arc::new(mux::ssh::RemoteSshDomain::with_ssh_domain(&dom)?);
-    let mux = Mux::get().unwrap();
+    let mux = Mux::get();
     mux.add_domain(&domain);
     mux.set_default_domain(&domain);
 
@@ -238,7 +244,7 @@ async fn async_run_with_domain_as_default(
     domain: Arc<dyn Domain>,
     cmd: Option<CommandBuilder>,
 ) -> anyhow::Result<()> {
-    let mux = Mux::get().unwrap();
+    let mux = Mux::get();
     crate::update::load_last_release_info_and_set_banner();
 
     // Allow spawning local commands into new tabs/panes
@@ -271,7 +277,6 @@ async fn async_run_mux_client(opts: ConnectCommand) -> anyhow::Result<()> {
     }
 
     let domain = Mux::get()
-        .unwrap()
         .get_domain_by_name(&opts.domain_name)
         .ok_or_else(|| {
             anyhow!(
@@ -310,7 +315,7 @@ async fn spawn_tab_in_default_domain_if_mux_is_empty(
     cmd: Option<CommandBuilder>,
     is_connecting: bool,
 ) -> anyhow::Result<()> {
-    let mux = Mux::get().unwrap();
+    let mux = Mux::get();
 
     let domain = mux.default_domain();
 
@@ -368,7 +373,7 @@ async fn spawn_tab_in_default_domain_if_mux_is_empty(
 }
 
 fn update_mux_domains(config: &ConfigHandle) -> anyhow::Result<()> {
-    let mux = Mux::get().unwrap();
+    let mux = Mux::get();
 
     for client_config in client_domains(&config) {
         if mux.get_domain_by_name(client_config.name()).is_some() {
@@ -420,7 +425,7 @@ fn update_mux_domains(config: &ConfigHandle) -> anyhow::Result<()> {
 }
 
 async fn connect_to_auto_connect_domains() -> anyhow::Result<()> {
-    let mux = Mux::get().unwrap();
+    let mux = Mux::get();
     let domains = mux.iter_domains();
     for dom in domains {
         if let Some(dom) = dom.downcast_ref::<ClientDomain>() {
@@ -486,7 +491,7 @@ enum Publish {
 }
 
 impl Publish {
-    pub fn resolve(mux: &Rc<Mux>, config: &ConfigHandle, always_new_process: bool) -> Self {
+    pub fn resolve(mux: &Arc<Mux>, config: &ConfigHandle, always_new_process: bool) -> Self {
         if mux.default_domain().domain_name() != config.default_domain.as_deref().unwrap_or("local")
         {
             return Self::NoConnectNoPublish;
@@ -631,8 +636,8 @@ fn setup_mux(
     config: &ConfigHandle,
     default_domain_name: Option<&str>,
     default_workspace_name: Option<&str>,
-) -> anyhow::Result<Rc<Mux>> {
-    let mux = Rc::new(mux::Mux::new(Some(local_domain.clone())));
+) -> anyhow::Result<Arc<Mux>> {
+    let mux = Arc::new(mux::Mux::new(Some(local_domain.clone())));
     Mux::set_mux(&mux);
     let client_id = Arc::new(mux::client::ClientId::new());
     mux.register_client(client_id.clone());
@@ -666,7 +671,7 @@ fn build_initial_mux(
     config: &ConfigHandle,
     default_domain_name: Option<&str>,
     default_workspace_name: Option<&str>,
-) -> anyhow::Result<Rc<Mux>> {
+) -> anyhow::Result<Arc<Mux>> {
     let domain: Arc<dyn Domain> = Arc::new(LocalDomain::new("local")?);
     setup_mux(domain, config, default_domain_name, default_workspace_name)
 }
@@ -690,7 +695,11 @@ fn run_terminal_gui(opts: StartCommand) -> anyhow::Result<()> {
             config.default_cwd.as_ref(),
         )?;
         if let Some(cwd) = &opts.cwd {
-            builder.cwd(cwd);
+            builder.cwd(if cwd.is_relative() {
+                current_dir()?.join(cwd).into_os_string().into()
+            } else {
+                Cow::Borrowed(cwd.as_ref())
+            });
         }
         Some(builder)
     } else {
@@ -756,6 +765,9 @@ fn terminate_with_error(err: anyhow::Error) -> ! {
 }
 
 fn main() {
+    #[cfg(feature = "dhat-heap")]
+    let _profiler = dhat::Profiler::new_heap();
+
     config::designate_this_as_the_main_thread();
     config::assign_error_callback(mux::connui::show_configuration_error_message);
     notify_on_panic();
@@ -948,26 +960,29 @@ pub fn run_ls_fonts(config: config::ConfigHandle, cmd: &LsFontsCommand) -> anyho
                     let mut glyph = String::new();
 
                     if let Some(texture) = &cached_glyph.texture {
-                        for y in texture.coords.min_y()..texture.coords.max_y() {
-                            for &px in texture.texture.image.borrow().horizontal_pixel_range(
-                                texture.coords.min_x() as usize,
-                                texture.coords.max_x() as usize,
-                                y as usize,
-                            ) {
-                                let px = u32::from_be(px);
-                                let (b, g, r, a) = (
-                                    (px >> 8) as u8,
-                                    (px >> 16) as u8,
-                                    (px >> 24) as u8,
-                                    (px & 0xff) as u8,
-                                );
-                                // Use regular RGB for other terminals, but then
-                                // set RGBA for wezterm
-                                glyph.push_str(&format!(
+                        use ::window::bitmaps::ImageTexture;
+                        if let Some(tex) = texture.texture.downcast_ref::<ImageTexture>() {
+                            for y in texture.coords.min_y()..texture.coords.max_y() {
+                                for &px in tex.image.borrow().horizontal_pixel_range(
+                                    texture.coords.min_x() as usize,
+                                    texture.coords.max_x() as usize,
+                                    y as usize,
+                                ) {
+                                    let px = u32::from_be(px);
+                                    let (b, g, r, a) = (
+                                        (px >> 8) as u8,
+                                        (px >> 16) as u8,
+                                        (px >> 24) as u8,
+                                        (px & 0xff) as u8,
+                                    );
+                                    // Use regular RGB for other terminals, but then
+                                    // set RGBA for wezterm
+                                    glyph.push_str(&format!(
                                 "\x1b[38:2::{r}:{g}:{b}m\x1b[38:6::{r}:{g}:{b}:{a}m\u{2588}\x1b[0m"
                             ));
+                                }
+                                glyph.push('\n');
                             }
-                            glyph.push('\n');
                         }
                     }
 

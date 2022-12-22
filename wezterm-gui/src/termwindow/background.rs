@@ -1,5 +1,5 @@
 use crate::color::LinearRgba;
-use crate::quad::QuadAllocator;
+use crate::quad::{QuadAllocator, QuadTrait};
 use crate::termwindow::RenderState;
 use crate::utilsprites::RenderMetrics;
 use crate::Dimensions;
@@ -266,11 +266,17 @@ fn load_background_layer(
         BackgroundSource::Gradient(g) => {
             let mut width = match layer.width {
                 BackgroundSize::Dimension(d) => d.evaluate_as_pixels(h_context),
-                unsup => anyhow::bail!("{:?} not yet implemented", unsup),
+                unsup => anyhow::bail!(
+                    "{unsup:?} is not implemented for background gradients. \
+                     Use e.g. `width = '100%'` instead"
+                ),
             } as u32;
             let mut height = match layer.height {
                 BackgroundSize::Dimension(d) => d.evaluate_as_pixels(v_context),
-                unsup => anyhow::bail!("{:?} not yet implemented", unsup),
+                unsup => anyhow::bail!(
+                    "{unsup:?} is not implemented for background gradients. \
+                     Use e.g. `height = '100%'` instead"
+                ),
             } as u32;
 
             if matches!(g.orientation, GradientOrientation::Radial { .. }) {
@@ -292,11 +298,17 @@ fn load_background_layer(
             // It's not ideal.
             let width = match layer.width {
                 BackgroundSize::Dimension(d) => d.evaluate_as_pixels(h_context),
-                unsup => anyhow::bail!("{:?} not yet implemented", unsup),
+                unsup => anyhow::bail!(
+                    "{unsup:?} is not implemented for background color. \
+                     Use e.g. `width = '100%'` instead"
+                ),
             } as u32;
             let height = match layer.height {
                 BackgroundSize::Dimension(d) => d.evaluate_as_pixels(v_context),
-                unsup => anyhow::bail!("{:?} not yet implemented", unsup),
+                unsup => anyhow::bail!(
+                    "{unsup:?} is not implemented for background color. \
+                     Use e.g. `height = '100%'` instead"
+                ),
             } as u32;
 
             let size = width.min(height);
@@ -406,8 +418,7 @@ impl crate::TermWindow {
     ) -> anyhow::Result<bool> {
         let render_layer = gl_state.layer_for_zindex(layer_index)?;
         let vbs = render_layer.vb.borrow();
-        let mut vb_mut0 = vbs[0].current_vb_mut();
-        let mut layer0 = vbs[0].map(&mut vb_mut0);
+        let mut layer0 = vbs[0].map();
 
         let color = bg_color.mul_alpha(layer.def.opacity);
 
@@ -419,6 +430,7 @@ impl crate::TermWindow {
 
         let pixel_width = self.dimensions.pixel_width as f32;
         let pixel_height = self.dimensions.pixel_height as f32;
+        let pixel_aspect = pixel_width / pixel_height;
 
         let tex_width = sprite.coords.width() as f32;
         let tex_height = sprite.coords.height() as f32;
@@ -463,23 +475,10 @@ impl crate::TermWindow {
         };
 
         // Compute the smallest aspect-preserved size that will fit the space
-        let (min_aspect_width, min_aspect_height) = if aspect >= 1.0 {
-            // Width is the longest side
-            if tex_height > pixel_height {
-                (
-                    (tex_width * pixel_height / tex_height).floor(),
-                    pixel_height,
-                )
-            } else {
-                (tex_width, tex_height)
-            }
+        let (min_aspect_width, min_aspect_height) = if pixel_aspect > aspect {
+            (pixel_width, (pixel_width / aspect).floor())
         } else {
-            // Height is the longest side
-            if tex_width > pixel_width {
-                (pixel_width, (tex_height * pixel_width / tex_width).floor())
-            } else {
-                (tex_width, tex_height)
-            }
+            ((pixel_height * aspect).floor(), pixel_height)
         };
 
         let width = match layer.def.width {

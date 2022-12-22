@@ -535,6 +535,7 @@ pub enum KeyAssignment {
     CharSelect(CharSelectArguments),
 
     ResetTerminal,
+    OpenUri(String),
 }
 impl_lua_conversion_dynamic!(KeyAssignment);
 
@@ -588,6 +589,7 @@ pub enum CopyModeAssignment {
     MoveLeft,
     MoveUp,
     MoveDown,
+    MoveByPage(NotNan<f64>),
     PageUp,
     PageDown,
     Close,

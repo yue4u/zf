@@ -2,10 +2,9 @@
 use crate::color::LinearRgba;
 use crate::customglyph::{BlockKey, Poly};
 use crate::glyphcache::CachedGlyph;
-use crate::quad::{Quad, TripleLayerQuadAllocator, TripleLayerQuadAllocatorTrait};
+use crate::quad::{QuadImpl, QuadTrait, TripleLayerQuadAllocator, TripleLayerQuadAllocatorTrait};
 use crate::termwindow::{
-    BorrowedLayers, ColorEase, MouseCapture, RenderState, SrgbTexture2d, TermWindowNotif, UIItem,
-    UIItemType,
+    ColorEase, MouseCapture, RenderState, TermWindowNotif, UIItem, UIItemType,
 };
 use crate::utilsprites::RenderMetrics;
 use ::window::{RectF, WindowOps};
@@ -204,7 +203,7 @@ struct ResolvedColor {
 }
 
 impl ResolvedColor {
-    fn apply(&self, quad: &mut Quad) {
+    fn apply(&self, quad: &mut QuadImpl) {
         quad.set_fg_color(self.color);
         quad.set_alt_color_and_mix_value(self.alt_color, self.mix_value);
     }
@@ -267,9 +266,25 @@ impl Element {
     }
 
     pub fn with_line(font: &Rc<LoadedFont>, line: &Line, palette: &ColorPalette) -> Self {
-        let mut content = vec![];
+        let mut content: Vec<Element> = vec![];
+        let mut prior_attr = None;
 
         for cluster in line.cluster(None) {
+            // Clustering may introduce cluster boundaries when the text hasn't actually
+            // changed style. Undo that here.
+            // There's still an issue where the style does actually change and we
+            // subsequently don't clip the element.
+            // <https://github.com/wez/wezterm/issues/2560>
+            if let Some(prior) = content.last_mut() {
+                let (fg, bg) = prior_attr.as_ref().unwrap();
+                if cluster.attrs.background() == *bg && cluster.attrs.foreground() == *fg {
+                    if let ElementContent::Text(t) = &mut prior.content {
+                        t.push_str(&cluster.text);
+                        continue;
+                    }
+                }
+            }
+
             let child =
                 Element::new(font, ElementContent::Text(cluster.text)).colors(ElementColors {
                     border: BorderColor::default(),
@@ -292,6 +307,7 @@ impl Element {
                 });
 
             content.push(child);
+            prior_attr.replace((cluster.attrs.foreground(), cluster.attrs.background()));
         }
 
         Self::new(font, ElementContent::Children(content))
@@ -469,8 +485,8 @@ pub enum ComputedElementContent {
 
 #[derive(Debug, Clone)]
 pub enum ElementCell {
-    Sprite(Sprite<SrgbTexture2d>),
-    Glyph(Rc<CachedGlyph<SrgbTexture2d>>),
+    Sprite(Sprite),
+    Glyph(Rc<CachedGlyph>),
 }
 
 struct Rects {
@@ -797,16 +813,7 @@ impl super::TermWindow {
         inherited_colors: Option<&ElementColors>,
     ) -> anyhow::Result<()> {
         let layer = gl_state.layer_for_zindex(element.zindex)?;
-        let vbs = layer.vb.borrow();
-        let vb = [&vbs[0], &vbs[1], &vbs[2]];
-        let mut vb_mut0 = vb[0].current_vb_mut();
-        let mut vb_mut1 = vb[1].current_vb_mut();
-        let mut vb_mut2 = vb[2].current_vb_mut();
-        let mut layers = TripleLayerQuadAllocator::Gpu(BorrowedLayers([
-            vb[0].map(&mut vb_mut0),
-            vb[1].map(&mut vb_mut1),
-            vb[2].map(&mut vb_mut2),
-        ]));
+        let mut layers = layer.quad_allocator();
 
         let colors = match &element.hover_colors {
             Some(hc) => {
@@ -897,9 +904,6 @@ impl super::TermWindow {
             }
             ComputedElementContent::Children(kids) => {
                 drop(layers);
-                drop(vb_mut0);
-                drop(vb_mut1);
-                drop(vb_mut2);
 
                 for kid in kids {
                     self.render_element(kid, gl_state, Some(colors))?;

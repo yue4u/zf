@@ -1,11 +1,12 @@
 use super::*;
 use luahelper::dynamic_to_lua_value;
+use std::sync::Arc;
 
 #[derive(Clone, Copy, Debug)]
 pub struct MuxPane(pub PaneId);
 
 impl MuxPane {
-    pub fn resolve<'a>(&self, mux: &'a Rc<Mux>) -> mlua::Result<Rc<dyn Pane>> {
+    pub fn resolve<'a>(&self, mux: &'a Arc<Mux>) -> mlua::Result<Arc<dyn Pane>> {
         mux.get_pane(self.0)
             .ok_or_else(|| mlua::Error::external(format!("pane id {} not found in mux", self.0)))
     }
@@ -185,7 +186,7 @@ impl UserData for MuxPane {
             let mux = get_mux()?;
             let pane = this.resolve(&mux)?;
             let mut name = None;
-            if let Some(mux) = Mux::get() {
+            if let Some(mux) = Mux::try_get() {
                 let domain_id = pane.domain_id();
                 name = mux
                     .get_domain(domain_id)

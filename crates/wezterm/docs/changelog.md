@@ -11,6 +11,33 @@ usually the best available version.
 
 As features stabilize some brief notes about them will accumulate here.
 
+#### New
+* Copy Mode now supports using `CTRL-u` and `CTRL-d` to move by half a page at
+  a time. Thanks to [@pengux](https://github.com/pengux)!
+  [#2662](https://github.com/wez/wezterm/pull/2662)
+* macOS: allow association with `.command`, `.sh`, `.zsh`, `.bash`, `.fish` and
+  `.tool` scripts, so that those can open and show their output in the
+  terminal. [#2871](https://github.com/wez/wezterm/issues/2871)
+  [#2741](https://github.com/wez/wezterm/issues/2741)
+* macOS: initial cut at macOS native menu bar
+  [#1485](https://github.com/wez/wezterm/issues/1485)
+
+#### Fixed
+* X11: hanging or killing the IME could hang wezterm
+  [#2819](https://github.com/wez/wezterm/issues/2819)
+
+#### Changed
+* Window title reporting escape sequences are now disabled by default.
+  [See here for more details](https://marc.info/?l=bugtraq&m=104612710031920&w=2)
+* Withdraw DEC private SGR escapes that affect superscript and
+  subscript due to xterm/vim conflict
+  [mintty/#1189](https://github.com/mintty/mintty/issues/1189)
+
+#### Updated
+* Bundled harfbuzz updated to version 6.0.0
+
+### 20221119-145034-49b9839f
+
 #### Improved
 * Reduced CPU and RAM utilization, reduced overhead of parsing output and
   rendering to the GPU.
@@ -46,10 +73,14 @@ As features stabilize some brief notes about them will accumulate here.
 * [ActivateKeyTable](config/lua/keyassignment/ActivateKeyTable.md) now also
   supports `prevent_fallback = true` as a parameter.
   [#2702](https://github.com/wez/wezterm/issues/2702)
+* [show_tabs_in_tab_bar](config/lua/config/show_tabs_in_tab_bar.md) and
+  [show_new_tab_button_in_tab_bar](config/lua/config/show_new_tab_button_in_tab_bar.md)
+  config options to customize the tab bar appearance.
+  [#2082](https://github.com/wez/wezterm/issues/2082)
 
 #### Fixed
 * Wayland: key repeat gets stuck after pressing two keys in quick succession.
-  Thanks to [@unrelentingtech](https://github.com/unrelentingtech)!
+  Thanks to [@valpackett](https://github.com/valpackett)!
   [#2492](https://github.com/wez/wezterm/pull/2492)
   [#2452](https://github.com/wez/wezterm/issues/2452)
 * If the underline attribute was active and CRLF scrolled a new line into the
@@ -61,7 +92,7 @@ As features stabilize some brief notes about them will accumulate here.
 * Hyperlinks didn't underline on hover
   [#2496](https://github.com/wez/wezterm/issues/2496)
 * base16 color schemes cursor fg/bg were the same. We now also set the indexed
-  colors.  Thanks to [@unrelentingtech](https://github.com/unrelentingtech)!
+  colors.  Thanks to [@valpackett](https://github.com/valpackett)!
   [#2491](https://github.com/wez/wezterm/pull/2492)
 * Panic when processing a sixel with inconsistent width information
   [#2500](https://github.com/wez/wezterm/issues/2500)
@@ -109,7 +140,25 @@ As features stabilize some brief notes about them will accumulate here.
   [#2649](https://github.com/wez/wezterm/issues/2649)
 * Cursor color changes did not always render
   [#2708](https://github.com/wez/wezterm/issues/2708)
-
+* Unable to set cursor on Wayland/X11
+  [#2687](https://github.com/wez/wezterm/issues/2687)
+  [#2743](https://github.com/wez/wezterm/issues/2743)
+* Default `MoveTabRelative` assignments were incorrectly set to
+  `SUPER+SHIFT+Page(Up|Down)` instead of the documented
+  `CTRL+SHIFT+Page(Up|Down)`
+  [#2705](https://github.com/wez/wezterm/issues/2705)
+* Dragging by retro tab bar left or right status area would jump around erratically.
+  [#2758](https://github.com/wez/wezterm/issues/2758)
+* Fixed background `Cover` algorithm. Thanks to
+  [@xiaopengli89](https://github.com/xiaopengli89)!
+  [#2636](https://github.com/wez/wezterm/pull/2636)
+* `wezterm start --cwd .` didn't use the cwd of the spawned process when the
+  wezterm gui was already running. Thanks to
+  [@exactly-one-kas](https://github.com/exactly-one-kas)!
+  [#2661](https://github.com/wez/wezterm/pull/2661)
+* IME composition text and cursor color incorrectly applied to all panes rather
+  than just the active pane.
+  [#2569](https://github.com/wez/wezterm/issues/2569)
 
 #### Changed
 * Removed Last Resort fallback font
@@ -132,6 +181,11 @@ As features stabilize some brief notes about them will accumulate here.
   [#2670](https://github.com/wez/wezterm/pull/2670)
   [#2622](https://github.com/wez/wezterm/issues/2622)
   [#2271](https://github.com/wez/wezterm/issues/2271)
+* Windows: installer no longer prevents installing the x64 binary on arm64 systems.
+  The x64 executable is installed and run via emulation.
+  Thanks to [@xeysz](https://github.com/xeysz)!
+  [#2746](https://github.com/wez/wezterm/pull/2746)
+  [#2667](https://github.com/wez/wezterm/issues/2667)
 
 #### Updated
 * Bundled Nerd Font Symbols font to v2.2.2
@@ -418,7 +472,7 @@ As features stabilize some brief notes about them will accumulate here.
 * Support for SGR-Pixels mouse reporting. Thanks to [Autumn Lamonte](https://gitlab.com/autumnmeowmeow)! [#1457](https://github.com/wez/wezterm/issues/1457)
 * [ActivatePaneByIndex](config/lua/keyassignment/ActivatePaneByIndex.md) key assignment action. [#1517](https://github.com/wez/wezterm/issues/1517)
 * Windows: wezterm may now use [win32-input-mode](https://github.com/microsoft/terminal/blob/main/doc/specs/%234999%20-%20Improved%20keyboard%20handling%20in%20Conpty.md) to send high-fidelity keyboard input to ConPTY. This means that win32 console applications, such as [FAR Manager](https://github.com/FarGroup/FarManager) that use the low level `INPUT_RECORD` API will now receive key-up events as well as events for modifier-only key presses. Use `allow_win32_input_mode=true` to enable this. [#318](https://github.com/wez/wezterm/issues/318) [#1509](https://github.com/wez/wezterm/issues/1509) [#1510](https://github.com/wez/wezterm/issues/1510)
-* Windows: [default_domain](config/lua/config/default_domain.md), [wsl_domains](config/lua/config/wsl_domains.md) options and [wezterm.default_wsl_domains()](config/lua/wezterm/default_wsl_domains.md) provide more flexibility for WSL users.
+* Windows: [default_domain](config/lua/config/default_domain.md), [wsl_domains](config/lua/config/wsl_domains.md) options and [wezterm.default_wsl_domains()](config/lua/wezterm/default_wsl_domains.md) provide more flexibility for WSL users. The effect of `add_wsl_distributions_to_launch_menu=false` was replaced by `wsl_domains={}`.
 * `Symbols Nerd Font Mono` is now bundled with WezTerm and is included as a default fallback font. This means that you may use any of the glyphs available in the [Nerd Fonts](https://github.com/ryanoasis/nerd-fonts) collection with any font without patching fonts and without explicitly adding that font to your fallback list. Pomicons have an unclear license for distribution and are excluded from this bundled font, however, you may manually install the font with those icons from the Nerd Font site itself and it will take precedence over the bundled font.  This font replaces the older `PowerlineExtraSymbols` font.  [#1521](https://github.com/wez/wezterm/issues/1521).
 * [wezterm.nerdfonts](config/lua/wezterm/nerdfonts.md) as a convenient way to resolve Nerd Fonts glyphs by name in your config file
 * [ShowLauncherArgs](config/lua/keyassignment/ShowLauncherArgs.md) key assignment to show the launcher scoped to certain items, or to launch it directly in fuzzy matching mode
@@ -585,10 +639,10 @@ As features stabilize some brief notes about them will accumulate here.
 
 * bundled harfbuzz updated to version 3.0.0, bundled freetype updated to 2.11
 * window close confirmations now accept both uppercase and lowercase Y/N key presses. Thanks to [@SpyrosRoum](https://github.com/SpyrosRoum)! [#1119](https://github.com/wez/wezterm/pull/1119)
-* multi-click-streaks are now interrupted by the cursor moving to a different cell. Thanks to [@unrelentingtech](https://github.com/unrelentingtech)! [#1126](https://github.com/wez/wezterm/issues/1126)
+* multi-click-streaks are now interrupted by the cursor moving to a different cell. Thanks to [@valpackett](https://github.com/valpackett)! [#1126](https://github.com/wez/wezterm/issues/1126)
 * `.deb` packages now `Provides: x-terminal-emulator`. [#1139](https://github.com/wez/wezterm/issues/1139)
 * [use_cap_height_to_scale_fallback_fonts](config/lua/config/use_cap_height_to_scale_fallback_fonts.md) now computes *cap-height* based on the rasterized glyph bitmap which means that the data is accurate in more cases, including for bitmap fonts.  Scaling is now also applied across varying text styles; previously it only applied to a font within an `wezterm.font_with_fallback` font list.
-* Can now match fontconfig aliases, such as `monospace`, on systems that use fontconfig. Thanks to [@unrelentingtech](https://github.com/unrelentingtech)! [#1149](https://github.com/wez/wezterm/issues/1149)
+* Can now match fontconfig aliases, such as `monospace`, on systems that use fontconfig. Thanks to [@valpackett](https://github.com/valpackett)! [#1149](https://github.com/wez/wezterm/issues/1149)
 * Powerline semicircle glyphs now look much better. Thanks to [@bew](https://github.com/bew) and [@sdrik](https://github.com/sdrik)! [#1311](https://github.com/wez/wezterm/issues/1311)
 * Splits now look better, especially when using escape sequences to change the default background color [#1256](https://github.com/wez/wezterm/issues/1256)
 
@@ -611,13 +665,13 @@ As features stabilize some brief notes about them will accumulate here.
 * `SU` (scroll up) sequence would fill with default-blank cells instead of blank-cells-with-current-bg-color. [#1102](https://github.com/wez/wezterm/issues/1102)
 * X11: computed but did not use the correct DPI for HiDPI screens [#947](https://github.com/wez/wezterm/issues/947)
 * performance when resolving fallback fonts via fontconfig, and of coverage calculation with freetype. Thanks to [@H-M-H](https://github.com/H-M-H)!
-* Wayland: incorrect initial surface size for HiDPI screens. Thanks to [@unrelentingtech](https://github.com/unrelentingtech)! [#1111](https://github.com/wez/wezterm/issues/1111) [#1112](https://github.com/wez/wezterm/pull/1112)
+* Wayland: incorrect initial surface size for HiDPI screens. Thanks to [@valpackett](https://github.com/valpackett)! [#1111](https://github.com/wez/wezterm/issues/1111) [#1112](https://github.com/wez/wezterm/pull/1112)
 * invisible cursor in CopyMode when using kakoune [#1113](https://github.com/wez/wezterm/issues/1113)
-* Wayland: `bypass_mouse_reporting_modifiers` didn't work. Thanks to [@unrelentingtech](https://github.com/unrelentingtech)! [#1122](https://github.com/wez/wezterm/issues/1122)
+* Wayland: `bypass_mouse_reporting_modifiers` didn't work. Thanks to [@valpackett](https://github.com/valpackett)! [#1122](https://github.com/wez/wezterm/issues/1122)
 * new tabs could have the wrong number of rows and columns if a tiling WM resizes the window before OpenGL has been setup. [#1074](https://github.com/wez/wezterm/issues/1074)
-* Wayland: dragging the window using the tab bar now works. Thanks to [@unrelentingtech](https://github.com/unrelentingtech)! [#1127](https://github.com/wez/wezterm/issues/1127)
+* Wayland: dragging the window using the tab bar now works. Thanks to [@valpackett](https://github.com/valpackett)! [#1127](https://github.com/wez/wezterm/issues/1127)
 * error matching a font when that font is in a .ttc that contains multiple font families. [#1137](https://github.com/wez/wezterm/issues/1137)
-* Wayland: panic with most recent wlroots. Thanks to [@unrelentingtech](https://github.com/unrelentingtech)! [#1144](https://github.com/wez/wezterm/issues/1144)
+* Wayland: panic with most recent wlroots. Thanks to [@valpackett](https://github.com/valpackett)! [#1144](https://github.com/wez/wezterm/issues/1144)
 * incorrect spacing for IDEOGRAPHIC SPACE. [#1161](https://github.com/wez/wezterm/issues/1161)
 * italic fonts weren't always recognized as being italic, resulting in italic variants being used instead of the non-italic variants in some cases! [#1162](https://github.com/wez/wezterm/issues/1162)
 * Ask freetype for cell metrics in bitmap-only fonts, rather than simply taking the bitmap width. [#1165](https://github.com/wez/wezterm/issues/1165)
@@ -828,7 +882,7 @@ As features stabilize some brief notes about them will accumulate here.
 * Fixed: an issue where closing a pane would immediately `SIGKILL` the associated process, rather than sending `SIGHUP`.  Thanks to [@bew](https://github.com/bew)!
 * Fixed: line-based mouse selection (default: triple click) now extends forwards to include wrapped lines. [#466](https://github.com/wez/wezterm/issues/466)
 * Fixed: the [RIS](https://vt100.net/docs/vt510-rm/RIS) escape wasn't clearing the scrollback. [#511](https://github.com/wez/wezterm/issues/511)
-* Wayland: fixed opengl context creation issues.  Thanks to [@unrelentingtech](https://github.com/unrelentingtech)! [#481](https://github.com/wez/wezterm/pull/481)
+* Wayland: fixed opengl context creation issues.  Thanks to [@valpackett](https://github.com/valpackett)! [#481](https://github.com/wez/wezterm/pull/481)
 * Wayland: the raw key modifiers are now correctly propagated so that they activate when used with key assignments using the `key = "raw:123"` binding syntax.
 * Wayland: fixed window decoration and full screen handling [#224](https://github.com/wez/wezterm/issues/224)
 * Wayland: fixed an issue where key repeat processing could "run away" and hang the application

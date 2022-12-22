@@ -1,17 +1,18 @@
 use super::box_model::*;
 use crate::colorease::{ColorEase, ColorEaseUniform};
 use crate::customglyph::{BlockKey, *};
-use crate::glium::texture::SrgbTexture2d;
 use crate::glyphcache::{CachedGlyph, GlyphCache};
 use crate::quad::{
-    HeapQuadAllocator, Quad, QuadAllocator, TripleLayerQuadAllocator, TripleLayerQuadAllocatorTrait,
+    HeapQuadAllocator, QuadAllocator, QuadImpl, QuadTrait, TripleLayerQuadAllocator,
+    TripleLayerQuadAllocatorTrait,
 };
-use crate::renderstate::BorrowedLayers;
 use crate::selection::SelectionRange;
 use crate::shapecache::*;
 use crate::tabbar::{TabBarItem, TabEntry};
+use crate::termwindow::webgpu::ShaderUniform;
 use crate::termwindow::{
-    BorrowedShapeCacheKey, RenderState, ScrollHit, ShapedInfo, TermWindowNotif, UIItem, UIItemType,
+    BorrowedShapeCacheKey, RenderFrame, RenderState, ScrollHit, ShapedInfo, TermWindowNotif,
+    UIItem, UIItemType,
 };
 use crate::uniforms::UniformBuilder;
 use crate::utilsprites::RenderMetrics;
@@ -48,7 +49,6 @@ use wezterm_font::units::{IntPixelLength, PixelLength};
 use wezterm_font::{ClearShapeCache, GlyphInfo, LoadedFont};
 use wezterm_term::color::{ColorAttribute, ColorPalette, RgbColor};
 use wezterm_term::{CellAttributes, Line, StableRowIndex};
-use window::bitmaps::Texture2d;
 use window::color::LinearRgba;
 
 pub const TOP_LEFT_ROUNDED_CORNER: &[Poly] = &[Poly {
@@ -221,7 +221,7 @@ pub struct LineToElementShape {
     pub underline_color: LinearRgba,
     pub x_pos: f32,
     pub pixel_width: f32,
-    pub glyph_info: Rc<Vec<ShapedInfo<SrgbTexture2d>>>,
+    pub glyph_info: Rc<Vec<ShapedInfo>>,
     pub cluster: CellCluster,
 }
 
@@ -244,7 +244,7 @@ pub struct RenderScreenLineOpenGLParams<'a> {
     pub palette: &'a ColorPalette,
     pub dims: &'a RenderableDimensions,
     pub config: &'a ConfigHandle,
-    pub pane: Option<&'a Rc<dyn Pane>>,
+    pub pane: Option<&'a Arc<dyn Pane>>,
 
     pub white_space: TextureRect,
     pub filled_box: TextureRect,
@@ -299,7 +299,7 @@ pub struct ComputeCellFgBgParams<'a> {
     pub cursor_bg: LinearRgba,
     pub cursor_is_default_color: bool,
     pub cursor_border_color: LinearRgba,
-    pub pane: Option<&'a Rc<dyn Pane>>,
+    pub pane: Option<&'a Arc<dyn Pane>>,
 }
 
 #[derive(Debug)]
@@ -329,7 +329,7 @@ pub struct ClusterStyleCache<'a> {
 }
 
 impl super::TermWindow {
-    pub fn paint_impl(&mut self, frame: &mut glium::Frame) {
+    pub fn paint_impl(&mut self, frame: &mut RenderFrame) {
         self.num_frames += 1;
         // If nothing on screen needs animating, then we can avoid
         // invalidating as frequently
@@ -348,8 +348,6 @@ impl super::TermWindow {
                 self.last_fps_check_time = start;
             }
         }
-
-        frame.clear_color(0., 0., 0., 0.);
 
         'pass: for pass in 0.. {
             match self.paint_opengl_pass() {
@@ -463,7 +461,7 @@ impl super::TermWindow {
 
     fn get_intensity_if_bell_target_ringing(
         &self,
-        pane: &Rc<dyn Pane>,
+        pane: &Arc<dyn Pane>,
         config: &ConfigHandle,
         target: VisualBellTarget,
     ) -> Option<f32> {
@@ -500,7 +498,7 @@ impl super::TermWindow {
         layer_num: usize,
         rect: RectF,
         color: LinearRgba,
-    ) -> anyhow::Result<Quad<'a>> {
+    ) -> anyhow::Result<QuadImpl<'a>> {
         let mut quad = layers.allocate(layer_num)?;
         let left_offset = self.dimensions.pixel_width as f32 / 2.;
         let top_offset = self.dimensions.pixel_height as f32 / 2.;
@@ -527,7 +525,7 @@ impl super::TermWindow {
         underline_height: IntPixelLength,
         cell_size: SizeF,
         color: LinearRgba,
-    ) -> anyhow::Result<Quad<'a>> {
+    ) -> anyhow::Result<QuadImpl<'a>> {
         let left_offset = self.dimensions.pixel_width as f32 / 2.;
         let top_offset = self.dimensions.pixel_height as f32 / 2.;
         let gl_state = self.render_state.as_ref().unwrap();
@@ -1717,12 +1715,11 @@ impl super::TermWindow {
                                 cursor_border_color: self.cursor_border_color,
                                 cursor_is_default_color: self.cursor_is_default_color,
                             }),
-                            if let DeadKeyStatus::Composing(composing) =
-                                &self.term_window.dead_key_status
-                            {
-                                Some(composing.to_string())
-                            } else {
-                                None
+                            match (self.pos.is_active, &self.term_window.dead_key_status) {
+                                (true, DeadKeyStatus::Composing(composing)) => {
+                                    Some(composing.to_string())
+                                }
+                                _ => None,
                             },
                             if self.term_window.config.detect_password_input {
                                 match self.pos.pane.get_metadata() {
@@ -1792,7 +1789,7 @@ impl super::TermWindow {
                     let shape_key = LineToEleShapeCacheKey {
                         shape_hash,
                         shape_generation: quad_key.shape_generation,
-                        composing: if self.cursor.y == stable_row {
+                        composing: if self.cursor.y == stable_row && self.pos.is_active {
                             if let DeadKeyStatus::Composing(composing) =
                                 &self.term_window.dead_key_status
                             {
@@ -1898,9 +1895,152 @@ impl super::TermWindow {
         Ok(())
     }
 
-    fn call_draw(&mut self, frame: &mut glium::Frame) -> anyhow::Result<()> {
+    fn call_draw(&mut self, frame: &mut RenderFrame) -> anyhow::Result<()> {
+        match frame {
+            RenderFrame::Glium(ref mut frame) => self.call_draw_glium(frame),
+            RenderFrame::WebGpu => self.call_draw_webgpu(),
+        }
+    }
+
+    fn call_draw_webgpu(&mut self) -> anyhow::Result<()> {
+        use crate::termwindow::webgpu::WebGpuTexture;
+
+        let webgpu = self.webgpu.as_mut().unwrap();
+        let render_state = self.render_state.as_ref().unwrap();
+
+        let output = webgpu.surface.get_current_texture()?;
+        let view = output
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = webgpu
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Render Encoder"),
+            });
+        let tex = render_state.glyph_cache.borrow().atlas.texture();
+        let tex = tex.downcast_ref::<WebGpuTexture>().unwrap();
+        let texture_view = tex.create_view(&wgpu::TextureViewDescriptor::default());
+
+        let texture_linear_bind_group =
+            webgpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &webgpu.texture_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&texture_view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&webgpu.texture_linear_sampler),
+                    },
+                ],
+                label: Some("linear bind group"),
+            });
+
+        let texture_nearest_bind_group =
+            webgpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &webgpu.texture_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&texture_view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&webgpu.texture_nearest_sampler),
+                    },
+                ],
+                label: Some("nearest bind group"),
+            });
+
+        let mut cleared = false;
+        let foreground_text_hsb = self.config.foreground_text_hsb;
+        let foreground_text_hsb = [
+            foreground_text_hsb.hue,
+            foreground_text_hsb.saturation,
+            foreground_text_hsb.brightness,
+        ];
+
+        let milliseconds = self.created.elapsed().as_millis() as u32;
+        let projection = euclid::Transform3D::<f32, f32, f32>::ortho(
+            -(self.dimensions.pixel_width as f32) / 2.0,
+            self.dimensions.pixel_width as f32 / 2.0,
+            self.dimensions.pixel_height as f32 / 2.0,
+            -(self.dimensions.pixel_height as f32) / 2.0,
+            -1.0,
+            1.0,
+        )
+        .to_arrays_transposed();
+
+        for layer in render_state.layers.borrow().iter() {
+            for idx in 0..3 {
+                let vb = &layer.vb.borrow()[idx];
+                let (vertex_count, index_count) = vb.vertex_index_count();
+                let vertex_buffer;
+                let uniforms;
+                if vertex_count > 0 {
+                    let mut vertices = vb.current_vb_mut();
+                    let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("Render Pass"),
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &view,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: if cleared {
+                                    wgpu::LoadOp::Load
+                                } else {
+                                    wgpu::LoadOp::Clear(wgpu::Color {
+                                        r: 0.,
+                                        g: 0.,
+                                        b: 0.,
+                                        a: 0.,
+                                    })
+                                },
+                                store: true,
+                            },
+                        })],
+                        depth_stencil_attachment: None,
+                    });
+                    cleared = true;
+
+                    uniforms = webgpu.create_uniform(ShaderUniform {
+                        foreground_text_hsb,
+                        milliseconds,
+                        projection,
+                    });
+
+                    render_pass.set_pipeline(&webgpu.render_pipeline);
+                    render_pass.set_bind_group(0, &uniforms, &[]);
+                    render_pass.set_bind_group(1, &texture_linear_bind_group, &[]);
+                    render_pass.set_bind_group(2, &texture_nearest_bind_group, &[]);
+                    vertex_buffer = vertices.webgpu_mut().recreate();
+                    vertex_buffer.unmap();
+                    render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
+                    render_pass
+                        .set_index_buffer(vb.indices.webgpu().slice(..), wgpu::IndexFormat::Uint32);
+                    render_pass.draw_indexed(0..index_count as _, 0, 0..1);
+                }
+
+                vb.next_index();
+            }
+        }
+
+        // submit will accept anything that implements IntoIter
+        webgpu.queue.submit(std::iter::once(encoder.finish()));
+        output.present();
+
+        Ok(())
+    }
+
+    fn call_draw_glium(&mut self, frame: &mut glium::Frame) -> anyhow::Result<()> {
+        use window::glium::texture::SrgbTexture2d;
+
         let gl_state = self.render_state.as_ref().unwrap();
         let tex = gl_state.glyph_cache.borrow().atlas.texture();
+        let tex = tex.downcast_ref::<SrgbTexture2d>().unwrap();
+
+        frame.clear_color(0., 0., 0., 0.);
+
         let projection = euclid::Transform3D::<f32, f32, f32>::ortho(
             -(self.dimensions.pixel_width as f32) / 2.0,
             self.dimensions.pixel_width as f32 / 2.0,
@@ -1982,7 +2122,7 @@ impl super::TermWindow {
                 let vb = &layer.vb.borrow()[idx];
                 let (vertex_count, index_count) = vb.vertex_index_count();
                 if vertex_count > 0 {
-                    let vertices = vb.current_vb();
+                    let vertices = vb.current_vb_mut();
                     let subpixel_aa = use_subpixel && idx == 1;
 
                     let mut uniforms = UniformBuilder::default();
@@ -1998,9 +2138,9 @@ impl super::TermWindow {
                     uniforms.add_struct("rapid_blink", &rapid_blink);
 
                     frame.draw(
-                        vertices.slice(0..vertex_count).unwrap(),
-                        vb.indices.slice(0..index_count).unwrap(),
-                        &gl_state.glyph_prog,
+                        vertices.glium().slice(0..vertex_count).unwrap(),
+                        vb.indices.glium().slice(0..index_count).unwrap(),
+                        gl_state.glyph_prog.as_ref().unwrap(),
                         &uniforms,
                         if subpixel_aa {
                             &dual_source_blending
@@ -2043,7 +2183,7 @@ impl super::TermWindow {
         &mut self,
         layers: &mut TripleLayerQuadAllocator,
         split: &PositionedSplit,
-        pane: &Rc<dyn Pane>,
+        pane: &Arc<dyn Pane>,
     ) -> anyhow::Result<()> {
         let palette = pane.palette();
         let foreground = palette.split.to_linear();
@@ -2133,16 +2273,7 @@ impl super::TermWindow {
         let start = Instant::now();
         let gl_state = self.render_state.as_ref().unwrap();
         let layer = gl_state.layer_for_zindex(0)?;
-        let vbs = layer.vb.borrow();
-        let vb = [&vbs[0], &vbs[1], &vbs[2]];
-        let mut vb_mut0 = vb[0].current_vb_mut();
-        let mut vb_mut1 = vb[1].current_vb_mut();
-        let mut vb_mut2 = vb[2].current_vb_mut();
-        let mut layers = TripleLayerQuadAllocator::Gpu(BorrowedLayers([
-            vb[0].map(&mut vb_mut0),
-            vb[1].map(&mut vb_mut1),
-            vb[2].map(&mut vb_mut2),
-        ]));
+        let mut layers = layer.quad_allocator();
         log::trace!("quad map elapsed {:?}", start.elapsed());
         metrics::histogram!("quad.map", start.elapsed());
 
@@ -2198,9 +2329,7 @@ impl super::TermWindow {
                 self.update_text_cursor(&pos);
                 if focused {
                     pos.pane.advise_focus();
-                    mux::Mux::get()
-                        .expect("called on mux thread")
-                        .record_focus_for_current_identity(pos.pane.pane_id());
+                    mux::Mux::get().record_focus_for_current_identity(pos.pane.pane_id());
                 }
             }
             self.paint_pane_opengl(&pos, num_panes, &mut layers)?;
@@ -3102,7 +3231,7 @@ impl super::TermWindow {
         font: Option<&Rc<LoadedFont>>,
         gl_state: &RenderState,
         metrics: &RenderMetrics,
-    ) -> anyhow::Result<Rc<CachedGlyph<SrgbTexture2d>>> {
+    ) -> anyhow::Result<Rc<CachedGlyph>> {
         let fa_lock = "\u{f023}";
         let line = Line::from_text(fa_lock, attrs, 0, None);
         let cluster = line.cluster(None);
@@ -3260,7 +3389,7 @@ impl super::TermWindow {
             let dead_key_or_leader =
                 self.dead_key_status != DeadKeyStatus::None || self.leader_is_active();
 
-            if dead_key_or_leader {
+            if dead_key_or_leader && params.is_active_pane {
                 let (fg_color, bg_color) =
                     if self.config.force_reverse_video_cursor && params.cursor_is_default_color {
                         (params.bg_color, params.fg_color)
@@ -3412,11 +3541,11 @@ impl super::TermWindow {
     fn glyph_infos_to_glyphs(
         &self,
         style: &TextStyle,
-        glyph_cache: &mut GlyphCache<SrgbTexture2d>,
+        glyph_cache: &mut GlyphCache,
         infos: &[GlyphInfo],
         font: &Rc<LoadedFont>,
         metrics: &RenderMetrics,
-    ) -> anyhow::Result<Vec<Rc<CachedGlyph<SrgbTexture2d>>>> {
+    ) -> anyhow::Result<Vec<Rc<CachedGlyph>>> {
         let mut glyphs = Vec::with_capacity(infos.len());
         let mut iter = infos.iter().peekable();
         while let Some(info) = iter.next() {
@@ -3465,7 +3594,7 @@ impl super::TermWindow {
         gl_state: &RenderState,
         font: Option<&Rc<LoadedFont>>,
         metrics: &RenderMetrics,
-    ) -> anyhow::Result<Rc<Vec<ShapedInfo<SrgbTexture2d>>>> {
+    ) -> anyhow::Result<Rc<Vec<ShapedInfo>>> {
         let shape_resolve_start = Instant::now();
         let key = BorrowedShapeCacheKey {
             style,
@@ -3531,7 +3660,7 @@ impl super::TermWindow {
     fn lookup_cached_shape(
         &self,
         key: &dyn ShapeCacheKeyTrait,
-    ) -> Option<anyhow::Result<Rc<Vec<ShapedInfo<SrgbTexture2d>>>>> {
+    ) -> Option<anyhow::Result<Rc<Vec<ShapedInfo>>>> {
         match self.shape_cache.borrow_mut().get(key) {
             Some(Ok(info)) => Some(Ok(Rc::clone(info))),
             Some(Err(err)) => Some(Err(anyhow!("cached shaper error: {}", err))),

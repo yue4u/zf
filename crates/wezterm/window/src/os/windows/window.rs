@@ -12,8 +12,10 @@ use async_trait::async_trait;
 use config::{ConfigHandle, ImePreeditRendering};
 use lazy_static::lazy_static;
 use promise::Future;
-use raw_window_handle::windows::WindowsHandle;
-use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
+use raw_window_handle::{
+    HasRawDisplayHandle, HasRawWindowHandle, RawDisplayHandle, RawWindowHandle, Win32WindowHandle,
+    WindowsDisplayHandle,
+};
 use shared_library::shared_library;
 use std::any::Any;
 use std::cell::RefCell;
@@ -178,12 +180,18 @@ fn callback_behavior() -> glium::debug::DebugCallbackBehavior {
     }
 }
 
+unsafe impl HasRawDisplayHandle for WindowInner {
+    fn raw_display_handle(&self) -> RawDisplayHandle {
+        RawDisplayHandle::Windows(WindowsDisplayHandle::empty())
+    }
+}
+
 unsafe impl HasRawWindowHandle for WindowInner {
     fn raw_window_handle(&self) -> RawWindowHandle {
-        RawWindowHandle::Windows(WindowsHandle {
-            hwnd: self.hwnd.0 as *mut _,
-            ..WindowsHandle::empty()
-        })
+        let mut handle = Win32WindowHandle::empty();
+        handle.hwnd = self.hwnd.0 as *mut _;
+        handle.hinstance = unsafe { GetModuleHandleW(null()) } as _;
+        RawWindowHandle::Win32(handle)
     }
 }
 
@@ -233,6 +241,7 @@ impl WindowInner {
     /// Calls resize if needed.
     /// Returns true if we did.
     fn check_and_call_resize_if_needed(&mut self) -> bool {
+        /*
         if self.gl_state.is_none() {
             // Don't cache state or generate resize callbacks until
             // we've set up opengl, otherwise we can miss propagating
@@ -242,6 +251,7 @@ impl WindowInner {
             // scale factor.
             return false;
         }
+        */
 
         let mut rect = RECT {
             left: 0,
@@ -650,6 +660,12 @@ impl WindowInner {
                 .detach();
             }
         }
+    }
+}
+
+unsafe impl HasRawDisplayHandle for Window {
+    fn raw_display_handle(&self) -> RawDisplayHandle {
+        RawDisplayHandle::Windows(WindowsDisplayHandle::empty())
     }
 }
 

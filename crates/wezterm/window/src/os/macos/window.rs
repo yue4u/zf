@@ -4,6 +4,7 @@
 use super::keycodes::*;
 use super::{nsstring, nsstring_to_str};
 use crate::connection::ConnectionOps;
+use crate::os::macos::menu::{MenuItem, RepresentedItem};
 use crate::parameters::{Border, Parameters, TitleBar};
 use crate::{
     Clipboard, Connection, DeadKeyStatus, Dimensions, Handled, KeyCode, KeyEvent, Modifiers,
@@ -36,8 +37,10 @@ use objc::rc::{StrongPtr, WeakPtr};
 use objc::runtime::{Class, Object, Protocol, Sel};
 use objc::*;
 use promise::Future;
-use raw_window_handle::macos::MacOSHandle;
-use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
+use raw_window_handle::{
+    AppKitDisplayHandle, AppKitWindowHandle, HasRawDisplayHandle, HasRawWindowHandle,
+    RawDisplayHandle, RawWindowHandle,
+};
 use std::any::Any;
 use std::cell::RefCell;
 use std::ffi::c_void;
@@ -50,6 +53,8 @@ use wezterm_input_types::is_ascii_control;
 
 #[allow(non_upper_case_globals)]
 const NSViewLayerContentsPlacementTopLeft: NSInteger = 11;
+#[allow(non_upper_case_globals)]
+const NSViewLayerContentsRedrawDuringViewResize: NSInteger = 2;
 
 fn round_away_from_zerof(value: f64) -> f64 {
     if value > 0. {
@@ -518,6 +523,12 @@ impl Window {
             window.setContentView_(*view);
             window.setDelegate_(*view);
 
+            view.setWantsLayer(YES);
+            let () = msg_send![
+                *view,
+                setLayerContentsRedrawPolicy: NSViewLayerContentsRedrawDuringViewResize
+            ];
+
             // register for drag and drop operations.
             let () = msg_send![
                 *window,
@@ -572,13 +583,18 @@ impl Window {
     }
 }
 
+unsafe impl HasRawDisplayHandle for Window {
+    fn raw_display_handle(&self) -> RawDisplayHandle {
+        RawDisplayHandle::AppKit(AppKitDisplayHandle::empty())
+    }
+}
+
 unsafe impl HasRawWindowHandle for Window {
     fn raw_window_handle(&self) -> RawWindowHandle {
-        RawWindowHandle::MacOS(MacOSHandle {
-            ns_window: self.ns_window as *mut _,
-            ns_view: self.ns_view as *mut _,
-            ..MacOSHandle::empty()
-        })
+        let mut handle = AppKitWindowHandle::empty();
+        handle.ns_window = self.ns_window as *mut _;
+        handle.ns_view = self.ns_view as *mut _;
+        RawWindowHandle::AppKit(handle)
     }
 }
 
@@ -739,7 +755,7 @@ impl WindowOps for Window {
         // We only need this for non-native full screen mode.
 
         let native_full_screen = match raw {
-            RawWindowHandle::MacOS(raw) => {
+            RawWindowHandle::AppKit(raw) => {
                 let style_mask = unsafe { NSWindow::styleMask(raw.ns_window as *mut Object) };
                 style_mask.contains(NSWindowStyleMask::NSFullScreenWindowMask)
             }
@@ -952,6 +968,15 @@ impl WindowInner {
         unsafe {
             let current_app = NSRunningApplication::currentApplication(nil);
             current_app.activateWithOptions_(NSApplicationActivateIgnoringOtherApps);
+
+            // Stupid hack: adjust the window style mask and set it back
+            // to what it was.
+            // Without this, the CAMetalLayer used by webgpu seems to get
+            // stuck with a scale factor of 2 despite us having configured 1.
+            self.window
+                .setStyleMask_(NSWindowStyleMask::NSBorderlessWindowMask);
+            apply_decorations_to_window(&self.window, self.config.window_decorations);
+
             self.window.makeKeyAndOrderFront_(nil)
         }
     }
@@ -1879,6 +1904,28 @@ impl WindowView {
         NO
     }
 
+    extern "C" fn wezterm_perform_key_assignment(
+        this: &mut Object,
+        _sel: Sel,
+        menu_item: *mut Object,
+    ) {
+        let menu_item = MenuItem::with_menu_item(menu_item);
+        // Safe because weztermPerformKeyAssignment: is only used with KeyAssignment
+        let action = menu_item.get_represented_item();
+        log::debug!("wezterm_perform_key_assignment {action:?}",);
+        match action {
+            Some(RepresentedItem::KeyAssignment(action)) => {
+                if let Some(this) = Self::get_this(this) {
+                    this.inner
+                        .borrow_mut()
+                        .events
+                        .dispatch(WindowEvent::PerformKeyAssignment(action));
+                }
+            }
+            None => {}
+        }
+    }
+
     extern "C" fn window_will_close(this: &mut Object, _sel: Sel, _id: id) {
         if let Some(this) = Self::get_this(this) {
             // Advise the window of its impending death
@@ -2503,6 +2550,57 @@ impl WindowView {
         }
     }
 
+    extern "C" fn update_layer(_view: &mut Object, _sel: Sel) {
+        log::trace!("update_layer called");
+    }
+
+    extern "C" fn wants_update_layer(_view: &mut Object, _sel: Sel) -> BOOL {
+        log::trace!("wants_update_layer called");
+        YES
+    }
+
+    extern "C" fn display_layer(view: &mut Object, sel: Sel, _layer_id: id) {
+        Self::draw_rect(
+            view,
+            sel,
+            NSRect::new(NSPoint::new(0., 0.), NSSize::new(0., 0.)),
+        )
+    }
+
+    extern "C" fn draw_layer_in_context(
+        _view: &mut Object,
+        _sel: Sel,
+        _layer_id: id,
+        _context: id,
+    ) {
+    }
+
+    extern "C" fn layer_should_inherit_contents_scale_from_window(
+        _: &Object,
+        _: Sel,
+        layer: *mut Object,
+        _: CGFloat,
+        _: *mut Object,
+    ) -> BOOL {
+        log::trace!("layer_should_inherit_contents_scale_from_window");
+        unsafe {
+            let () = msg_send![layer, setContentsScale: 1.0];
+        }
+        YES
+    }
+
+    extern "C" fn make_backing_layer(view: &mut Object, _: Sel) -> id {
+        log::trace!("make_backing_layer");
+        let class = class!(CAMetalLayer);
+        unsafe {
+            let layer: id = msg_send![class, new];
+            let () = msg_send![layer, setDelegate: view];
+            let () = msg_send![layer, setContentsScale: 1.0];
+            let () = msg_send![layer, setOpaque: NO];
+            layer
+        }
+    }
+
     extern "C" fn draw_rect(view: &mut Object, sel: Sel, _dirty_rect: NSRect) {
         if let Some(this) = Self::get_this(view) {
             let mut inner = this.inner.borrow_mut();
@@ -2627,10 +2725,18 @@ impl WindowView {
             Protocol::get("NSTextInputClient").expect("failed to get NSTextInputClient protocol"),
         );
 
+        cls.add_protocol(Protocol::get("CALayerDelegate").expect("CALayerDelegate not defined"));
+
         unsafe {
             cls.add_method(
                 sel!(dealloc),
                 WindowView::dealloc as extern "C" fn(&mut Object, Sel),
+            );
+
+            cls.add_method(
+                sel!(weztermPerformKeyAssignment:),
+                Self::wezterm_perform_key_assignment
+                    as extern "C" fn(&mut Object, Sel, *mut Object),
             );
 
             cls.add_method(
@@ -2644,8 +2750,39 @@ impl WindowView {
             );
 
             cls.add_method(
+                sel!(makeBackingLayer),
+                Self::make_backing_layer as extern "C" fn(&mut Object, Sel) -> id,
+            );
+
+            cls.add_method(
+                sel!(layer:shouldInheritContentsScale:fromWindow:),
+                Self::layer_should_inherit_contents_scale_from_window
+                    as extern "C" fn(&Object, Sel, *mut Object, CGFloat, *mut Object) -> BOOL,
+            );
+
+            cls.add_method(
                 sel!(drawRect:),
                 Self::draw_rect as extern "C" fn(&mut Object, Sel, NSRect),
+            );
+
+            cls.add_method(
+                sel!(updateLayer),
+                Self::update_layer as extern "C" fn(&mut Object, Sel),
+            );
+
+            cls.add_method(
+                sel!(wantsUpdateLayer),
+                Self::wants_update_layer as extern "C" fn(&mut Object, Sel) -> BOOL,
+            );
+
+            cls.add_method(
+                sel!(displayLayer:),
+                Self::display_layer as extern "C" fn(&mut Object, Sel, id),
+            );
+
+            cls.add_method(
+                sel!(drawLayer:inContext:),
+                Self::draw_layer_in_context as extern "C" fn(&mut Object, Sel, id, id),
             );
 
             cls.add_method(

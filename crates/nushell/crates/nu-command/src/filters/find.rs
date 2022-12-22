@@ -225,41 +225,41 @@ fn highlight_terms_in_record(
     config: &Config,
     terms: &[Value],
     string_style: Style,
-    ls_colors: &LsColors,
+    _ls_colors: &LsColors,
 ) -> Value {
     let mut output = vec![];
     for val in vals {
         let val_str = val.into_string("", config);
         let lower_val = val.into_string("", config).to_lowercase();
-        let mut term_added_to_output = false;
+        let term_added_to_output = false;
         for term in terms {
             let term_str = term.into_string("", config);
             let lower_term = term.into_string("", config).to_lowercase();
             if lower_val.contains(&lower_term) {
                 if config.use_ls_colors {
-                    // Get the original LS_COLORS color
-                    let style = ls_colors.style_for_path(val_str.clone());
-                    let ansi_style = style
-                        .map(LsColors_Style::to_crossterm_style)
-                        .unwrap_or_default();
+                    // // Get the original LS_COLORS color
+                    // let style = ls_colors.style_for_path(val_str.clone());
+                    // let ansi_style = style
+                    //     .map(LsColors_Style::to_crossterm_style)
+                    //     .unwrap_or_default();
 
-                    let ls_colored_val = ansi_style.apply(&val_str).to_string();
+                    // let ls_colored_val = ansi_style.apply(&val_str).to_string();
 
-                    let ansi_term_style = style
-                        .map(to_nu_ansi_term_style)
-                        .unwrap_or_else(|| string_style);
+                    // let ansi_term_style = style
+                    //     .map(to_nu_ansi_term_style)
+                    //     .unwrap_or_else(|| string_style);
 
-                    let hi =
-                        match highlight_search_string(&ls_colored_val, &term_str, &ansi_term_style)
-                        {
-                            Ok(hi) => hi,
-                            Err(_) => string_style.paint(term_str.to_string()).to_string(),
-                        };
-                    output.push(Value::String {
-                        val: hi,
-                        span: *span,
-                    });
-                    term_added_to_output = true;
+                    // let hi =
+                    //     match highlight_search_string(&ls_colored_val, &term_str, &ansi_term_style)
+                    //     {
+                    //         Ok(hi) => hi,
+                    //         Err(_) => string_style.paint(term_str.to_string()).to_string(),
+                    //     };
+                    // output.push(Value::String {
+                    //     val: hi,
+                    //     span: *span,
+                    // });
+                    // term_added_to_output = true;
                 } else {
                     // No LS_COLORS support, so just use the original value
                     let hi = match highlight_search_string(&val_str, &term_str, &string_style) {
@@ -501,7 +501,7 @@ fn find_with_rest_and_highlight(
     }
 }
 
-fn to_nu_ansi_term_style(style: &LsColors_Style) -> Style {
+fn _to_nu_ansi_term_style(style: &LsColors_Style) -> Style {
     fn to_nu_ansi_term_color(color: &LsColors_Color) -> Color {
         match *color {
             LsColors_Color::Fixed(n) => Color::Fixed(n),

@@ -237,7 +237,7 @@ impl ShellState {
 
             // // Strings
             // bind_command! {
-                BuildString,
+                // BuildString,
                 Char,
                 Decode,
                 Encode,
@@ -593,7 +593,7 @@ pub fn eval_impl(
             .merge_delta(delta)
             .check_outcome(engine_state)?;
 
-        let input = PipelineData::new(Span::test_data());
+        let input = PipelineData::new_with_metadata(None, Span::test_data());
         let config = engine_state.get_config();
 
         last_output = eval_block(

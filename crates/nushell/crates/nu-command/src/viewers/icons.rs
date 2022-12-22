@@ -84,7 +84,7 @@ impl Icons {
 //         .map(nu_ansi_term::Style::from)
 //         .unwrap_or_default()
 // }
-
+#[allow(dead_code)]
 static MAP_BY_NAME: Lazy<HashMap<&'static str, char>> = Lazy::new(|| {
     HashMap::from([
         (".Trash", '\u{f1f8}'),             // 

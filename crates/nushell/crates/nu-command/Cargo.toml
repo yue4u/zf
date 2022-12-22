@@ -23,7 +23,7 @@ nu-system = { path = "../nu-system", version = "0.73.1"  }
 nu-table = { path = "../nu-table", version = "0.73.1"  }
 nu-term-grid = { path = "../nu-term-grid", version = "0.73.1"  }
 nu-utils = { path = "../nu-utils", version = "0.73.1" }
-nu-explore = { path = "../nu-explore", version = "0.73.1" }
+# nu-explore = { path = "../nu-explore", version = "0.73.1" }
 nu-ansi-term = "0.46.0"
 num-format = { version = "0.4.3" }
 
@@ -56,7 +56,7 @@ strip-ansi-escapes = "0.1.1"
 # thiserror = "1.0.31"
 # log = "0.4.14"
 # lscolors = { version = "0.12.0", features = ["crossterm"], default-features = false }
-lscolors = { version = "0.12.0", default-features = false }
+lscolors = { version = "0.12.0", features = ["ansi_term"], default-features = false }
 # md5 = { package = "md-5", version = "0.10.0" }
 meval = "0.2.0"
 # mime = "0.3.16"
@@ -200,12 +200,12 @@ features = [
 	"Win32_System_SystemServices",
 ]
 
-[features]
-trash-support = ["trash"]
-which-support = ["which"]
-plugin = ["nu-parser/plugin"]
-dataframe = ["polars", "num", "sqlparser"]
-sqlite = ["rusqlite"] # TODO: given that rusqlite is included in reedline, should we just always include it?
+# [features]
+# trash-support = ["trash"]
+# which-support = ["which"]
+# plugin = ["nu-parser/plugin"]
+# dataframe = ["polars", "num", "sqlparser"]
+# sqlite = ["rusqlite"] # TODO: given that rusqlite is included in reedline, should we just always include it?
 
 [build-dependencies]
 shadow-rs = { version = "0.16.1", default-features = false }

@@ -4,18 +4,21 @@ use gdnative::prelude::{FromVariant, ToVariant};
 #[allow(dead_code)]
 pub mod scenes {
     pub const HEALTH_BAR_3_D: &str = "res://scenes/HealthBar3D.tscn";
+    pub const ORBIT: &str = "res://scenes/Orbit.tscn";
     pub const ENVIRONMENT: &str = "res://scenes/Environment.tscn";
     pub const BASE: &str = "res://scenes/Base.tscn";
     pub const RADAR: &str = "res://scenes/Radar.tscn";
     pub const TERMINAL: &str = "res://scenes/Terminal.tscn";
     pub const TYPING_PARTICLES: &str = "res://scenes/TypingParticles.tscn";
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
+    pub const SANDBOX_2_D: &str = "res://scenes/Sandbox2D.tscn";
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
+    pub const LEVEL_RESULT: &str = "res://scenes/LevelResult.tscn";
+    pub const SANDBOX_3_D: &str = "res://scenes/Sandbox3D.tscn";
     pub const PLAYER_STATUS: &str = "res://scenes/PlayerStatus.tscn";
     pub const PLAYER_HEALTH_BAR: &str = "res://scenes/PlayerHealthBar.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
     pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
-    pub const UI_SANDBOX: &str = "res://scenes/UISandbox.tscn";
     pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
     pub const TARGET_DUMMY: &str = "res://scenes/TargetDummy.tscn";
@@ -92,6 +95,12 @@ pub mod health_bar_3_d {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod orbit {
+
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod environment {
     pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/DirectionalLight";
     pub const WORLD_ENVIRONMENT: &str = "/root/Scene/WorldEnvironment";
@@ -135,6 +144,12 @@ pub mod health_bar_2_d {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod sandbox_2_d {
+    pub const ITEM_LIST: &str = "/root/Scene/ItemList";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod player_mjolnir {
     pub const CAMERA: &str = "/root/Scene/Camera";
     pub const RADAR_AREA: &str = "/root/Scene/RadarArea";
@@ -142,6 +157,20 @@ pub mod player_mjolnir {
     pub const PROJECTILES: &str = "/root/Scene/Projectiles";
     pub const AREA: &str = "/root/Scene/Area";
     pub const COLLISION_SHAPE_1: &str = "/root/Scene/Area/CollisionShape";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod level_result {
+
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod sandbox_3_d {
+    pub const ORBIT: &str = "/root/Scene/Orbit";
+    pub const IMMEDIATE_GEOMETRY: &str = "/root/Scene/Orbit/ImmediateGeometry";
+    pub const MESH_11633: &str = "/root/Scene/Orbit/ImmediateGeometry/mesh11633";
 }
 
 #[rustfmt::skip]
@@ -188,12 +217,6 @@ pub mod t_dummy {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod ui_sandbox {
-    pub const ITEM_LIST: &str = "/root/Scene/ItemList";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
 pub mod launcher {
 
 }
@@ -212,6 +235,7 @@ pub mod base_level {
     pub const CONTROL_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
     pub const H_BOX_CONTAINER_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/HBoxContainer";
     pub const LABEL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/Label";
+    pub const LEVEL_RESULT: &str = "/root/Scene/LevelResult";
 }
 
 #[rustfmt::skip]
@@ -279,7 +303,9 @@ pub mod tutorial_fire {
 #[allow(dead_code)]
 pub mod tutorial {
     pub const TARGET_POINT_2: &str = "/root/Scene/Level/TargetPoint2";
+    pub const TARGET_POINT_3: &str = "/root/Scene/Level/TargetPoint3";
     pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
@@ -309,7 +335,7 @@ pub mod sandbox {
     pub const PROJECTILES: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Projectiles";
     pub const AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area";
     pub const COLLISION_SHAPE_1: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area/CollisionShape";
-    pub const CSG_POLYGON: &str = "/root/Scene/Level/Path/CSGPolygon";
+    pub const ORBIT: &str = "/root/Scene/Level/Path/Orbit";
     pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
     pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
     pub const T_DUMMY_4: &str = "/root/Scene/Level/EnemyCluster/t-dummy4";
@@ -335,8 +361,12 @@ pub mod assets {
     pub const PLAYER_HEALTH_BAR_SHADER_TRES: &str = "res://assets/PlayerHealthBarShader.tres";
     pub const PIXELATE_TRES: &str = "res://assets/pixelate.tres";
     pub const BAR_UNDER_PNG: &str = "res://assets/bar_under.png";
+    pub const TARGET_POINT_SHADER: &str = "res://assets/TargetPoint.shader";
+    pub const UI_FONT_TITLE_TRES: &str = "res://assets/UIFontTitle.tres";
     pub const T_DUMMY_TRES: &str = "res://assets/t-dummy.tres";
     pub const UI_FONT_TRES: &str = "res://assets/UIFont.tres";
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
+    pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
+    pub const LEVEL_RESULT_SHADER: &str = "res://assets/LevelResult.shader";
 }

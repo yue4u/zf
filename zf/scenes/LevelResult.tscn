@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://assets/UIFontTitle.tres" type="DynamicFont" id=2]
+[ext_resource path="res://assets/UITitle.shader" type="Shader" id=3]
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = ExtResource( 3 )
+
+[node name="LevelResult" type="Label"]
+material = SubResource( 2 )
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -443.5
+margin_top = -76.0
+margin_right = 443.5
+margin_bottom = 76.0
+custom_colors/font_color = Color( 0, 0.992157, 1, 0.501961 )
+custom_colors/font_outline_modulate = Color( 0, 1, 0.94902, 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "Mission Clear"

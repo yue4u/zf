@@ -18,7 +18,7 @@ use crate::{
     entities::{GameEvent, MissionLegacy},
     refs::{
         groups,
-        path::{auto_load, SceneName},
+        path::{auto_load, base_level, SceneName},
     },
     ui::{ScreenTransition, Terminal},
     vm::{CommandInput, CommandResult, VMSignal},
@@ -171,7 +171,11 @@ impl VMManager {
                 let result = runtime
                     .eval(format!("fsays 'Mission completed: {}'", msg))
                     .expect("fsays should work");
-
+                unsafe {
+                    base.get_node_as::<Label>(base_level::LEVEL_RESULT)
+                        .unwrap()
+                        .set_visible(true);
+                }
                 get_tree(base).set_pause(true);
                 GameEvent::MissionComplete(result)
             }

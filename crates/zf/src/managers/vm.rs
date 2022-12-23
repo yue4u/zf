@@ -17,11 +17,12 @@ use zf_ffi::{
 };
 
 use crate::{
-    common::{current_scene, find_ref, get_tree},
+    common::{current_level, find_ref, get_tree},
     entities::{GameEvent, MissionLegacy},
     refs::{
-        groups,
-        path::{auto_load, base_level, SceneName, LEVELS},
+        groups, next_level,
+        path::{auto_load, base_level, LevelName},
+        LEVELS,
     },
     ui::{ScreenTransition, Terminal},
     vm::{CommandInput, CommandResult, VMSignal},
@@ -90,7 +91,7 @@ impl VMData {
         unsafe { self.base.assume_safe().get_tree().unwrap().assume_safe() }
     }
 
-    fn change_scene(&self, scene: SceneName) {
+    fn change_scene(&self, scene: LevelName) {
         unsafe {
             self.base
                 .assume_safe()
@@ -101,12 +102,12 @@ impl VMData {
         .unwrap();
     }
 
-    fn current_scene(&self) -> SceneName {
-        current_scene(unsafe { self.base.assume_safe().as_ref() })
+    fn current_level(&self) -> LevelName {
+        current_level(unsafe { self.base.assume_safe().as_ref() })
     }
 
     fn reload_scene(&self) {
-        self.change_scene(self.current_scene());
+        self.change_scene(self.current_level());
     }
 }
 
@@ -217,7 +218,7 @@ impl VMManager {
 
     #[method]
     fn on_child_entered_tree(&mut self, #[base] base: &Node, node: Ref<Node>) {
-        let scene = current_scene(unsafe { node.assume_safe() }.as_ref());
+        let scene = current_level(unsafe { node.assume_safe() }.as_ref());
         base.emit_signal(
             VMSignal::OnGameState,
             &[GameEvent::LevelChange(scene).to_variant()],
@@ -327,13 +328,13 @@ impl RuntimeFunc {
             CommandArgs::Game(g) => {
                 match g {
                     GameCommand::Start => {
-                        caller.data().ext.change_scene(SceneName::Sandbox);
+                        caller.data().ext.change_scene(LevelName::Sandbox);
                     }
                     GameCommand::Menu => {
-                        caller.data().ext.change_scene(SceneName::StartMenu);
+                        caller.data().ext.change_scene(LevelName::StartMenu);
                     }
                     GameCommand::Tutorial => {
-                        caller.data().ext.change_scene(SceneName::Tutorial);
+                        caller.data().ext.change_scene(LevelName::Tutorial);
                     }
                     GameCommand::End => {
                         caller.data().ext.scene_tree().quit(0);
@@ -343,8 +344,8 @@ impl RuntimeFunc {
             }
             CommandArgs::Level(level) => match level {
                 LevelCommand::Start(name) => {
-                    let scene = SceneName::from(&name);
-                    if scene != SceneName::Unknown {
+                    let scene = LevelName::from(&name);
+                    if scene != LevelName::Unknown {
                         caller.data().ext.change_scene(scene);
                     }
                     0
@@ -354,17 +355,14 @@ impl RuntimeFunc {
                     0
                 }
                 LevelCommand::Next => {
-                    let current = caller.data().ext.current_scene().to_string();
-                    if let Some(current_idx) = LEVELS.iter().position(|&l| l == &current) {
-                        if let Some(next) = LEVELS.get(current_idx + 1) {
-                            caller.data().ext.change_scene(SceneName::from(next));
-                        }
-                    }
+                    let current = caller.data().ext.current_level().to_string();
+                    if let Some(next) = next_level(current) {
+                        caller.data().ext.change_scene(next);
+                    };
                     0
                 }
                 LevelCommand::List => {
                     let levels = LEVELS
-                        .to_vec()
                         .iter()
                         .map(|l| l.to_string())
                         .collect::<Vec<String>>();

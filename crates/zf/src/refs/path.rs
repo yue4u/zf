@@ -40,8 +40,8 @@ pub mod levels {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-#[derive(Debug, PartialEq, ToVariant, FromVariant)]
-pub enum SceneName {
+#[derive(Debug, Clone, PartialEq, ToVariant, FromVariant)]
+pub enum LevelName {
     TutorialFire,
     Tutorial,
     StartMenu,
@@ -49,59 +49,56 @@ pub enum SceneName {
     Unknown,
 }
 
-#[rustfmt::skip]
-pub const LEVELS: &'static [&str] = &[
-    "TutorialFire",
-    "Tutorial",
-    "Sandbox",
-];
 
-impl SceneName {
+impl LevelName {
     pub fn from_path(value: &str) -> Self {
         match value {
-            levels::TUTORIAL_FIRE => SceneName::TutorialFire,
-            levels::TUTORIAL => SceneName::Tutorial,
-            levels::START_MENU => SceneName::StartMenu,
-            levels::SANDBOX => SceneName::Sandbox,
-            _ => SceneName::Unknown,
+            levels::TUTORIAL_FIRE => LevelName::TutorialFire,
+            levels::TUTORIAL => LevelName::Tutorial,
+            levels::START_MENU => LevelName::StartMenu,
+            levels::SANDBOX => LevelName::Sandbox,
+            _ => LevelName::Unknown,
         }
     }
 }
 
-impl SceneName {
+impl LevelName {
     pub fn path(&self) -> &'static str {
         match self {
-            SceneName::TutorialFire => levels::TUTORIAL_FIRE,
-            SceneName::Tutorial => levels::TUTORIAL,
-            SceneName::StartMenu => levels::START_MENU,
-            SceneName::Sandbox => levels::SANDBOX,
-            SceneName::Unknown => unreachable!(),
+            LevelName::TutorialFire => levels::TUTORIAL_FIRE,
+            LevelName::Tutorial => levels::TUTORIAL,
+            LevelName::StartMenu => levels::START_MENU,
+            LevelName::Sandbox => levels::SANDBOX,
+            LevelName::Unknown => unreachable!(),
         }
     }
 }
 
-impl std::fmt::Display for SceneName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let scene_name = match &self {
-            SceneName::TutorialFire => "TutorialFire",
-            SceneName::Tutorial => "Tutorial",
-            SceneName::StartMenu => "StartMenu",
-            SceneName::Sandbox => "Sandbox",
-            SceneName::Unknown => "Unknown",
-        };
-        f.write_str(scene_name)
-    }
-}
-
-impl SceneName {
-    pub fn from(name: &str) -> SceneName {
+impl LevelName {
+    pub fn from(name: &str) -> LevelName {
         match name {
-            "TutorialFire" => SceneName::TutorialFire,
-            "Tutorial" => SceneName::Tutorial,
-            "StartMenu" => SceneName::StartMenu,
-            "Sandbox" => SceneName::Sandbox,
-            _ => SceneName::Unknown,
+            "TutorialFire" => LevelName::TutorialFire,
+            "Tutorial" => LevelName::Tutorial,
+            "StartMenu" => LevelName::StartMenu,
+            "Sandbox" => LevelName::Sandbox,
+            _ => LevelName::Unknown,
         }
+    }
+
+    pub fn as_str(&self) -> &str {
+        match &self {
+            LevelName::TutorialFire => "TutorialFire",
+            LevelName::Tutorial => "Tutorial",
+            LevelName::StartMenu => "StartMenu",
+            LevelName::Sandbox => "Sandbox",
+            _ => "Unknown",
+        }
+    }
+}
+
+impl std::fmt::Display for LevelName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 #[rustfmt::skip]
@@ -248,7 +245,7 @@ pub mod base_level {
     pub const PLAYER_STATUS: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/PlayerStatus";
     pub const CONTROL_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
     pub const H_BOX_CONTAINER_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/HBoxContainer";
-    pub const LABEL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/Label";
+    pub const LEVEL_NAME: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/LevelName";
 }
 
 #[rustfmt::skip]

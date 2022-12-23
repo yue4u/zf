@@ -1,6 +1,8 @@
 mod env;
 mod hello;
 mod history;
+mod level_name;
+mod mission;
 mod palette;
 mod perf_label;
 mod player_health_bar;
@@ -9,11 +11,12 @@ mod radar;
 mod result;
 mod screen_transition;
 mod terminal;
-mod mission;
 
 pub use env::*;
 pub use hello::*;
 pub use history::*;
+pub use level_name::*;
+pub use mission::*;
 pub use palette::*;
 pub use perf_label::*;
 pub use player_health_bar::*;
@@ -22,4 +25,3 @@ pub use radar::*;
 pub use result::*;
 pub use screen_transition::*;
 pub use terminal::*;
-pub use mission::*;

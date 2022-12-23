@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     common::{Id, Position},
-    refs::path::SceneName,
+    refs::path::LevelName,
 };
 use gdnative::prelude::{FromVariant, ToVariant};
 use nu_ansi_term::*;
@@ -28,7 +28,7 @@ pub enum GameEvent {
     EnemyDestroied,
     MissionComplete(String),
     MissionFailed,
-    LevelChange(SceneName),
+    LevelChange(LevelName),
 }
 
 impl MissionLegacy {

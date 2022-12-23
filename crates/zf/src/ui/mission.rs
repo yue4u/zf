@@ -1,8 +1,8 @@
 use crate::{
-    common::{current_scene, find_ref, get_tree},
+    common::{current_level, find_ref, get_tree},
     entities::GameEvent,
     managers::VMManager,
-    refs::{groups, path::SceneName},
+    refs::{groups, path::LevelName},
     vm::VMSignal,
 };
 use gdnative::{
@@ -19,7 +19,7 @@ pub struct Mission {
 }
 
 struct MissionDetails {
-    scene: SceneName,
+    scene: LevelName,
     target_points: u32,
     target_points_all: u32,
     enemies: u32,
@@ -103,7 +103,7 @@ impl Mission {
             .as_ref();
         let tree = get_tree(as_node_ref);
         let m = MissionDetails {
-            scene: current_scene(as_node_ref),
+            scene: current_level(as_node_ref),
             target_points: 0,
             target_points_all: tree.get_nodes_in_group(groups::TARGET_POINT).len() as u32,
             enemies: 0,

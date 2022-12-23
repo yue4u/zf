@@ -15,10 +15,10 @@ use zf_runtime::{cmds, strip_ansi};
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
-    common::{current_scene, find_ref, PackedSceneRef, SceneLoader},
+    common::{current_level, find_ref, PackedSceneRef, SceneLoader},
     entities::{GameEvent, GLOBAL_GAME_STATE},
     managers::VMManager,
-    refs::{self, path::SceneName, HasPath},
+    refs::{self, path::LevelName, HasPath},
     vm::{CommandInput, CommandResult, VMSignal},
 };
 
@@ -217,7 +217,7 @@ impl Terminal {
             .expect("failed to connect vm");
 
         self.write(ZF);
-        self.write_scene_message(current_scene(&as_node));
+        self.write_scene_message(current_level(&as_node));
         self.prompt();
 
         Some(())
@@ -246,14 +246,14 @@ impl Terminal {
     }
 
     #[method]
-    fn write_scene_message(&mut self, scene_name: SceneName) -> Option<()> {
+    fn write_scene_message(&mut self, scene_name: LevelName) -> Option<()> {
         use nu_ansi_term::Color::*;
 
         let code = Rgb(255, 194, 60).bold();
 
         let text = match scene_name {
-            SceneName::Sandbox => None,
-            SceneName::StartMenu => Some(format!(
+            LevelName::Sandbox => None,
+            LevelName::StartMenu => Some(format!(
                 "Type {} to continue or {} for help.",
                 code.paint(
                     GLOBAL_GAME_STATE
@@ -269,7 +269,7 @@ impl Terminal {
                 ),
                 code.paint("help")
             )),
-            SceneName::Tutorial => Some(format!(
+            LevelName::Tutorial => Some(format!(
                 "type {} to explore engine command",
                 code.paint("engine --help")
             )),

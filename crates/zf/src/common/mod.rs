@@ -1,7 +1,7 @@
 pub mod logging;
 
 use crate::{
-    refs::{path::SceneName, HasPath},
+    refs::{path::LevelName, HasPath},
     units::Player,
 };
 use gdnative::{api::*, prelude::*};
@@ -79,13 +79,13 @@ pub fn get_tree<'a>(base: &'a Node) -> TRef<'a, SceneTree> {
     unsafe { base.get_tree().unwrap().assume_safe() }
 }
 
-pub fn current_scene<'a>(base: &'a Node) -> SceneName {
+pub fn current_level<'a>(base: &'a Node) -> LevelName {
     let current_scene = get_tree(base).current_scene();
     match current_scene {
         Some(scene) => {
             let path = unsafe { scene.assume_safe() }.filename();
-            SceneName::from_path(path.to_string().as_str())
+            LevelName::from_path(path.to_string().as_str())
         }
-        None => SceneName::Unknown,
+        None => LevelName::Unknown,
     }
 }

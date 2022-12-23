@@ -3,14 +3,14 @@ use gdnative::{
     prelude::*,
 };
 
-use crate::refs::path::SceneName;
+use crate::refs::path::LevelName;
 
 #[derive(NativeClass)]
 #[inherit(TextureRect)]
 pub struct ScreenTransition {
     base: Ref<TextureRect>,
     animation_player: Option<Ref<AnimationPlayer>>,
-    next_scene: Option<&'static str>,
+    next_level: Option<LevelName>,
 }
 
 #[methods]
@@ -19,7 +19,7 @@ impl ScreenTransition {
         ScreenTransition {
             base: base.claim(),
             animation_player: None,
-            next_scene: None,
+            next_level: None,
         }
     }
 
@@ -55,8 +55,8 @@ impl ScreenTransition {
 
     #[method]
     /// Start playing transition and set next scene target but not start right now
-    pub fn to(&mut self, next_scene: SceneName) {
-        self.next_scene = Some(next_scene.path());
+    pub fn to(&mut self, next_scene: LevelName) {
+        self.next_level = Some(next_scene);
         let animation_player = unsafe { self.animation_player.unwrap().assume_safe() };
         animation_player.play("Pixelate", -1., 1.0, false);
     }
@@ -65,8 +65,8 @@ impl ScreenTransition {
     /// Actualy changed current scene. This will be called in the middle of transition.
     pub fn change_scene(&mut self) {
         let tree = unsafe { self.base.assume_safe().get_tree().unwrap().assume_safe() };
-        let path = self.next_scene.take().unwrap();
-        tree.change_scene(path).unwrap();
+        let level = self.next_level.take().unwrap();
+        tree.change_scene(level.path()).unwrap();
         tree.set_pause(false);
     }
 

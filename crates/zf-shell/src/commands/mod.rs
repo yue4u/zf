@@ -4,13 +4,14 @@ mod fire;
 mod fsays;
 mod game;
 mod hi;
+mod level;
 mod mission;
 mod mystery;
 mod radar;
 mod task;
+mod term;
 mod time;
 mod ui;
-mod term;
 
 pub(crate) use clear::*;
 pub(crate) use engine::*;
@@ -18,13 +19,14 @@ pub(crate) use fire::*;
 pub(crate) use fsays::*;
 pub(crate) use game::*;
 pub(crate) use hi::*;
+pub(crate) use level::*;
 pub(crate) use mission::*;
 pub(crate) use mystery::*;
 pub(crate) use radar::*;
 pub(crate) use task::*;
+pub(crate) use term::*;
 pub(crate) use time::*;
 pub(crate) use ui::*;
-pub(crate) use term::*;
 
 use nu_engine::CallExt;
 

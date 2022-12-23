@@ -19,7 +19,7 @@ cmd::proxy!(
 cmd::proxy!(
     GameMenu,
     name: "game menu",
-    usage: "Goto game game",
+    usage: "Goto game menu",
     arg: CommandArgs::Game(GameCommand::Menu)
 );
 

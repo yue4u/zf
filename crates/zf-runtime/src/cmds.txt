@@ -3,7 +3,6 @@ all
 any
 append
 ast
-build-string
 char
 clear
 collect
@@ -38,6 +37,7 @@ encode base64
 engine
 engine off
 engine on
+engine rel
 engine t
 engine thruster
 error make
@@ -80,6 +80,11 @@ is-empty
 last
 length
 let
+level
+level ls
+level next
+level restart
+level start
 lines
 math
 math abs

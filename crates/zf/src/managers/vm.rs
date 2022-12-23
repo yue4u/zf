@@ -11,7 +11,7 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
-use zf_ffi::{memory::Tag, CommandArgs, GameCommand, MissionCommand, TaskCommand};
+use zf_ffi::{memory::Tag, CommandArgs, GameCommand, LevelCommand, MissionCommand, TaskCommand};
 
 use crate::{
     common::{current_scene, find_ref, get_tree},
@@ -328,6 +328,15 @@ impl RuntimeFunc {
                     GameCommand::End => {
                         caller.data().ext.scene_tree().quit(0);
                     }
+                };
+                0
+            }
+            CommandArgs::Level(level) => {
+                match level {
+                    LevelCommand::Start(name) => tracing::debug!("LevelCommand::Start: {}", name),
+                    LevelCommand::Restart => tracing::debug!("LevelCommand::Restart",),
+                    LevelCommand::Next => tracing::debug!("LevelCommand::Next",),
+                    LevelCommand::List => tracing::debug!("LevelCommand::List",),
                 };
                 0
             }

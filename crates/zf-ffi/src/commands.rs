@@ -8,6 +8,7 @@ use gdnative::prelude::{FromVariant, ToVariant};
 pub enum CommandArgs {
     // Help,
     Game(GameCommand),
+    Level(LevelCommand),
     Mission(MissionCommand),
     Engine(EngineCommand),
     Task(TaskCommand),
@@ -28,6 +29,15 @@ pub enum GameCommand {
     Menu,
     Tutorial,
     End,
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
+pub enum LevelCommand {
+    Start(String),
+    Restart,
+    Next,
+    List,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

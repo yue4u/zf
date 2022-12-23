@@ -56,8 +56,8 @@ pub const LEVELS: &'static [&str] = &[
     "Sandbox",
 ];
 
-impl From<&str> for SceneName {
-    fn from(value: &str) -> Self {
+impl SceneName {
+    pub fn from_path(value: &str) -> Self {
         match value {
             levels::TUTORIAL_FIRE => SceneName::TutorialFire,
             levels::TUTORIAL => SceneName::Tutorial,
@@ -389,3 +389,4 @@ pub mod assets {
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
 }
+

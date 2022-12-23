@@ -83,8 +83,8 @@ pub fn current_scene<'a>(base: &'a Node) -> SceneName {
     let current_scene = get_tree(base).current_scene();
     match current_scene {
         Some(scene) => {
-            let name = unsafe { scene.assume_safe() }.filename();
-            name.to_string().as_str().into()
+            let path = unsafe { scene.assume_safe() }.filename();
+            SceneName::from_path(path.to_string().as_str())
         }
         None => SceneName::Unknown,
     }

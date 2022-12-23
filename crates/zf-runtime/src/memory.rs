@@ -6,7 +6,7 @@ use crate::runtime::ExtendedStore;
 
 pub trait HostWrite<T> {
     fn write_string_from_host(&mut self, string: String) -> i64;
-    fn write_struct_from_host<S: bincode::enc::Encode>(&mut self, val: S) -> i64;
+    fn write_result<S: bincode::enc::Encode>(&mut self, val: S) -> i64;
 }
 
 impl<T> HostWrite<T> for Caller<'_, T> {
@@ -14,7 +14,7 @@ impl<T> HostWrite<T> for Caller<'_, T> {
         write_string_with_caller(self, string)
     }
 
-    fn write_struct_from_host<S: bincode::enc::Encode>(&mut self, val: S) -> i64 {
+    fn write_result<S: bincode::enc::Encode>(&mut self, val: S) -> i64 {
         let config = config::standard();
         let content = encode_to_vec(val, config).unwrap();
 

@@ -368,7 +368,7 @@ impl RuntimeFunc {
                         .iter()
                         .map(|l| l.to_string())
                         .collect::<Vec<String>>();
-                    caller.write_struct_from_host(CommandResults::Levels(levels))
+                    caller.write_result(CommandResults::Levels(levels))
                 }
             },
             CommandArgs::Time(time) => {

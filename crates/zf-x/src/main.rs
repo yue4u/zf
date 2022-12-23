@@ -74,7 +74,7 @@ pub const LEVELS: &'static [&str] = &[
                         .join("\n"),
                 ));
 
-                let inner = &level_inner
+                let from_path_inner = &level_inner
                     .iter()
                     .map(|v| {
                         format!(
@@ -85,12 +85,13 @@ pub const LEVELS: &'static [&str] = &[
                     })
                     .collect::<Vec<String>>()
                     .join("\n");
-                code.push_str(&format!(
+
+                    code.push_str(&format!(
                     r#"
-impl From<&str> for SceneName {{
-    fn from(value: &str) -> Self {{
+impl SceneName {{
+    pub fn from_path(value: &str) -> Self {{
         match value {{
-{inner}
+{from_path_inner}
             _ => SceneName::Unknown,
         }}
     }}

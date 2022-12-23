@@ -40,7 +40,7 @@ pub mod levels {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-#[derive(Debug, ToVariant, FromVariant)]
+#[derive(Debug, PartialEq, ToVariant, FromVariant)]
 pub enum SceneName {
     TutorialFire,
     Tutorial,
@@ -48,6 +48,13 @@ pub enum SceneName {
     Sandbox,
     Unknown,
 }
+
+#[rustfmt::skip]
+pub const LEVELS: &'static [&str] = &[
+    "TutorialFire",
+    "Tutorial",
+    "Sandbox",
+];
 
 impl From<&str> for SceneName {
     fn from(value: &str) -> Self {
@@ -83,6 +90,18 @@ impl std::fmt::Display for SceneName {
             SceneName::Unknown => "Unknown",
         };
         f.write_str(scene_name)
+    }
+}
+
+impl SceneName {
+    pub fn from(name: &str) -> SceneName {
+        match name {
+            "TutorialFire" => SceneName::TutorialFire,
+            "Tutorial" => SceneName::Tutorial,
+            "StartMenu" => SceneName::StartMenu,
+            "Sandbox" => SceneName::Sandbox,
+            _ => SceneName::Unknown,
+        }
     }
 }
 #[rustfmt::skip]
@@ -235,7 +254,7 @@ pub mod base_level {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod title_label {
-    pub const TEXTURE_RECT: &str = "/root/Scene/TextureRect";
+
 }
 
 #[rustfmt::skip]
@@ -342,8 +361,8 @@ pub mod sandbox {
     pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
     pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
-    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
+    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
 }
 
 #[rustfmt::skip]
@@ -370,4 +389,3 @@ pub mod assets {
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
 }
-

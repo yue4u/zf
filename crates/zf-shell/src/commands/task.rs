@@ -63,7 +63,7 @@ impl Command for TaskRun {
             _ => None,
         };
         let args = CommandArgs::Task(TaskCommand::Run { every, cmd });
-        let val = zf_ffi::cmd(args);
+        let val = zf_ffi::cmd_legacy(args);
         Ok(Value::String {
             val,
             span: call.head,
@@ -101,7 +101,7 @@ impl Command for TaskStop {
     ) -> Result<PipelineData, ShellError> {
         let cmd: String = call.req(engine_state, stack, 0)?;
         let args = CommandArgs::Task(TaskCommand::Stop(cmd));
-        let val = zf_ffi::cmd(args);
+        let val = zf_ffi::cmd_legacy(args);
         Ok(Value::String {
             val,
             span: call.head,

@@ -46,7 +46,7 @@ impl Command for TermOpacity {
         };
 
         let args = CommandArgs::Term(TermCommand::Opacity(opacity));
-        zf_ffi::cmd(args);
+        zf_ffi::cmd_legacy(args);
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }
 }

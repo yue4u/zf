@@ -4,7 +4,7 @@ use nu_protocol::{
     engine::{Command, EngineState, Stack},
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
-use zf_ffi::{CommandArgs, LevelCommand};
+use zf_ffi::{CommandArgs, CommandResults, LevelCommand};
 
 use crate::cmd;
 
@@ -28,12 +28,46 @@ cmd::proxy!(
     arg: CommandArgs::Level(LevelCommand::Next)
 );
 
-cmd::proxy!(
-    LevelList,
-    name: "level ls",
-    usage: "List all levels",
-    arg: CommandArgs::Level(LevelCommand::List)
-);
+#[derive(Clone)]
+pub(crate) struct LevelList;
+
+impl Command for LevelList {
+    fn name(&self) -> &str {
+        "level ls"
+    }
+
+    fn signature(&self) -> Signature {
+        Signature::build(self.name())
+    }
+
+    fn usage(&self) -> &str {
+        "List all levels"
+    }
+
+    fn run(
+        &self,
+        _engine_state: &EngineState,
+        _stack: &mut Stack,
+        call: &Call,
+        _input: PipelineData,
+    ) -> Result<PipelineData, ShellError> {
+        let args = CommandArgs::Level(LevelCommand::List);
+        let val = match zf_ffi::cmd(args) {
+            CommandResults::Levels(levels) => Value::List {
+                vals: levels
+                    .into_iter()
+                    .map(|val| Value::String {
+                        val,
+                        span: call.head,
+                    })
+                    .collect(),
+                span: call.head,
+            },
+            _ => Value::Nothing { span: call.head },
+        };
+        Ok(val.into_pipeline_data())
+    }
+}
 
 #[derive(Clone)]
 pub(crate) struct LevelStart;
@@ -68,7 +102,7 @@ impl Command for LevelStart {
         };
 
         let args = CommandArgs::Level(LevelCommand::Start(name));
-        zf_ffi::cmd(args);
+        zf_ffi::cmd_legacy(args);
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }
 }

@@ -50,6 +50,7 @@ pub fn main() -> io::Result<()> {
             if dir_name == "levels" {
                 let mut level_enum_inner = level_inner.clone();
                 level_enum_inner.push("Unknown".to_owned());
+
                 code.push_str(&fmt_enum(
                     "SceneName",
                     &level_enum_inner
@@ -58,6 +59,21 @@ pub fn main() -> io::Result<()> {
                         .collect::<Vec<String>>()
                         .join("\n"),
                 ));
+
+                code.push_str(&format!(
+                    r#"#[rustfmt::skip]
+pub const LEVELS: &'static [&str] = &[
+{}
+];
+"#,
+                    &level_inner
+                        .iter()
+                        .filter(|&v| v != "StartMenu")
+                        .map(|v| format!("    \"{}\",", v.to_case(Case::UpperCamel)))
+                        .collect::<Vec<String>>()
+                        .join("\n"),
+                ));
+
                 let inner = &level_inner
                     .iter()
                     .map(|v| {
@@ -70,7 +86,8 @@ pub fn main() -> io::Result<()> {
                     .collect::<Vec<String>>()
                     .join("\n");
                 code.push_str(&format!(
-                    r#"impl From<&str> for SceneName {{
+                    r#"
+impl From<&str> for SceneName {{
     fn from(value: &str) -> Self {{
         match value {{
 {inner}
@@ -106,6 +123,18 @@ pub fn main() -> io::Result<()> {
                     .collect::<Vec<String>>()
                     .join("\n");
 
+                let from_inner = &level_inner
+                    .iter()
+                    .map(|v| {
+                        format!(
+                            "            \"{}\" => SceneName::{},",
+                            v.to_case(Case::UpperCamel),
+                            v.to_case(Case::UpperCamel),
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
                 code.push_str(&format!(
                     r#"impl SceneName {{
     pub fn path(&self) -> &'static str {{
@@ -123,6 +152,15 @@ impl std::fmt::Display for SceneName {{
             SceneName::Unknown => "Unknown",
         }};
         f.write_str(scene_name)
+    }}
+}}
+
+impl SceneName {{
+    pub fn from(name: &str) -> SceneName {{
+        match name {{
+{from_inner}
+            _ => SceneName::Unknown,
+        }}
     }}
 }}
 "#
@@ -255,7 +293,7 @@ fn fmt_enum(enum_name: &str, inner: &str) -> String {
         r#"
 #[rustfmt::skip]
 #[allow(dead_code)]
-#[derive(Debug, ToVariant, FromVariant)]
+#[derive(Debug, PartialEq, ToVariant, FromVariant)]
 pub enum {enum_name} {{
 {inner}
 }}

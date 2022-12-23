@@ -59,7 +59,7 @@ impl Command for Fire {
             target,
             pos,
         });
-        zf_ffi::cmd(args);
+        zf_ffi::cmd_legacy(args);
         // TODO: we may want to return true/false from here
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }

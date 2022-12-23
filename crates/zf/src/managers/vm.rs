@@ -11,20 +11,23 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
-use zf_ffi::{memory::Tag, CommandArgs, GameCommand, LevelCommand, MissionCommand, TaskCommand};
+use zf_ffi::{
+    memory::Tag, CommandArgs, CommandResults, GameCommand, LevelCommand, MissionCommand,
+    TaskCommand,
+};
 
 use crate::{
     common::{current_scene, find_ref, get_tree},
     entities::{GameEvent, MissionLegacy},
     refs::{
         groups,
-        path::{auto_load, base_level, SceneName},
+        path::{auto_load, base_level, SceneName, LEVELS},
     },
     ui::{ScreenTransition, Terminal},
     vm::{CommandInput, CommandResult, VMSignal},
 };
 
-use zf_runtime::{decode_from_caller, Caller, ExtendedStore, Runtime};
+use zf_runtime::{decode_from_caller, Caller, ExtendedStore, HostWrite, Runtime};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
@@ -96,6 +99,11 @@ impl VMData {
         .unwrap()
         .map_mut(|screen_transition, _| screen_transition.to(scene))
         .unwrap();
+    }
+
+    fn reload_scene(&self) {
+        let current = current_scene(unsafe { self.base.assume_safe().as_ref() });
+        self.change_scene(current);
     }
 }
 
@@ -306,13 +314,12 @@ impl RuntimeFunc {
                     }
                 };
                 tracing::debug!("{:?}", &ret);
-                zf_runtime::write_string_with_caller(&mut caller, ret)
+                caller.write_string_from_host(ret)
             }
             CommandArgs::Mission(m) => match m {
-                MissionCommand::Info => zf_runtime::write_string_with_caller(
-                    &mut caller,
-                    MissionLegacy::dummy().summary(),
-                ),
+                MissionCommand::Info => {
+                    caller.write_string_from_host(MissionLegacy::dummy().summary())
+                }
             },
             CommandArgs::Game(g) => {
                 match g {
@@ -331,15 +338,31 @@ impl RuntimeFunc {
                 };
                 0
             }
-            CommandArgs::Level(level) => {
-                match level {
-                    LevelCommand::Start(name) => tracing::debug!("LevelCommand::Start: {}", name),
-                    LevelCommand::Restart => tracing::debug!("LevelCommand::Restart",),
-                    LevelCommand::Next => tracing::debug!("LevelCommand::Next",),
-                    LevelCommand::List => tracing::debug!("LevelCommand::List",),
-                };
-                0
-            }
+            CommandArgs::Level(level) => match level {
+                LevelCommand::Start(name) => {
+                    let scene = SceneName::from(&name);
+                    if scene != SceneName::Unknown {
+                        caller.data().ext.change_scene(scene);
+                    }
+                    0
+                }
+                LevelCommand::Restart => {
+                    caller.data().ext.reload_scene();
+                    0
+                }
+                LevelCommand::Next => {
+                    tracing::debug!("LevelCommand::Next",);
+                    0
+                }
+                LevelCommand::List => {
+                    let levels = LEVELS
+                        .to_vec()
+                        .iter()
+                        .map(|l| l.to_string())
+                        .collect::<Vec<String>>();
+                    caller.write_struct_from_host(CommandResults::Levels(levels))
+                }
+            },
             CommandArgs::Time(time) => {
                 Engine::godot_singleton().set_time_scale(time.scale);
                 0
@@ -359,7 +382,7 @@ impl RuntimeFunc {
                         .to::<String>()
                         .unwrap()
                 };
-                zf_runtime::write_string_with_caller(&mut caller, result)
+                caller.write_string_from_host(result)
             }
             cmd => {
                 fire_and_forget(&mut caller.data_mut().ext, cmd);

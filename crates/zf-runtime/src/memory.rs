@@ -1,7 +1,46 @@
+use bincode::encode_to_vec;
 use wasmtime::{AsContextMut, Caller, Instance, Memory, Store, StoreContext};
 use zf_ffi::{config, decode_from_slice, memory::Tag};
 
 use crate::runtime::ExtendedStore;
+
+pub trait HostWrite<T> {
+    fn write_string_from_host(&mut self, string: String) -> i64;
+    fn write_struct_from_host<S: bincode::enc::Encode>(&mut self, val: S) -> i64;
+}
+
+impl<T> HostWrite<T> for Caller<'_, T> {
+    fn write_string_from_host(&mut self, string: String) -> i64 {
+        write_string_with_caller(self, string)
+    }
+
+    fn write_struct_from_host<S: bincode::enc::Encode>(&mut self, val: S) -> i64 {
+        let config = config::standard();
+        let content = encode_to_vec(val, config).unwrap();
+
+        let memory = self.get_export("memory").unwrap().into_memory().unwrap();
+        let alloc_vec = self.get_export("alloc_vec").unwrap().into_func().unwrap();
+
+        let mut store = self.as_context_mut();
+
+        let len = content.len() as i32;
+        let ptr = alloc_vec
+            .typed::<i32, i32, _>(&mut store)
+            .unwrap()
+            .call(&mut store, len)
+            .unwrap();
+
+        memory
+            .write(&mut store, ptr as usize, content.as_slice())
+            .unwrap();
+
+        debug_assert_eq!(
+            &memory.data(&store)[ptr as usize..ptr as usize + len as usize],
+            content
+        );
+        Tag::into(ptr, len)
+    }
+}
 
 pub fn write_string_with_caller<T>(caller: &mut Caller<'_, T>, string: String) -> i64 {
     let content = string.as_bytes();
@@ -26,7 +65,7 @@ pub fn write_string_with_caller<T>(caller: &mut Caller<'_, T>, string: String) -
         &memory.data(&store)[ptr as usize..ptr as usize + len as usize],
         content
     );
-    (ptr as i64) << 32 | (len as i64)
+    Tag::into(ptr, len)
 }
 
 #[must_use]

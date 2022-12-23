@@ -1,4 +1,8 @@
-use bincode::{config, encode_to_vec};
+use std::slice;
+
+use bincode::{config, decode_from_slice, encode_to_vec};
+
+use crate::CommandResults;
 
 pub struct Tag;
 
@@ -26,6 +30,14 @@ pub fn alloc_string(len: usize) -> *mut u8 {
     ptr
 }
 
+#[no_mangle]
+pub fn alloc_vec(len: usize) -> *mut u8 {
+    let mut buf = Vec::with_capacity(len);
+    let ptr = buf.as_mut_ptr();
+    std::mem::forget(buf);
+    ptr
+}
+
 pub unsafe fn string_from(tag: i64) -> String {
     let (ptr, len) = Tag::from(tag);
     String::from_raw_parts(
@@ -33,6 +45,16 @@ pub unsafe fn string_from(tag: i64) -> String {
         len as usize,
         len as usize,
     )
+}
+
+pub unsafe fn result_from(tag: i64) -> CommandResults {
+    let (ptr, len) = Tag::from(tag);
+    let data = slice::from_raw_parts_mut(
+        ptr as *mut u8, //
+        len as usize,
+    );
+    let (args, _) = decode_from_slice(data, config::standard()).unwrap();
+    args
 }
 
 pub fn alloc_encode<T: bincode::enc::Encode>(args: T) -> i64 {

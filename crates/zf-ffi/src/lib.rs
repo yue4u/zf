@@ -1,8 +1,10 @@
 pub mod commands;
 pub mod memory;
+pub mod results;
 
 pub use bincode::*;
 pub use commands::*;
+pub use results::*;
 
 #[link(wasm_import_module = "zf")]
 extern "C" {
@@ -27,10 +29,18 @@ pub fn terminal_size() -> Option<(Width, Height)> {
     Some((Width(w as u16), Height(h as u16)))
 }
 
-pub fn cmd(args: commands::CommandArgs) -> String {
+pub fn cmd_legacy(args: commands::CommandArgs) -> String {
     let tag_out = memory::alloc_encode(args);
     unsafe {
         let tag_in = zf_cmd(tag_out);
         memory::string_from(tag_in)
+    }
+}
+
+pub fn cmd(args: commands::CommandArgs) -> CommandResults {
+    let tag_out = memory::alloc_encode(args);
+    unsafe {
+        let tag_in = zf_cmd(tag_out);
+        memory::result_from(tag_in)
     }
 }

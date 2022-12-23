@@ -54,7 +54,7 @@ macro_rules! proxy {
                 call: &nu_protocol::ast::Call,
                 _input: nu_protocol::PipelineData,
             ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-                let val = zf_ffi::cmd($arg);
+                let val = zf_ffi::cmd_legacy($arg);
                 // QUESTION: 1. use json or nu_json or nuon?
                 // QUESTION: 2. diff json result vs non json result?
                 match nu_command::try_convert_str_to_value(&val, call.head) {

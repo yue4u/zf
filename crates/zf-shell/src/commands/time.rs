@@ -51,7 +51,7 @@ impl Command for TimeScale {
         }
 
         let args = CommandArgs::Time(TimeCommand { scale });
-        zf_ffi::cmd(args);
+        zf_ffi::cmd_legacy(args);
 
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }

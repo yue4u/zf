@@ -101,9 +101,12 @@ impl VMData {
         .unwrap();
     }
 
+    fn current_scene(&self) -> SceneName {
+        current_scene(unsafe { self.base.assume_safe().as_ref() })
+    }
+
     fn reload_scene(&self) {
-        let current = current_scene(unsafe { self.base.assume_safe().as_ref() });
-        self.change_scene(current);
+        self.change_scene(self.current_scene());
     }
 }
 
@@ -351,7 +354,12 @@ impl RuntimeFunc {
                     0
                 }
                 LevelCommand::Next => {
-                    tracing::debug!("LevelCommand::Next",);
+                    let current = caller.data().ext.current_scene().to_string();
+                    if let Some(current_idx) = LEVELS.iter().position(|&l| l == &current) {
+                        if let Some(next) = LEVELS.get(current_idx + 1) {
+                            caller.data().ext.change_scene(SceneName::from(next));
+                        }
+                    }
                     0
                 }
                 LevelCommand::List => {

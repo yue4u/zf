@@ -36,6 +36,7 @@ pub mod levels {
     pub const TUTORIAL: &str = "res://levels/Tutorial.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const SANDBOX: &str = "res://levels/Sandbox.tscn";
+    pub const TUTORIAL_MOVEMENT: &str = "res://levels/TutorialMovement.tscn";
 }
 
 #[rustfmt::skip]
@@ -46,6 +47,7 @@ pub enum LevelName {
     Tutorial,
     StartMenu,
     Sandbox,
+    TutorialMovement,
     Unknown,
 }
 
@@ -57,6 +59,7 @@ impl LevelName {
             levels::TUTORIAL => LevelName::Tutorial,
             levels::START_MENU => LevelName::StartMenu,
             levels::SANDBOX => LevelName::Sandbox,
+            levels::TUTORIAL_MOVEMENT => LevelName::TutorialMovement,
             _ => LevelName::Unknown,
         }
     }
@@ -69,6 +72,7 @@ impl LevelName {
             LevelName::Tutorial => levels::TUTORIAL,
             LevelName::StartMenu => levels::START_MENU,
             LevelName::Sandbox => levels::SANDBOX,
+            LevelName::TutorialMovement => levels::TUTORIAL_MOVEMENT,
             LevelName::Unknown => unreachable!(),
         }
     }
@@ -81,6 +85,7 @@ impl LevelName {
             "Tutorial" => LevelName::Tutorial,
             "StartMenu" => LevelName::StartMenu,
             "Sandbox" => LevelName::Sandbox,
+            "TutorialMovement" => LevelName::TutorialMovement,
             _ => LevelName::Unknown,
         }
     }
@@ -91,6 +96,7 @@ impl LevelName {
             LevelName::Tutorial => "Tutorial",
             LevelName::StartMenu => "StartMenu",
             LevelName::Sandbox => "Sandbox",
+            LevelName::TutorialMovement => "TutorialMovement",
             _ => "Unknown",
         }
     }
@@ -318,9 +324,9 @@ pub mod tutorial_fire {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod tutorial {
+    pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
     pub const TARGET_POINT_2: &str = "/root/Scene/Level/TargetPoint2";
     pub const TARGET_POINT_3: &str = "/root/Scene/Level/TargetPoint3";
-    pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
@@ -360,6 +366,18 @@ pub mod sandbox {
     pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
     pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_movement {
+    pub const TARGET_POINT_2: &str = "/root/Scene/Level/TargetPoint2";
+    pub const TARGET_POINT_3: &str = "/root/Scene/Level/TargetPoint3";
+    pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
 }
 
 #[rustfmt::skip]

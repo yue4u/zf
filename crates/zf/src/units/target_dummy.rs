@@ -47,9 +47,7 @@ impl TargetDummy {
     pub fn damage(&self, #[base] base: TRef<Spatial>, _ammount: u32) {
         base.queue_free();
 
-        unsafe { self.base.assume_safe() }.emit_signal(
-            HIT_BY_PLAYER,
-            &[GameEvent::MissionComplete("Target is damaged!".to_owned()).to_variant()],
-        );
+        unsafe { self.base.assume_safe() }
+            .emit_signal(HIT_BY_PLAYER, &[GameEvent::EnemyDestroied.to_variant()]);
     }
 }

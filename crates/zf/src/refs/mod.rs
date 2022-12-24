@@ -61,7 +61,6 @@ impl LevelHelper for LevelName {
             LevelName::StartMenu => todo!(),
             LevelName::Sandbox => todo!(),
             LevelName::TutorialEngine => vec!["engine thruster 100"],
-            LevelName::TutorialFire => todo!(),
             LevelName::TutorialEngineRel => vec![
                 "alias r = engine rel",
                 "r -x -8 -y 5 -z 5",
@@ -80,6 +79,7 @@ impl LevelHelper for LevelName {
             LevelName::TutorialTaskEngineCombine => {
                 vec!["e t 100; task run -e 1sec 'mission targets | get 0 | engine rel'"]
             }
+            LevelName::TutorialFire => vec!["task run -e 1sec 'radar | get 0 | fire hm'"],
             LevelName::Unknown => todo!(),
             LevelName::TutorialComplete => todo!(),
         };
@@ -171,7 +171,15 @@ Try combining task command and engine command togetter!
                 StyledLabel::Code.paint(";"),
                 StyledLabel::Code.paint("engine on; 1 + 1"),
             ),
-            LevelName::TutorialFire => todo!(),
+            LevelName::TutorialFire => format!(
+                r#"let's use our weapon system!
+{} allow use to fire a homing missile,
+while enemy positions can be retrieved from {} command.
+Combining this two commands to destroy enemies!
+"#,
+                StyledLabel::Code.paint("fire fm"),
+                StyledLabel::Code.paint("radar"),
+            ),
             LevelName::Unknown => todo!(),
             LevelName::TutorialComplete => todo!(),
         };

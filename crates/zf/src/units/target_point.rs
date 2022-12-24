@@ -1,10 +1,14 @@
 use gdnative::{
-    api::{object::ConnectFlags, Area, Spatial},
+    api::{object::ConnectFlags, Area, Label3D, Spatial},
     prelude::*,
 };
 
 use crate::{
-    common::find_ref, entities::GameEvent, managers::VMManager, refs::groups, vm::VMSignal,
+    common::find_ref,
+    entities::GameEvent,
+    managers::VMManager,
+    refs::{self, groups},
+    vm::VMSignal,
 };
 
 #[derive(NativeClass)]
@@ -36,6 +40,20 @@ impl TargetPoint {
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
         let vm_manager = find_ref::<VMManager, Node>(as_node)?;
 
+        let label = unsafe {
+            base.get_node_as::<Label3D>(refs::path::target_point::LABEL_3_D)
+                .unwrap()
+        };
+        let Transform {
+            origin: Vector3 { x, y, z },
+            ..
+        } = base.transform();
+        if x.abs() + y.abs() + z.abs() > 1. {
+            // HACK: somehow this is -x for rel?
+            label.set_text(format!("{}, {y}, {z}", -x));
+        } else {
+            label.set_visible(false)
+        }
         base.connect(
             HIT_TARGET_POINT,
             vm_manager,

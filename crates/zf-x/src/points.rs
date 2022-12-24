@@ -47,17 +47,17 @@ fn main() -> io::Result<()> {
         .enumerate()
         .filter(|i| (i.0 + 1) % 3 == 0)
         .enumerate()
-        .for_each(|(i, (_, p))| {
+        .for_each(|(i, (_, Point { x, y, z }))| {
+            // [node name="TargetPoint_{}" parent="Level" index="{}" instance=ExtResource( 1 )]
+            // transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, {}, {}, {} )
+            let index = i + 100;
             println!(
                 r#"
-[node name="TargetPoint_{}" parent="Level" index="{}" instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, {}, {}, {} )
+[node name="Point_{i}" type="Spatial" parent="Level" index="{index}"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, {x}, {y}, {z} )
+
+[node name="Target_{i}" parent="Level/Point_{i}" index="0" instance=ExtResource( 1 )]
 "#,
-                i,
-                i + 100,
-                p.x,
-                p.y,
-                p.z
             );
         });
     Ok(())

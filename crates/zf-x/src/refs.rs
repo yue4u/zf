@@ -181,7 +181,8 @@ impl std::fmt::Display for LevelName {{
                     };
 
                     if let (Some(name), Some(parent)) = (name, parent) {
-                        let node_path = if path.ends_with("PlayerHealthBar.tscn") {
+                        let rel = ["PlayerHealthBar.tscn", "TargetPoint.tscn"];
+                        let node_path = if rel.iter().any(|p| path.ends_with(p)) {
                             format!(
                                 ".{}{}",
                                 if parent == "." {

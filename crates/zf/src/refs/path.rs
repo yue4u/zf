@@ -290,9 +290,10 @@ pub mod terminal_sandbox {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod target_point {
-    pub const AREA: &str = "/root/Scene/Area";
-    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
-    pub const CSG_MESH: &str = "/root/Scene/CSGMesh";
+    pub const AREA: &str = "./Area";
+    pub const COLLISION_SHAPE: &str = "./Area/CollisionShape";
+    pub const CSG_MESH: &str = "./CSGMesh";
+    pub const LABEL_3_D: &str = "./Label3D";
 }
 
 #[rustfmt::skip]
@@ -334,11 +335,20 @@ pub mod tutorial_engine_rel {
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
-    pub const TARGET_POINT_1: &str = "/root/Scene/Level/TargetPoint_1";
-    pub const TARGET_POINT_2: &str = "/root/Scene/Level/TargetPoint_2";
-    pub const TARGET_POINT_3: &str = "/root/Scene/Level/TargetPoint_3";
-    pub const TARGET_POINT_4: &str = "/root/Scene/Level/TargetPoint_4";
-    pub const TARGET_POINT_5: &str = "/root/Scene/Level/TargetPoint_5";
+    pub const POINT_0: &str = "/root/Scene/Level/Point_0";
+    pub const TARGET_0: &str = "/root/Scene/Level/Point_0/Target_0";
+    pub const POINT_1: &str = "/root/Scene/Level/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Point_3/Target_3";
+    pub const POINT_4: &str = "/root/Scene/Level/Point_4";
+    pub const TARGET_4: &str = "/root/Scene/Level/Point_4/Target_4";
+    pub const POINT_5: &str = "/root/Scene/Level/Point_5";
+    pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
+    pub const POINT_6: &str = "/root/Scene/Level/Point_6";
+    pub const TARGET_6: &str = "/root/Scene/Level/Point_6/Target_6";
 }
 
 #[rustfmt::skip]

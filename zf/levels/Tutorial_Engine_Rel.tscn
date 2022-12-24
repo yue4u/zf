@@ -26,17 +26,30 @@ rotation_mode = 4
 
 [node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="0" instance=ExtResource( 2 )]
 
-[node name="TargetPoint_1" parent="Level" index="3" instance=ExtResource( 1 )]
+[node name="Point_1" type="Spatial" parent="Level" index="3"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -12.506, -10.6505, 37.5274 )
 
-[node name="TargetPoint_2" parent="Level" index="4" instance=ExtResource( 1 )]
+[node name="Target_1" parent="Level/Point_1" index="0" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.5123, 0 )
+
+[node name="Point_2" type="Spatial" parent="Level" index="4"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -5.9317, -1.80978, 71.9283 )
 
-[node name="TargetPoint_3" parent="Level" index="5" instance=ExtResource( 1 )]
+[node name="Target_2" parent="Level/Point_2" index="0" instance=ExtResource( 1 )]
+
+[node name="Point_3" type="Spatial" parent="Level" index="5"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5106, 3.85797, 93.3021 )
 
-[node name="TargetPoint_4" parent="Level" index="6" instance=ExtResource( 1 )]
+[node name="Target_3" parent="Level/Point_3" index="0" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 4.84614, -4.86715, 5.37632 )
+
+[node name="Point_4" type="Spatial" parent="Level" index="6"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 49.0025, -21.8465, 37.2314 )
 
-[node name="TargetPoint_5" parent="Level" index="7" instance=ExtResource( 1 )]
+[node name="Target_4" parent="Level/Point_4" index="0" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 6.28912, 0, 9.89634 )
+
+[node name="Point_5" type="Spatial" parent="Level" index="7"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 22.8819, 2.66672, -18.0437 )
+
+[node name="Target_5" parent="Level/Point_5" index="0" instance=ExtResource( 1 )]

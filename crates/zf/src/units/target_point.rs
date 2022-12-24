@@ -2,6 +2,7 @@ use gdnative::{
     api::{object::ConnectFlags, Area, Label3D, Spatial},
     prelude::*,
 };
+use serde::{Deserialize, Serialize};
 
 use crate::{
     common::find_ref,
@@ -10,6 +11,12 @@ use crate::{
     refs::{self, groups},
     vm::VMSignal,
 };
+
+#[derive(Serialize, Deserialize)]
+pub struct TargetPointInfo {
+    pub name: String,
+    pub pos: [f32; 3],
+}
 
 #[derive(NativeClass)]
 #[inherit(Spatial)]
@@ -49,8 +56,7 @@ impl TargetPoint {
             ..
         } = base.transform();
         if x.abs() + y.abs() + z.abs() > 1. {
-            // HACK: somehow this is -x for rel?
-            label.set_text(format!("{}, {y}, {z}", -x));
+            label.set_text(format!("{x}, {y}, {z}"));
         } else {
             label.set_visible(false)
         }

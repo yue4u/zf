@@ -147,8 +147,28 @@ impl Command for EngineRel {
         engine_state: &EngineState,
         stack: &mut Stack,
         call: &Call,
-        _input: PipelineData,
+        input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
+        let mut x = None;
+        let mut y = None;
+        let mut z = None;
+
+        let input_val = input.into_value(call.head);
+        if let Ok((cols, vals)) = input_val.as_record() {
+            // TODO: skip iter if both found or use a hashmap
+            for (col, val) in cols.iter().zip(vals.iter()) {
+                match col.as_str() {
+                    "pos" => {
+                        let list = val.as_list()?;
+                        x = Some(list[0].as_f64()? as f32);
+                        y = Some(list[1].as_f64()? as f32);
+                        z = Some(list[2].as_f64()? as f32);
+                        break;
+                    }
+                    _ => {}
+                }
+            }
+        }
         let reset = call.has_flag("reset");
 
         let pos = ["x", "y", "z"]
@@ -161,11 +181,11 @@ impl Command for EngineRel {
             })
             .collect::<Result<Vec<Option<f32>>, ShellError>>()?;
 
-        let args = CommandArgs::Engine(EngineCommand::Rel {
-            x: pos[0],
-            y: pos[1],
-            z: pos[2],
-        });
+        x = x.or(pos[0]);
+        y = y.or(pos[1]);
+        z = z.or(pos[2]);
+
+        let args = CommandArgs::Engine(EngineCommand::Rel { x, y, z });
         zf_ffi::cmd_legacy(args);
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }

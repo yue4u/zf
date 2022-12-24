@@ -112,7 +112,7 @@ impl Player {
             CommandArgs::Engine(EngineCommand::Rel { x, y, z }) => {
                 let transform = base.transform();
                 let rel = Vector3::new(
-                    x.unwrap_or(transform.origin.x),
+                    -x.unwrap_or(transform.origin.x),
                     y.unwrap_or(transform.origin.y),
                     z.unwrap_or(transform.origin.z),
                 );

@@ -79,6 +79,7 @@ pub struct UICommand {
 #[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum MissionCommand {
     Info,
+    Targets,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

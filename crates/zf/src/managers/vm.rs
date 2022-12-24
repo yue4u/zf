@@ -25,6 +25,7 @@ use crate::{
         LEVELS,
     },
     ui::{ScreenTransition, Terminal},
+    units::TargetPointInfo,
     vm::{CommandInput, CommandResult, VMSignal},
 };
 
@@ -323,6 +324,25 @@ impl RuntimeFunc {
             CommandArgs::Mission(m) => match m {
                 MissionCommand::Info => {
                     caller.write_string_from_host(MissionLegacy::dummy().summary())
+                }
+                MissionCommand::Targets => {
+                    let targets = caller
+                        .data()
+                        .ext
+                        .scene_tree()
+                        .get_nodes_in_group(groups::TARGET_POINT)
+                        .iter()
+                        .filter_map(|point| point.to_object::<Spatial>())
+                        .map(|s| {
+                            let Vector3 { x, y, z } = unsafe { s.assume_safe() }.transform().origin;
+                            TargetPointInfo {
+                                name: unsafe { s.assume_safe() }.name().to_string(),
+                                pos: [x, y, z],
+                            }
+                        })
+                        .collect::<Vec<TargetPointInfo>>();
+                    let json = serde_json::to_string(&targets).unwrap();
+                    caller.write_string_from_host(json)
                 }
             },
             CommandArgs::Game(g) => {

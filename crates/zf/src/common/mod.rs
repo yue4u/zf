@@ -1,10 +1,11 @@
 pub mod logging;
 
+use gdnative::{api::*, prelude::*};
+
 use crate::{
     refs::{path::LevelName, HasPath},
     units::Player,
 };
-use gdnative::{api::*, prelude::*};
 
 pub type Id = u32;
 pub type Position = Vector3;
@@ -87,5 +88,22 @@ pub fn current_level<'a>(base: &'a Node) -> LevelName {
             LevelName::from_path(path.to_string().as_str())
         }
         None => LevelName::Unknown,
+    }
+}
+
+pub enum StyledLabel {
+    Code,
+    Hint,
+}
+
+impl StyledLabel {
+    pub fn paint(&self, input: impl ToString) -> String {
+        use nu_ansi_term::Color::*;
+        match self {
+            StyledLabel::Code => Rgb(0, 0, 0).on(Rgb(255, 194, 60)),
+            StyledLabel::Hint => Rgb(0, 0, 0).on(LightGreen),
+        }
+        .paint(format!(" {} ", input.to_string()))
+        .to_string()
     }
 }

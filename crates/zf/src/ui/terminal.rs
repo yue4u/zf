@@ -11,14 +11,14 @@ use gdnative::{
     prelude::*,
 };
 use zf_ffi::{CommandArgs, TermCommand};
-use zf_runtime::{cmds, strip_ansi};
+use zf_runtime::cmds;
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
-    common::{current_level, find_ref, PackedSceneRef, SceneLoader},
-    entities::{GameEvent, GLOBAL_GAME_STATE},
+    common::{current_level, find_ref, PackedSceneRef, SceneLoader, StyledLabel},
+    entities::GameEvent,
     managers::VMManager,
-    refs::{self, path::LevelName, HasPath},
+    refs::{self, HasPath, LevelHelper},
     vm::{CommandInput, CommandResult, VMSignal},
 };
 
@@ -217,7 +217,7 @@ impl Terminal {
             .expect("failed to connect vm");
 
         self.write(ZF);
-        self.write_scene_message(current_level(&as_node));
+        self.write(&current_level(&as_node).guide());
         self.prompt();
 
         Some(())
@@ -243,54 +243,6 @@ impl Terminal {
 
     fn clear(&mut self) {
         self.write("\x1b[2J\x1b[H");
-    }
-
-    #[method]
-    fn write_scene_message(&mut self, scene_name: LevelName) -> Option<()> {
-        use nu_ansi_term::Color::*;
-
-        let code = Rgb(255, 194, 60).bold();
-
-        let text = match scene_name {
-            LevelName::Sandbox => None,
-            LevelName::StartMenu => Some(format!(
-                "Type {} to continue or {} for help.",
-                code.paint(
-                    GLOBAL_GAME_STATE
-                        .lock()
-                        .map(|state| {
-                            if state.tutorial_completed {
-                                "game start"
-                            } else {
-                                "game tutorial"
-                            }
-                        })
-                        .unwrap_or_else(|_| "game tutorial")
-                ),
-                code.paint("help")
-            )),
-            LevelName::TutorialEngine => Some(format!(
-                "type {} to explore engine command",
-                code.paint("engine --help")
-            )),
-            _ => None,
-        }?;
-        let line = format!(
-            "\n{}\n",
-            DarkGray.paint(
-                "=".repeat(
-                    strip_ansi(&text)
-                        .lines()
-                        .map(|l| l.len())
-                        .max()
-                        .unwrap_or_default()
-                )
-            )
-        );
-        self.write(&line);
-        self.write(&text);
-        self.write(&line);
-        None
     }
 
     fn create_typing_particles(&self) {
@@ -591,12 +543,16 @@ impl Terminal {
             GameEvent::MissionComplete(msg) => {
                 self.write("\n");
                 self.write(&msg);
+                self.write(&format!(
+                    "type {} to continue",
+                    StyledLabel::Code.paint("level next")
+                ));
                 self.prompt();
                 base.update();
             }
-            GameEvent::LevelChange(scene) => {
+            GameEvent::LevelChange(level) => {
                 self.clear();
-                self.write_scene_message(scene);
+                self.write(&level.guide());
                 self.prompt();
                 base.update();
             }

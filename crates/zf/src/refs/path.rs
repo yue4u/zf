@@ -32,24 +32,28 @@ pub mod scenes {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod levels {
+    pub const TUTORIAL_TASK_ENGINE_REL: &str = "res://levels/Tutorial_Task_Engine_Rel.tscn";
     pub const TUTORIAL_FIRE: &str = "res://levels/TutorialFire.tscn";
     pub const TUTORIAL_ENGINE_REL: &str = "res://levels/Tutorial_Engine_Rel.tscn";
+    pub const TUTORIAL_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Mission_Engine_Rel.tscn";
+    pub const TUTORIAL_COMPLETE: &str = "res://levels/Tutorial_Complete.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const SANDBOX: &str = "res://levels/Sandbox.tscn";
     pub const TUTORIAL_ENGINE: &str = "res://levels/Tutorial_Engine.tscn";
-    pub const TUTORIAL_MOVEMENT: &str = "res://levels/TutorialMovement.tscn";
 }
 
 #[rustfmt::skip]
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, ToVariant, FromVariant)]
 pub enum LevelName {
+    TutorialTaskEngineRel,
     TutorialFire,
     TutorialEngineRel,
+    TutorialMissionEngineRel,
+    TutorialComplete,
     StartMenu,
     Sandbox,
     TutorialEngine,
-    TutorialMovement,
     Unknown,
 }
 
@@ -57,12 +61,14 @@ pub enum LevelName {
 impl LevelName {
     pub fn from_path(value: &str) -> Self {
         match value {
+            levels::TUTORIAL_TASK_ENGINE_REL => LevelName::TutorialTaskEngineRel,
             levels::TUTORIAL_FIRE => LevelName::TutorialFire,
             levels::TUTORIAL_ENGINE_REL => LevelName::TutorialEngineRel,
+            levels::TUTORIAL_MISSION_ENGINE_REL => LevelName::TutorialMissionEngineRel,
+            levels::TUTORIAL_COMPLETE => LevelName::TutorialComplete,
             levels::START_MENU => LevelName::StartMenu,
             levels::SANDBOX => LevelName::Sandbox,
             levels::TUTORIAL_ENGINE => LevelName::TutorialEngine,
-            levels::TUTORIAL_MOVEMENT => LevelName::TutorialMovement,
             _ => LevelName::Unknown,
         }
     }
@@ -71,12 +77,14 @@ impl LevelName {
 impl LevelName {
     pub fn path(&self) -> &'static str {
         match self {
+            LevelName::TutorialTaskEngineRel => levels::TUTORIAL_TASK_ENGINE_REL,
             LevelName::TutorialFire => levels::TUTORIAL_FIRE,
             LevelName::TutorialEngineRel => levels::TUTORIAL_ENGINE_REL,
+            LevelName::TutorialMissionEngineRel => levels::TUTORIAL_MISSION_ENGINE_REL,
+            LevelName::TutorialComplete => levels::TUTORIAL_COMPLETE,
             LevelName::StartMenu => levels::START_MENU,
             LevelName::Sandbox => levels::SANDBOX,
             LevelName::TutorialEngine => levels::TUTORIAL_ENGINE,
-            LevelName::TutorialMovement => levels::TUTORIAL_MOVEMENT,
             LevelName::Unknown => unreachable!(),
         }
     }
@@ -85,24 +93,28 @@ impl LevelName {
 impl LevelName {
     pub fn from(name: &str) -> LevelName {
         match name {
+            "TutorialTaskEngineRel" => LevelName::TutorialTaskEngineRel,
             "TutorialFire" => LevelName::TutorialFire,
             "TutorialEngineRel" => LevelName::TutorialEngineRel,
+            "TutorialMissionEngineRel" => LevelName::TutorialMissionEngineRel,
+            "TutorialComplete" => LevelName::TutorialComplete,
             "StartMenu" => LevelName::StartMenu,
             "Sandbox" => LevelName::Sandbox,
             "TutorialEngine" => LevelName::TutorialEngine,
-            "TutorialMovement" => LevelName::TutorialMovement,
             _ => LevelName::Unknown,
         }
     }
 
     pub fn as_str(&self) -> &str {
         match &self {
+            LevelName::TutorialTaskEngineRel => "TutorialTaskEngineRel",
             LevelName::TutorialFire => "TutorialFire",
             LevelName::TutorialEngineRel => "TutorialEngineRel",
+            LevelName::TutorialMissionEngineRel => "TutorialMissionEngineRel",
+            LevelName::TutorialComplete => "TutorialComplete",
             LevelName::StartMenu => "StartMenu",
             LevelName::Sandbox => "Sandbox",
             LevelName::TutorialEngine => "TutorialEngine",
-            LevelName::TutorialMovement => "TutorialMovement",
             _ => "Unknown",
         }
     }
@@ -322,6 +334,25 @@ pub mod homing_missile {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod tutorial_task_engine_rel {
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+    pub const POINT_1: &str = "/root/Scene/Level/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Point_3/Target_3";
+    pub const POINT_4: &str = "/root/Scene/Level/Point_4";
+    pub const TARGET_4: &str = "/root/Scene/Level/Point_4/Target_4";
+    pub const POINT_5: &str = "/root/Scene/Level/Point_5";
+    pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod tutorial_fire {
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
     pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
@@ -334,21 +365,38 @@ pub mod tutorial_engine_rel {
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const POINT_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3/Target_3";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
-    pub const POINT_0: &str = "/root/Scene/Level/Point_0";
-    pub const TARGET_0: &str = "/root/Scene/Level/Point_0/Target_0";
-    pub const POINT_1: &str = "/root/Scene/Level/Point_1";
-    pub const TARGET_1: &str = "/root/Scene/Level/Point_1/Target_1";
-    pub const POINT_2: &str = "/root/Scene/Level/Point_2";
-    pub const TARGET_2: &str = "/root/Scene/Level/Point_2/Target_2";
-    pub const POINT_3: &str = "/root/Scene/Level/Point_3";
-    pub const TARGET_3: &str = "/root/Scene/Level/Point_3/Target_3";
-    pub const POINT_4: &str = "/root/Scene/Level/Point_4";
-    pub const TARGET_4: &str = "/root/Scene/Level/Point_4/Target_4";
-    pub const POINT_5: &str = "/root/Scene/Level/Point_5";
-    pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
-    pub const POINT_6: &str = "/root/Scene/Level/Point_6";
-    pub const TARGET_6: &str = "/root/Scene/Level/Point_6/Target_6";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_mission_engine_rel {
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const POINT_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3/Target_3";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_complete {
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+    pub const TARGET_POINT: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir/TargetPoint";
 }
 
 #[rustfmt::skip]
@@ -389,25 +437,16 @@ pub mod sandbox {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod tutorial_engine {
-    pub const TARGET_POINT_1: &str = "/root/Scene/Level/TargetPoint_1";
-    pub const TARGET_POINT_2: &str = "/root/Scene/Level/TargetPoint_2";
-    pub const TARGET_POINT_3: &str = "/root/Scene/Level/TargetPoint_3";
-    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
-    pub const PATH: &str = "/root/Scene/Level/Path";
-    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
-    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
-pub mod tutorial_movement {
-    pub const TARGET_POINT_2: &str = "/root/Scene/Level/TargetPoint2";
-    pub const TARGET_POINT_3: &str = "/root/Scene/Level/TargetPoint3";
-    pub const TARGET_POINT: &str = "/root/Scene/Level/TargetPoint";
-    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
-    pub const PATH: &str = "/root/Scene/Level/Path";
-    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
-    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+    pub const POINT_1: &str = "/root/Scene/Level/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Point_3/Target_3";
+    pub const ORBIT: &str = "/root/Scene/Orbit";
+    pub const PATH: &str = "/root/Scene/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Path/PathFollow/PlayerMjolnir";
 }
 
 #[rustfmt::skip]

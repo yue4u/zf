@@ -19,7 +19,7 @@ pub struct Mission {
 }
 
 struct MissionDetails {
-    scene: LevelName,
+    level: LevelName,
     target_points: u32,
     target_points_all: u32,
     enemies: u32,
@@ -80,8 +80,8 @@ impl Mission {
         let m = self.mission.as_mut().unwrap();
         match state {
             // GameEvent::MissionComplete(msg) => {}
-            GameEvent::LevelChange(scene) => {
-                m.scene = scene;
+            GameEvent::LevelChange(level) => {
+                m.level = level;
                 self.update_text();
             }
             GameEvent::HitTargetPoint => {
@@ -102,8 +102,9 @@ impl Mission {
             .unwrap()
             .as_ref();
         let tree = get_tree(as_node_ref);
+        let level = current_level(as_node_ref);
         let m = MissionDetails {
-            scene: current_level(as_node_ref),
+            level,
             target_points: 0,
             target_points_all: tree.get_nodes_in_group(groups::TARGET_POINT).len() as u32,
             enemies: 0,
@@ -115,7 +116,7 @@ impl Mission {
 
     fn update_text(&self) {
         let MissionDetails {
-            scene,
+            level,
             target_points,
             target_points_all,
             enemies,
@@ -129,12 +130,14 @@ impl Mission {
                 "".to_owned()
             }
         }
-
+        let cyan = |inner: &str| format!("[b][color=#4FFFCA]{inner}[/color][/b]");
         let text = format!(
-            r#"[b][color=#4FFFCA]Mission:[/color][/b] {scene}
+            r#"{}: {level}
+
 {}
 {}
 "#,
+            cyan("Level"),
             msg_if(target_points_all, || format!(
                 "Target points: {target_points} / {target_points_all}"
             )),
@@ -153,7 +156,7 @@ impl Mission {
         if enemies == enemies_all && target_points == target_points_all {
             base.emit_signal(
                 ON_MISSION_STATE,
-                &[GameEvent::MissionComplete(scene.to_string()).to_variant()],
+                &[GameEvent::MissionComplete(level.to_string()).to_variant()],
             );
         }
     }

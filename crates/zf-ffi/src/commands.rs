@@ -9,6 +9,8 @@ pub enum CommandArgs {
     // Help,
     Game(GameCommand),
     Level(LevelCommand),
+    Tutorial,
+    Hint,
     Mission(MissionCommand),
     Engine(EngineCommand),
     Task(TaskCommand),
@@ -27,7 +29,6 @@ pub enum CommandArgs {
 pub enum GameCommand {
     Start,
     Menu,
-    Tutorial,
     End,
 }
 

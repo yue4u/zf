@@ -3,8 +3,8 @@
 [ext_resource path="res://assets/3rd/mjolnir/scene.gltf" type="PackedScene" id=1]
 [ext_resource path="res://scripts/player.gdns" type="Script" id=2]
 
-[sub_resource type="SphereShape" id=1]
-radius = 50.0
+[sub_resource type="CapsuleShape" id=3]
+radius = 2.961
 
 [sub_resource type="CapsuleShape" id=2]
 radius = 2.2
@@ -24,7 +24,8 @@ collision_layer = 0
 collision_mask = 4
 
 [node name="CollisionShape" type="CollisionShape" parent="RadarArea" index="0"]
-shape = SubResource( 1 )
+transform = Transform( 1, -4.46488e-17, 0, -4.46488e-17, 1, 0, 0, 0, 1, 0, 0, 0 )
+shape = SubResource( 3 )
 
 [node name="Projectiles" type="Spatial" parent="." index="3"]
 

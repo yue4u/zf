@@ -21,7 +21,7 @@ transform = Transform( 1.00549, 0, 0, 0, 1.00549, 0, 0, 0, 1.00549, 0, 0, 0 )
 curve = SubResource( 1 )
 
 [node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
-transform = Transform( 0.994379, -0.0391384, -0.0983761, 0, 0.929166, -0.369664, 0.105876, 0.367586, 0.923943, 0, 0, 0 )
+transform = Transform( 0.994379, -0.0391384, -0.098376, 0, 0.929166, -0.369664, 0.105876, 0.367586, 0.923943, 0, 0, 0 )
 rotation_mode = 4
 
 [node name="Point_1" type="Spatial" parent="Level/Path/PathFollow" index="0"]

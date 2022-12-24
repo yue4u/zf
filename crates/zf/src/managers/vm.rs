@@ -22,7 +22,7 @@ use crate::{
     refs::{
         groups, next_level,
         path::{auto_load, base_level, LevelName},
-        LEVELS,
+        LevelHelper, LEVELS,
     },
     ui::{ScreenTransition, Terminal},
     units::TargetPointInfo,
@@ -353,9 +353,6 @@ impl RuntimeFunc {
                     GameCommand::Menu => {
                         caller.data().ext.change_scene(LevelName::StartMenu);
                     }
-                    GameCommand::Tutorial => {
-                        caller.data().ext.change_scene(LevelName::TutorialEngine);
-                    }
                     GameCommand::End => {
                         caller.data().ext.scene_tree().quit(0);
                     }
@@ -392,6 +389,14 @@ impl RuntimeFunc {
             CommandArgs::Time(time) => {
                 Engine::godot_singleton().set_time_scale(time.scale);
                 0
+            }
+            CommandArgs::Tutorial => {
+                caller.data().ext.change_scene(LevelName::TutorialEngine);
+                0
+            }
+            CommandArgs::Hint => {
+                let hint = caller.data().ext.current_level().hint();
+                caller.write_string_from_host(hint)
             }
             CommandArgs::Radar(_) => {
                 let radars = caller

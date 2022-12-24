@@ -56,7 +56,7 @@ impl TargetPoint {
             ..
         } = base.transform();
         if x.abs() + y.abs() + z.abs() > 1. {
-            label.set_text(format!("{x}, {y}, {z}"));
+            label.set_text(format!("{:.1}, {:.1}, {:.1}", x, y, z));
         } else {
             label.set_visible(false)
         }

@@ -1,3 +1,4 @@
+Hint
 alias
 all
 any
@@ -63,7 +64,6 @@ game
 game end
 game menu
 game start
-game tutorial
 get
 grid
 group
@@ -188,6 +188,7 @@ term size
 time
 time
 transpose
+tutorial
 ui
 uniq
 update

@@ -92,7 +92,14 @@ impl VMData {
         unsafe { self.base.assume_safe().get_tree().unwrap().assume_safe() }
     }
 
-    fn change_scene(&self, scene: LevelName) {
+    fn change_scene(&mut self, scene: LevelName) {
+        tracing::debug!("vm: GameEvent::LevelChange");
+
+        self.thead_handles.drain().for_each(|(id, handle)| {
+            tracing::trace!("vm: stop {} on level change", id);
+            handle.stop.store(true, Ordering::Relaxed)
+        });
+
         unsafe {
             self.base
                 .assume_safe()
@@ -107,7 +114,7 @@ impl VMData {
         current_level(unsafe { self.base.assume_safe().as_ref() })
     }
 
-    fn reload_scene(&self) {
+    fn reload_scene(&mut self) {
         self.change_scene(self.current_level());
     }
 }
@@ -348,10 +355,10 @@ impl RuntimeFunc {
             CommandArgs::Game(g) => {
                 match g {
                     GameCommand::Start => {
-                        caller.data().ext.change_scene(LevelName::Sandbox);
+                        caller.data_mut().ext.change_scene(LevelName::Sandbox);
                     }
                     GameCommand::Menu => {
-                        caller.data().ext.change_scene(LevelName::StartMenu);
+                        caller.data_mut().ext.change_scene(LevelName::StartMenu);
                     }
                     GameCommand::End => {
                         caller.data().ext.scene_tree().quit(0);
@@ -363,18 +370,18 @@ impl RuntimeFunc {
                 LevelCommand::Start(name) => {
                     let scene = LevelName::from(&name);
                     if scene != LevelName::Unknown {
-                        caller.data().ext.change_scene(scene);
+                        caller.data_mut().ext.change_scene(scene);
                     }
                     0
                 }
                 LevelCommand::Restart => {
-                    caller.data().ext.reload_scene();
+                    caller.data_mut().ext.reload_scene();
                     0
                 }
                 LevelCommand::Next => {
                     let current = caller.data().ext.current_level().to_string();
                     if let Some(next) = next_level(current) {
-                        caller.data().ext.change_scene(next);
+                        caller.data_mut().ext.change_scene(next);
                     };
                     0
                 }
@@ -391,7 +398,10 @@ impl RuntimeFunc {
                 0
             }
             CommandArgs::Tutorial => {
-                caller.data().ext.change_scene(LevelName::TutorialEngine);
+                caller
+                    .data_mut()
+                    .ext
+                    .change_scene(LevelName::TutorialEngine);
                 0
             }
             CommandArgs::Hint => {

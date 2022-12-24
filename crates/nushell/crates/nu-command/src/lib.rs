@@ -1,3 +1,4 @@
+#![feature(iter_collect_into)]
 // mod bits;
 // mod bytes;
 // mod charting;

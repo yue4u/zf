@@ -1,3 +1,4 @@
+// use itertools::Itertools;
 use lscolors::{LsColors, Style};
 use nu_color_config::color_from_hex;
 use nu_color_config::{Alignment, StyleComputer, TextStyle};
@@ -11,7 +12,7 @@ use nu_protocol::{
 };
 use nu_table::{string_width, Table as NuTable, TableConfig, TableTheme};
 use nu_utils::get_ls_colors;
-use rayon::prelude::*;
+// use rayon::prelude::*;
 use std::sync::Arc;
 use std::time::Instant;
 use std::{cmp::max, path::PathBuf, sync::atomic::AtomicBool};
@@ -925,19 +926,19 @@ fn convert_to_table(
     // All the computations are parallelised here.
     // NOTE: It's currently not possible to Ctrl-C out of this...
     let mut cells: Vec<Vec<_>> = Vec::with_capacity(data.len());
-    data.into_par_iter()
+    data.into_iter()
         .map(|row| {
             let mut new_row = Vec::with_capacity(row.len());
-            row.into_par_iter()
+            row.into_iter()
                 .map(|deferred| {
                     let pair = deferred.compute(config, style_computer);
 
                     NuTable::create_cell(pair.0, pair.1)
                 })
-                .collect_into_vec(&mut new_row);
+                .collect_into(&mut new_row);
             new_row
         })
-        .collect_into_vec(&mut cells);
+        .collect_into(&mut cells);
 
     let count_rows = cells.len();
     let table = NuTable::new(cells, (count_rows, count_columns));

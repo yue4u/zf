@@ -37,6 +37,9 @@ bind_path!(
 pub const LEVELS: &'static [LevelName] = &[
     LevelName::TutorialEngine,
     LevelName::TutorialEngineRel,
+    LevelName::TutorialMissionEngineRel,
+    LevelName::TutorialTaskMissionEngineRel,
+    LevelName::TutorialTaskEngineCombine,
     LevelName::TutorialFire,
     LevelName::Sandbox,
 ];
@@ -66,15 +69,16 @@ impl LevelHelper for LevelName {
                 "r -x 18 -y -3 -z 28",
             ],
             LevelName::TutorialMissionEngineRel => vec![
-                "mission targets | table",
-                "mission targets | get 0 | table",
                 "alias m = (mission targets | get 0 | engine rel)",
                 "m",
                 "m",
                 "m",
             ],
+            LevelName::TutorialTaskMissionEngineRel => {
+                vec!["task run --every 1sec 'mission targets | get 0 | engine rel'"]
+            }
+            LevelName::TutorialTaskEngineCombine => todo!(),
             LevelName::Unknown => todo!(),
-            LevelName::TutorialTaskEngineRel => todo!(),
             LevelName::TutorialComplete => todo!(),
         };
         cmds.iter()
@@ -131,16 +135,33 @@ Note: you can use {} to create shortcut like {}
 We can use {} to `pipe` data from one command to another!
 For example, to show target points of current mission:
 {}
-Since `mission targets` returns a list, we can use get 0 to get the first one
+Since `mission targets` returns a list, we can use get 0 to get the first one,
+{}
+or using 0.pos as a index to get detailed info
 {}
 "#,
                 StyledLabel::Code.paint("|"),
                 StyledLabel::Code.paint("mission targets | table"),
                 StyledLabel::Code.paint("mission targets | get 0 | table"),
+                StyledLabel::Code.paint("mission targets | get 0.pos | table"),
             ),
+            LevelName::TutorialTaskMissionEngineRel => format!(
+                r#"{mission}
+
+{} command is special, we can use {} to create tasks that runs in the background!
+For example, to run the task we created in the before mission:
+{}
+Type {} to explore more
+"#,
+                StyledLabel::Code.paint("task"),
+                StyledLabel::Code.paint("task"),
+                StyledLabel::Code
+                    .paint("task run --every 1sec 'mission targets | get 0 | engine rel'"),
+                StyledLabel::Code.paint("task run --help"),
+            ),
+            LevelName::TutorialTaskEngineCombine => todo!(),
             LevelName::TutorialFire => todo!(),
             LevelName::Unknown => todo!(),
-            LevelName::TutorialTaskEngineRel => todo!(),
             LevelName::TutorialComplete => todo!(),
         };
 

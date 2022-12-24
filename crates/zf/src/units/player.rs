@@ -171,10 +171,9 @@ impl Player {
         });
 
         let speed = *self.speed.borrow();
-        (speed > 0.01).then_some(())?;
 
         let follow = unsafe { base.get_parent()?.assume_safe() }.cast::<PathFollow>()?;
-        follow.set_unit_offset((follow.unit_offset() + speed * delta).fract());
+        follow.set_offset(follow.offset() + speed * 500. * delta);
         Some(())
     }
 

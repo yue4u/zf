@@ -121,14 +121,34 @@ impl Mission {
             enemies,
             enemies_all,
         } = self.mission.as_ref().unwrap();
+
+        fn msg_if<F: Fn() -> String>(cond: &u32, msg: F) -> String {
+            if *cond > 0 {
+                msg()
+            } else {
+                "".to_owned()
+            }
+        }
+
         let text = format!(
-            r#"[b][color=#4FFFCA]Mission: {scene}[/color][/b]
-Target points: {target_points} / {target_points_all}
-Target enemies: {enemies} / {enemies_all}
-"#
+            r#"[b][color=#4FFFCA]Mission:[/color][/b] {scene}
+{}
+{}
+"#,
+            msg_if(target_points_all, || format!(
+                "Target points: {target_points} / {target_points_all}"
+            )),
+            msg_if(enemies_all, || format!(
+                "Target enemies: {enemies} / {enemies_all}"
+            )),
         );
         let base = unsafe { self.base.assume_safe() };
         base.set_bbcode(text);
+
+        // for testing
+        if enemies_all + target_points_all == 0 {
+            return;
+        }
 
         if enemies == enemies_all && target_points == target_points_all {
             base.emit_signal(

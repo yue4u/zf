@@ -334,7 +334,7 @@ impl RuntimeFunc {
                         caller.data().ext.change_scene(LevelName::StartMenu);
                     }
                     GameCommand::Tutorial => {
-                        caller.data().ext.change_scene(LevelName::Tutorial);
+                        caller.data().ext.change_scene(LevelName::TutorialEngine);
                     }
                     GameCommand::End => {
                         caller.data().ext.scene_tree().quit(0);

@@ -33,7 +33,8 @@ bind_path!(
 );
 
 pub const LEVELS: &'static [LevelName] = &[
-    LevelName::Tutorial,
+    LevelName::TutorialEngine,
+    LevelName::TutorialEngineRel,
     LevelName::TutorialFire,
     LevelName::Sandbox,
 ];

@@ -269,7 +269,7 @@ impl Terminal {
                 ),
                 code.paint("help")
             )),
-            LevelName::Tutorial => Some(format!(
+            LevelName::TutorialEngine => Some(format!(
                 "type {} to explore engine command",
                 code.paint("engine --help")
             )),

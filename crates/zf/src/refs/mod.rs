@@ -77,7 +77,9 @@ impl LevelHelper for LevelName {
             LevelName::TutorialTaskMissionEngineRel => {
                 vec!["task run --every 1sec 'mission targets | get 0 | engine rel'"]
             }
-            LevelName::TutorialTaskEngineCombine => todo!(),
+            LevelName::TutorialTaskEngineCombine => {
+                vec!["e t 100; task run -e 1sec 'mission targets | get 0 | engine rel'"]
+            }
             LevelName::Unknown => todo!(),
             LevelName::TutorialComplete => todo!(),
         };
@@ -159,7 +161,16 @@ Type {} to explore more
                     .paint("task run --every 1sec 'mission targets | get 0 | engine rel'"),
                 StyledLabel::Code.paint("task run --help"),
             ),
-            LevelName::TutorialTaskEngineCombine => todo!(),
+            LevelName::TutorialTaskEngineCombine => format!(
+                r#"{mission}
+
+We can issue two commands togetter in one line seperated by {}.
+For example: {}.
+Try combining task command and engine command togetter!
+"#,
+                StyledLabel::Code.paint(";"),
+                StyledLabel::Code.paint("engine on; 1 + 1"),
+            ),
             LevelName::TutorialFire => todo!(),
             LevelName::Unknown => todo!(),
             LevelName::TutorialComplete => todo!(),

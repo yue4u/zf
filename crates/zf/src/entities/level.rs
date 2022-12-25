@@ -127,13 +127,9 @@ Combining this two commands to destroy enemies!
     guide: "this is a sandbox",
     hint: ["game end"],
 
-    @TutorialComplete where
-    guide: "complete!",
-    hint: ["game end"],
-
     @Unknown where
     guide: "???",
-    hint: [],
+    hint: ["game menu"],
 );
 
 pub trait LevelHelper {

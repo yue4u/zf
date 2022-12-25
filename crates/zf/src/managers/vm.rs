@@ -91,13 +91,17 @@ impl VMData {
         unsafe { self.base.assume_safe().get_tree().unwrap().assume_safe() }
     }
 
-    fn change_scene(&mut self, scene: LevelName) {
-        tracing::debug!("vm: GameEvent::LevelChange");
+    fn clean_theads(&mut self) {
+        tracing::debug!("vm: clean_theads");
 
         self.thead_handles.drain().for_each(|(id, handle)| {
             tracing::trace!("vm: stop {} on level change", id);
             handle.stop.store(true, Ordering::Relaxed)
         });
+    }
+
+    fn change_scene(&mut self, scene: LevelName) {
+        self.clean_theads();
 
         unsafe {
             self.base
@@ -187,6 +191,8 @@ impl VMManager {
         let event = match event {
             GameEvent::MissionComplete(msg) => {
                 let runtime = self.runtime.as_mut()?;
+                runtime.store.data_mut().ext.clean_theads();
+
                 let result = runtime
                     .eval(format!("fsays 'Mission completed: {}'", msg))
                     .expect("fsays should work");
@@ -199,7 +205,8 @@ impl VMManager {
                 GameEvent::MissionComplete(result)
             }
             GameEvent::MissionFailed => {
-                // let runtime = self.runtime.as_mut()?;
+                let runtime = self.runtime.as_mut()?;
+                runtime.store.data_mut().ext.clean_theads();
                 // let result = runtime
                 //     .eval(format!("fsays 'Mission completed: {}'", "Mission failed"))
                 //     .expect("fsays should work");

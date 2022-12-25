@@ -14,6 +14,7 @@ pub mod scenes {
     pub const SANDBOX_2_D: &str = "res://scenes/Sandbox2D.tscn";
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
     pub const SANDBOX_3_D: &str = "res://scenes/Sandbox3D.tscn";
+    pub const TUTORIAL_COMPLETE: &str = "res://scenes/Tutorial_Complete.tscn";
     pub const PLAYER_STATUS: &str = "res://scenes/PlayerStatus.tscn";
     pub const PLAYER_HEALTH_BAR: &str = "res://scenes/PlayerHealthBar.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
@@ -35,7 +36,6 @@ pub mod levels {
     pub const TUTORIAL_ENGINE_REL: &str = "res://levels/Tutorial_Engine_Rel.tscn";
     pub const TUTORIAL_TASK_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Task_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Mission_Engine_Rel.tscn";
-    pub const TUTORIAL_COMPLETE: &str = "res://levels/Tutorial_Complete.tscn";
     pub const TUTORIAL_TASK_ENGINE_COMBINE: &str = "res://levels/Tutorial_Task_Engine_Combine.tscn";
     pub const TUTORIAL_FIRE: &str = "res://levels/Tutorial_Fire.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
@@ -50,7 +50,6 @@ pub enum LevelName {
     TutorialEngineRel,
     TutorialTaskMissionEngineRel,
     TutorialMissionEngineRel,
-    TutorialComplete,
     TutorialTaskEngineCombine,
     TutorialFire,
     StartMenu,
@@ -59,13 +58,13 @@ pub enum LevelName {
     Unknown,
 }
 
+
 impl LevelName {
     pub fn from_path(value: &str) -> Self {
         match value {
             levels::TUTORIAL_ENGINE_REL => LevelName::TutorialEngineRel,
             levels::TUTORIAL_TASK_MISSION_ENGINE_REL => LevelName::TutorialTaskMissionEngineRel,
             levels::TUTORIAL_MISSION_ENGINE_REL => LevelName::TutorialMissionEngineRel,
-            levels::TUTORIAL_COMPLETE => LevelName::TutorialComplete,
             levels::TUTORIAL_TASK_ENGINE_COMBINE => LevelName::TutorialTaskEngineCombine,
             levels::TUTORIAL_FIRE => LevelName::TutorialFire,
             levels::START_MENU => LevelName::StartMenu,
@@ -82,7 +81,6 @@ impl LevelName {
             LevelName::TutorialEngineRel => levels::TUTORIAL_ENGINE_REL,
             LevelName::TutorialTaskMissionEngineRel => levels::TUTORIAL_TASK_MISSION_ENGINE_REL,
             LevelName::TutorialMissionEngineRel => levels::TUTORIAL_MISSION_ENGINE_REL,
-            LevelName::TutorialComplete => levels::TUTORIAL_COMPLETE,
             LevelName::TutorialTaskEngineCombine => levels::TUTORIAL_TASK_ENGINE_COMBINE,
             LevelName::TutorialFire => levels::TUTORIAL_FIRE,
             LevelName::StartMenu => levels::START_MENU,
@@ -99,7 +97,6 @@ impl LevelName {
             "TutorialEngineRel" => LevelName::TutorialEngineRel,
             "TutorialTaskMissionEngineRel" => LevelName::TutorialTaskMissionEngineRel,
             "TutorialMissionEngineRel" => LevelName::TutorialMissionEngineRel,
-            "TutorialComplete" => LevelName::TutorialComplete,
             "TutorialTaskEngineCombine" => LevelName::TutorialTaskEngineCombine,
             "TutorialFire" => LevelName::TutorialFire,
             "StartMenu" => LevelName::StartMenu,
@@ -114,7 +111,6 @@ impl LevelName {
             LevelName::TutorialEngineRel => "TutorialEngineRel",
             LevelName::TutorialTaskMissionEngineRel => "TutorialTaskMissionEngineRel",
             LevelName::TutorialMissionEngineRel => "TutorialMissionEngineRel",
-            LevelName::TutorialComplete => "TutorialComplete",
             LevelName::TutorialTaskEngineCombine => "TutorialTaskEngineCombine",
             LevelName::TutorialFire => "TutorialFire",
             LevelName::StartMenu => "StartMenu",
@@ -210,6 +206,16 @@ pub mod sandbox_3_d {
     pub const ORBIT: &str = "/root/Scene/Orbit";
     pub const IMMEDIATE_GEOMETRY: &str = "/root/Scene/Orbit/ImmediateGeometry";
     pub const MESH_11633: &str = "/root/Scene/Orbit/ImmediateGeometry/mesh11633";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_complete {
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+    pub const TARGET_POINT: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir/TargetPoint";
 }
 
 #[rustfmt::skip]
@@ -384,16 +390,6 @@ pub mod tutorial_mission_engine_rel {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod tutorial_complete {
-    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
-    pub const PATH: &str = "/root/Scene/Level/Path";
-    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
-    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
-    pub const TARGET_POINT: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir/TargetPoint";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
 pub mod tutorial_task_engine_combine {
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PATH: &str = "/root/Scene/Level/Path";
@@ -416,6 +412,8 @@ pub mod tutorial_task_engine_combine {
 pub mod tutorial_fire {
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
     pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/t-dummy2";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/t-dummy3";
     pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
 }
 
@@ -493,3 +491,4 @@ pub mod assets {
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
 }
+

@@ -104,7 +104,7 @@ impl LevelName {{
                         format!(
                             "            LevelName::{} => \"{}\",",
                             v.to_case(Case::UpperCamel),
-                            v.to_case(Case::UpperCamel),
+                            v.to_case(Case::Train),
                         )
                     })
                     .collect::<Vec<String>>()
@@ -115,7 +115,7 @@ impl LevelName {{
                     .map(|v| {
                         format!(
                             "            \"{}\" => LevelName::{},",
-                            v.to_case(Case::UpperCamel),
+                            v.to_case(Case::Train),
                             v.to_case(Case::UpperCamel),
                         )
                     })

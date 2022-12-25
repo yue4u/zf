@@ -1,5 +1,8 @@
-use std::sync::Arc;
-use termwiz::escape::csi::{Mode, TerminalMode, TerminalModeCode, CSI};
+use std::{
+    ops::{Deref, DerefMut},
+    sync::Arc,
+};
+use termwiz::escape::csi::{Edit, Mode, TerminalMode, TerminalModeCode, CSI};
 use wezterm_term::Terminal;
 // re-exporting building components from wezterm_term
 pub use wezterm_color_types::*;
@@ -74,9 +77,23 @@ pub struct ZFTerm {
     pub term: Terminal,
 }
 
+impl Deref for ZFTerm {
+    type Target = Terminal;
+
+    fn deref(&self) -> &Self::Target {
+        &self.term
+    }
+}
+
+impl DerefMut for ZFTerm {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.term
+    }
+}
+
 impl ZFTerm {
     pub fn new(writer: Box<dyn std::io::Write + Send>, size: TerminalSize) -> Self {
-        let config = Arc::new(ZFTermConfig { scrollback: 20 });
+        let config = Arc::new(ZFTermConfig { scrollback: 1000 });
         let mut term = Terminal::new(size, config, "zf-shell", "0.0.0", writer);
         // showhow this is needed to set cursor for LF
         let automatic_newline = CSI::Mode(Mode::SetMode(TerminalMode::Code(
@@ -84,6 +101,14 @@ impl ZFTerm {
         )));
         term.advance_bytes(automatic_newline.to_string());
         Self { term }
+    }
+
+    pub fn scroll_up(&mut self, n: u32) {
+        self.advance_bytes(CSI::Edit(Edit::ScrollUp(n)).to_string());
+    }
+
+    pub fn scroll_down(&mut self, n: u32) {
+        self.advance_bytes(CSI::Edit(Edit::ScrollDown(n)).to_string());
     }
 }
 

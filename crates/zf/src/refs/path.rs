@@ -94,28 +94,28 @@ impl LevelName {
 impl LevelName {
     pub fn from(name: &str) -> LevelName {
         match name {
-            "TutorialEngineRel" => LevelName::TutorialEngineRel,
-            "TutorialTaskMissionEngineRel" => LevelName::TutorialTaskMissionEngineRel,
-            "TutorialMissionEngineRel" => LevelName::TutorialMissionEngineRel,
-            "TutorialTaskEngineCombine" => LevelName::TutorialTaskEngineCombine,
-            "TutorialFire" => LevelName::TutorialFire,
-            "StartMenu" => LevelName::StartMenu,
+            "Tutorial-Engine-Rel" => LevelName::TutorialEngineRel,
+            "Tutorial-Task-Mission-Engine-Rel" => LevelName::TutorialTaskMissionEngineRel,
+            "Tutorial-Mission-Engine-Rel" => LevelName::TutorialMissionEngineRel,
+            "Tutorial-Task-Engine-Combine" => LevelName::TutorialTaskEngineCombine,
+            "Tutorial-Fire" => LevelName::TutorialFire,
+            "Start-Menu" => LevelName::StartMenu,
             "Sandbox" => LevelName::Sandbox,
-            "TutorialEngine" => LevelName::TutorialEngine,
+            "Tutorial-Engine" => LevelName::TutorialEngine,
             _ => LevelName::Unknown,
         }
     }
 
     pub fn as_str(&self) -> &str {
         match &self {
-            LevelName::TutorialEngineRel => "TutorialEngineRel",
-            LevelName::TutorialTaskMissionEngineRel => "TutorialTaskMissionEngineRel",
-            LevelName::TutorialMissionEngineRel => "TutorialMissionEngineRel",
-            LevelName::TutorialTaskEngineCombine => "TutorialTaskEngineCombine",
-            LevelName::TutorialFire => "TutorialFire",
-            LevelName::StartMenu => "StartMenu",
+            LevelName::TutorialEngineRel => "Tutorial-Engine-Rel",
+            LevelName::TutorialTaskMissionEngineRel => "Tutorial-Task-Mission-Engine-Rel",
+            LevelName::TutorialMissionEngineRel => "Tutorial-Mission-Engine-Rel",
+            LevelName::TutorialTaskEngineCombine => "Tutorial-Task-Engine-Combine",
+            LevelName::TutorialFire => "Tutorial-Fire",
+            LevelName::StartMenu => "Start-Menu",
             LevelName::Sandbox => "Sandbox",
-            LevelName::TutorialEngine => "TutorialEngine",
+            LevelName::TutorialEngine => "Tutorial-Engine",
             _ => "Unknown",
         }
     }

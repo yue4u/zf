@@ -336,6 +336,7 @@ impl RuntimeFunc {
             }
             CommandArgs::Mission(m) => match m {
                 MissionCommand::Info => {
+                    // FIXME: this is outdated
                     caller.write_string_from_host(MissionLegacy::dummy().summary())
                 }
                 MissionCommand::Targets => {

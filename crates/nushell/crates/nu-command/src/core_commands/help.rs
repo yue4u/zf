@@ -325,8 +325,8 @@ Each stage in the pipeline works together to load, parse, and display informatio
 
 [Examples]
 
-List the files in the current directory, sorted by size:
-    ls | sort-by size
+List the all levels, display as a table:
+    level ls | table
 
 You can also learn more at https://www.nushell.sh/book/"#;
 

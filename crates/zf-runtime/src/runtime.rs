@@ -23,8 +23,6 @@ pub const SHELL_MODULE: &'static str = "zf-shell";
 pub const SHELL_WASM: &[u8] = include_bytes!(env!("CARGO_BIN_FILE_ZF_SHELL"));
 
 pub const SHELL_PRELOAD: &'static str = r#"
-alias g = game;
-alias t = game tutorial;
 alias e = engine;
 alias f = fire;
 "#;

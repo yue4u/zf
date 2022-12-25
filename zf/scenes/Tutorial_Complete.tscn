@@ -27,3 +27,6 @@ rotation_mode = 4
 
 [node name="TargetPoint" parent="Level/Path/PathFollow/PlayerMjolnir" index="5" instance=ExtResource( 3 )]
 transform = Transform( -0.856226, 2.98023e-08, -0.516603, -0.105297, 0.979007, 0.174521, 0.505757, 0.203826, -0.83825, 0, 0, 0 )
+
+[node name="MarginContainer" parent="UI" index="1"]
+mouse_filter = 0

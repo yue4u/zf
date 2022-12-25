@@ -5,6 +5,7 @@ use gdnative::{
         // Font,
         DynamicFont,
         GlobalConstants,
+        // InputEventMouseButton,
         ItemList,
         Particles2D,
     },
@@ -42,7 +43,9 @@ impl Default for ProcessState {
 pub struct Terminal {
     // seqno: usize,
     base: Ref<Control>,
-    state: ZFTerm,
+    term: ZFTerm,
+    // HACK: This is very wrong and we should not doing this
+    // term_scroll_offset: isize,
     process_state: ProcessState,
     buffer: String,
     font: Ref<DynamicFont>,
@@ -133,7 +136,8 @@ impl Terminal {
             buffer: String::new(),
             cell_size,
             cmds: cmds(),
-            state: ZFTerm::new(writer, TerminalSize::default()),
+            term: ZFTerm::new(writer, TerminalSize::default()),
+            // term_scroll_offset: 0,
             completion_item_list,
             typing_particles: SceneLoader::load(refs::path::scenes::TYPING_PARTICLES).unwrap(),
             bg_opacity: 0.3,
@@ -141,13 +145,13 @@ impl Terminal {
     }
 
     pub fn get_size(&self) -> TerminalSize {
-        self.state.term.get_size()
+        self.term.get_size()
     }
 
     #[method]
     fn resize(&mut self, #[base] base: TRef<Control>) {
         let term_size = calc_terminal_size(base, self.cell_size);
-        self.state.term.resize(term_size);
+        self.term.resize(term_size);
     }
 
     pub(crate) fn register_signals(builder: &ClassBuilder<Self>) {
@@ -224,12 +228,12 @@ impl Terminal {
     }
 
     fn write(&mut self, data: &str) {
-        self.state.term.advance_bytes(data);
+        self.term.advance_bytes(data);
     }
 
     fn write_with_effect(&mut self, data: &str) {
         self.create_typing_particles();
-        self.state.term.advance_bytes(data);
+        self.term.advance_bytes(data);
     }
 
     fn prompt(&mut self) {
@@ -247,7 +251,7 @@ impl Terminal {
 
     fn create_typing_particles(&self) {
         let base = unsafe { self.base.assume_unique() };
-        let cursor_pos = self.state.term.cursor_pos();
+        let cursor_pos = self.term.cursor_pos();
         let draw_pos = self.draw_pos(cursor_pos.x as f32, cursor_pos.y as f32);
         let typing_particles =
             SceneLoader::instance_as::<Particles2D>(&self.typing_particles).unwrap();
@@ -267,12 +271,31 @@ impl Terminal {
 
     #[method]
     fn on_gui_input(&mut self, #[base] base: &Control, event: Ref<InputEvent>) -> Option<()> {
-        let event = unsafe { event.assume_safe() }.cast::<InputEventKey>()?;
+        let event = unsafe { event.assume_safe() };
 
         // skip if not pressed
         if !event.is_pressed() {
-            return Some(());
+            return None;
         }
+
+        // if let Some(mouse_button) = event.cast::<InputEventMouseButton>() {
+        //     match mouse_button.button_index() {
+        //         GlobalConstants::BUTTON_WHEEL_UP => {
+        //             self.term.scroll_up(1);
+        //             self.term_scroll_offset += 1;
+        //             base.update()
+        //         }
+        //         GlobalConstants::BUTTON_WHEEL_DOWN => {
+        //             self.term.scroll_down(1);
+        //             self.term_scroll_offset -= 1;
+        //             base.update()
+        //         }
+        //         _ => {}
+        //     }
+        //     return None;
+        // };
+
+        let event = event.cast::<InputEventKey>()?;
 
         if self.process_state == ProcessState::Running {
             return None;
@@ -388,7 +411,7 @@ impl Terminal {
                         cl.add_item(item, GodotObject::null(), true);
                     }
 
-                    let cursor_pos = self.state.term.cursor_pos();
+                    let cursor_pos = self.term.cursor_pos();
                     cl.set_position(
                         self.draw_pos(
                             (cursor_pos.x) as f32 + 0.5, // with extra adjust
@@ -423,7 +446,7 @@ impl Terminal {
     fn _draw(&mut self, #[base] base: &Control) {
         let rect = base.get_rect();
         // tracing::debug!("{:?}",rect);
-        let color_palette = &self.state.term.get_config().color_palette();
+        let color_palette = &self.term.get_config().color_palette();
         let anchor = Vector2 { x: 0., y: 0. };
 
         base.draw_rect(
@@ -437,7 +460,7 @@ impl Terminal {
             false,
         );
 
-        let screen = self.state.term.screen_mut();
+        let screen = self.term.screen_mut();
 
         // TODO: this is very wrong and better to use index api
         let mut lines = Vec::new();
@@ -495,7 +518,7 @@ impl Terminal {
             });
 
         // cursor
-        let cursor_pos = self.state.term.cursor_pos();
+        let cursor_pos = self.term.cursor_pos();
         base.draw_char(
             &self.font,
             self.draw_pos(cursor_pos.x as f32, cursor_pos.y as f32),

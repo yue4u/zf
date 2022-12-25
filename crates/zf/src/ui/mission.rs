@@ -133,11 +133,13 @@ impl Mission {
         let cyan = |inner: &str| format!("[b][color=#4FFFCA]{inner}[/color][/b]");
         let text = format!(
             r#"{}: {level}
+{}:
 
 {}
 {}
 "#,
             cyan("Level"),
+            cyan("Mission"),
             msg_if(target_points_all, || format!(
                 "Target points: {target_points} / {target_points_all}"
             )),

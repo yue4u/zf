@@ -6,8 +6,8 @@ cd(path.join(__dirname, ".."));
 const dry = process.argv.includes("-n") ? "-n" : "";
 const ignore = [
   `\.git`,
-  `devlog/node_modules`,
-  `devlog/dist`,
+  `docs/node_modules`,
+  `docs/dist`,
   `tmp`,
   `zf/\.import`,
   `target`,

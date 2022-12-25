@@ -19,17 +19,17 @@ _data = {
 path_node = NodePath("../Path")
 
 [node name="Planet2" parent="Level" index="2" instance=ExtResource( 6 )]
-transform = Transform( 26.8268, 0, 29.6703, 0, 40, 0, -29.6703, 0, 26.8268, 90.2447, 16.011, 93.9574 )
+transform = Transform( 20.1201, 0, 22.2527, 0, 30, 0, -22.2527, 0, 20.1201, 90.2447, 16.011, 93.9574 )
 
 [node name="Planet" parent="Level" index="3" instance=ExtResource( 5 )]
 transform = Transform( 13.4134, 0, 14.8351, 0, 20, 0, -14.8351, 0, 13.4134, -68.3219, -49.8723, 129.034 )
 
 [node name="Path" type="Path" parent="Level" index="4"]
-transform = Transform( 1.00549, 0, 0, 0, 1.00549, 0, 0, 0, 1.00549, 0, 0, 0 )
 curve = SubResource( 1 )
 
 [node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
-transform = Transform( 0.973404, -0.0654865, 0.219532, 0, 0.958274, 0.285853, -0.229091, -0.278251, 0.932787, 0, 0, 0 )
+transform = Transform( -0.571383, -0.646641, -0.505345, -0.817977, 0.498662, 0.286785, 0.0665496, 0.577229, -0.813863, -67.3474, -11.245, 88.6878 )
+offset = 237.05
 rotation_mode = 4
 
 [node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="0" instance=ExtResource( 3 )]
@@ -63,10 +63,10 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -21.8347, -12.4193, 112.97 )
 [node name="Target_5" parent="Level/Point_5" index="0" instance=ExtResource( 2 )]
 
 [node name="Point_6" type="Spatial" parent="Level" index="10"]
-transform = Transform( -0.372709, -0.75405, -0.54083, -0.914855, 0.201028, 0.350183, -0.155333, 0.625297, -0.764771, -66.6171, -11.7033, 89.7562 )
+transform = Transform( -0.571385, -0.64664, -0.505347, -0.81798, 0.498661, 0.286786, 0.0665499, 0.577229, -0.813866, -66.6171, -11.7033, 89.7562 )
 
 [node name="Target_6" parent="Level/Point_6" index="0" instance=ExtResource( 2 )]
-transform = Transform( 1, -5.21541e-08, 7.45058e-09, 7.45058e-09, 0.999999, 0, -2.23517e-08, 1.78814e-07, 1, 4.84026, 19.3407, 9.52308 )
+transform = Transform( 1, -1.86265e-07, 7.45058e-09, 7.45058e-09, 0.999999, 0, -2.23517e-08, 2.68221e-07, 1, 10.8425, -12.9703, -2.03904 )
 
 [node name="Point_7" type="Spatial" parent="Level" index="11"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -60.4052, -23.2089, 40.7655 )

@@ -10,6 +10,7 @@ pub mod scenes {
     pub const RADAR: &str = "res://scenes/Radar.tscn";
     pub const TERMINAL: &str = "res://scenes/Terminal.tscn";
     pub const TYPING_PARTICLES: &str = "res://scenes/TypingParticles.tscn";
+    pub const PLANET_LAVA: &str = "res://scenes/PlanetLava.tscn";
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
     pub const SANDBOX_2_D: &str = "res://scenes/Sandbox2D.tscn";
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
@@ -40,6 +41,7 @@ pub mod levels {
     pub const TUTORIAL_TASK_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Task_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_TASK_ENGINE_COMBINE: &str = "res://levels/Tutorial_Task_Engine_Combine.tscn";
+    pub const CHALLENGE_ENGINE_REL: &str = "res://levels/Challenge_Engine_Rel.tscn";
     pub const TUTORIAL_FIRE: &str = "res://levels/Tutorial_Fire.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const CHALLENGE_TASK_ENGINE_COMBINE: &str = "res://levels/Challenge_Task_Engine_Combine.tscn";
@@ -55,13 +57,13 @@ pub enum LevelName {
     TutorialTaskMissionEngineRel,
     TutorialMissionEngineRel,
     TutorialTaskEngineCombine,
+    ChallengeEngineRel,
     TutorialFire,
     StartMenu,
     ChallengeTaskEngineCombine,
     TutorialEngine,
     Unknown,
 }
-
 
 impl LevelName {
     pub fn from_path(value: &str) -> Self {
@@ -71,6 +73,7 @@ impl LevelName {
             levels::TUTORIAL_TASK_MISSION_ENGINE_REL => LevelName::TutorialTaskMissionEngineRel,
             levels::TUTORIAL_MISSION_ENGINE_REL => LevelName::TutorialMissionEngineRel,
             levels::TUTORIAL_TASK_ENGINE_COMBINE => LevelName::TutorialTaskEngineCombine,
+            levels::CHALLENGE_ENGINE_REL => LevelName::ChallengeEngineRel,
             levels::TUTORIAL_FIRE => LevelName::TutorialFire,
             levels::START_MENU => LevelName::StartMenu,
             levels::CHALLENGE_TASK_ENGINE_COMBINE => LevelName::ChallengeTaskEngineCombine,
@@ -88,6 +91,7 @@ impl LevelName {
             LevelName::TutorialTaskMissionEngineRel => levels::TUTORIAL_TASK_MISSION_ENGINE_REL,
             LevelName::TutorialMissionEngineRel => levels::TUTORIAL_MISSION_ENGINE_REL,
             LevelName::TutorialTaskEngineCombine => levels::TUTORIAL_TASK_ENGINE_COMBINE,
+            LevelName::ChallengeEngineRel => levels::CHALLENGE_ENGINE_REL,
             LevelName::TutorialFire => levels::TUTORIAL_FIRE,
             LevelName::StartMenu => levels::START_MENU,
             LevelName::ChallengeTaskEngineCombine => levels::CHALLENGE_TASK_ENGINE_COMBINE,
@@ -105,6 +109,7 @@ impl LevelName {
             "Tutorial-Task-Mission-Engine-Rel" => LevelName::TutorialTaskMissionEngineRel,
             "Tutorial-Mission-Engine-Rel" => LevelName::TutorialMissionEngineRel,
             "Tutorial-Task-Engine-Combine" => LevelName::TutorialTaskEngineCombine,
+            "Challenge-Engine-Rel" => LevelName::ChallengeEngineRel,
             "Tutorial-Fire" => LevelName::TutorialFire,
             "Start-Menu" => LevelName::StartMenu,
             "Challenge-Task-Engine-Combine" => LevelName::ChallengeTaskEngineCombine,
@@ -120,6 +125,7 @@ impl LevelName {
             LevelName::TutorialTaskMissionEngineRel => "Tutorial-Task-Mission-Engine-Rel",
             LevelName::TutorialMissionEngineRel => "Tutorial-Mission-Engine-Rel",
             LevelName::TutorialTaskEngineCombine => "Tutorial-Task-Engine-Combine",
+            LevelName::ChallengeEngineRel => "Challenge-Engine-Rel",
             LevelName::TutorialFire => "Tutorial-Fire",
             LevelName::StartMenu => "Start-Menu",
             LevelName::ChallengeTaskEngineCombine => "Challenge-Task-Engine-Combine",
@@ -183,6 +189,13 @@ pub mod terminal {
 #[allow(dead_code)]
 pub mod typing_particles {
 
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod planet_lava {
+    pub const SCENE_2: &str = "/root/Scene/scene2";
+    pub const ANIMATION_PLAYER: &str = "/root/Scene/scene2/AnimationPlayer";
 }
 
 #[rustfmt::skip]
@@ -391,10 +404,6 @@ pub mod tutorial_engine_rel {
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const POINT_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1";
     pub const TARGET_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1/Target_1";
-    pub const POINT_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2";
-    pub const TARGET_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2/Target_2";
-    pub const POINT_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3";
-    pub const TARGET_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3/Target_3";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
 }
 
@@ -473,6 +482,21 @@ pub mod tutorial_task_engine_combine {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod challenge_engine_rel {
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const POINT_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3/Target_3";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod tutorial_fire {
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
     pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
@@ -495,6 +519,8 @@ pub mod start_menu {
 #[allow(dead_code)]
 pub mod challenge_task_engine_combine {
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PLANET_2: &str = "/root/Scene/Level/Planet2";
+    pub const PLANET: &str = "/root/Scene/Level/Planet";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
@@ -555,4 +581,3 @@ pub mod assets {
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
 }
-

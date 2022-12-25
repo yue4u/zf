@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use gdnative::{
     api::{
         control::FocusMode,
@@ -48,6 +50,7 @@ pub struct Terminal {
     // term_scroll_offset: isize,
     process_state: ProcessState,
     buffer: String,
+    history: VecDeque<String>,
     font: Ref<DynamicFont>,
     // font: Ref<Font>,
     cell_size: Vector2,
@@ -134,6 +137,7 @@ impl Terminal {
             font,
             process_state: ProcessState::Idle,
             buffer: String::new(),
+            history: VecDeque::new(),
             cell_size,
             cmds: cmds(),
             term: ZFTerm::new(writer, TerminalSize::default()),
@@ -326,6 +330,10 @@ impl Terminal {
                         // self.state = ProcessState::Running;
                         // let buffer: String = self.buffer.drain(..).collect();
                         // tracing::debug!("{:?}",lines);
+                        if self.history.len() == 50 {
+                            self.history.pop_front();
+                        }
+                        self.history.push_back(lines.to_owned());
                         base.emit_signal(ENTER_SIGNAL, &[lines.to_variant()]);
 
                         // self.state
@@ -363,6 +371,16 @@ impl Terminal {
                 has_delta = false;
                 let (item_count, selected) = calc_selected()?;
                 cl.select((item_count + selected - 1) % item_count, true);
+            }
+            GlobalConstants::KEY_UP if self.buffer.is_empty() => {
+                // TODO: key up/down more than once
+                if let Some(last) = self.history.iter().last() {
+                    let text = last.clone();
+                    self.write_with_effect(&text);
+                    self.buffer = text;
+                } else {
+                    has_delta = false
+                }
             }
             GlobalConstants::KEY_DOWN if cl.is_visible() => {
                 has_delta = false;

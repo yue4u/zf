@@ -20,6 +20,12 @@ fn quote(input: &str) -> String {
             }
         }
     }
+
+    if buf.len() > 0 {
+        out.push_str(&StyledLabel::Code.paint(&buf));
+        buf.clear();
+    }
+
     out
 }
 
@@ -82,8 +88,15 @@ Type `help engine` to explore the engine command
 
     @TutorialEngineRel where
     guide: r#"
+We can use `engine rel` to move relative from the orbit!
 Type `help engine rel` to explore the engine rel command
+"#,
+    hint: [
+        "engine rel -x -21 -y 8 -z 30"
+    ],
 
+    @ChallengeEngineRel where
+    guide: r#"
 Note: you can use `alias` to create shortcut like `alias r = engine rel`
 "#,
     hint: [

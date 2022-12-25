@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://scenes/TargetPoint.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=3]
+[ext_resource path="res://scenes/Orbit.tscn" type="PackedScene" id=4]
+
+[sub_resource type="Curve3D" id=1]
+_data = {
+"points": PoolVector3Array( 0.797614, 3.0221, -7.27255, -0.797614, -3.0221, 7.27255, 0, 0, 0, 8.58622, 4.72369, -14.6755, -8.58622, -4.72369, 14.6755, -9.75905, -6.23634, 51.9184, 8.91986, -5.50467, 14.9942, -8.91986, 5.50467, -14.9942, -31.4163, -6.85735, 45.8641, -8.71451, -2.32326, 6.12585, 8.71451, 2.32326, -6.12585, -13.9179, -2.47858, -2.30051, -2.97947, 4.25481, -6.5106, 2.97947, -4.25481, 6.5106, 0, 0, 0 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0 )
+}
+
+[node name="Scene" instance=ExtResource( 3 )]
+
+[node name="Orbit" parent="Level" index="1" instance=ExtResource( 4 )]
+path_node = NodePath("../Path")
+
+[node name="Path" type="Path" parent="Level" index="2"]
+transform = Transform( 1.00549, 0, 0, 0, 1.00549, 0, 0, 0, 1.00549, 0, 0, 0 )
+curve = SubResource( 1 )
+
+[node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
+transform = Transform( 0.994379, -0.0391384, -0.0983761, 0, 0.929166, -0.369664, 0.105876, 0.367586, 0.923943, 0, 0, 0 )
+rotation_mode = 4
+
+[node name="Point_1" type="Spatial" parent="Level/Path/PathFollow" index="0"]
+transform = Transform( 0.99454, 0, 0, 0, 0.99454, 0, 0, 0, 0.99454, 0, 0, 0 )
+
+[node name="Target_1" parent="Level/Path/PathFollow/Point_1" index="0" instance=ExtResource( 1 )]
+transform = Transform( 1, 3.72529e-09, -4.47035e-08, 0, 1, 0, 0, 1.49012e-07, 1, -8.42206, 5.60812, 5.0387 )
+
+[node name="Point_2" type="Spatial" parent="Level/Path/PathFollow" index="1"]
+transform = Transform( 0.99454, 0, -1.49012e-08, -3.72529e-09, 0.99454, 2.98023e-08, -1.49012e-08, 0, 0.994539, 0, 0, 0 )
+
+[node name="Target_2" parent="Level/Path/PathFollow/Point_2" index="0" instance=ExtResource( 1 )]
+transform = Transform( 1, -7.45058e-09, -7.45058e-09, -1.86265e-08, 1, 0, 3.72529e-08, 2.98023e-08, 1, 7.02226, 8.5486, 13.4696 )
+
+[node name="Point_3" type="Spatial" parent="Level/Path/PathFollow" index="2"]
+
+[node name="Target_3" parent="Level/Path/PathFollow/Point_3" index="0" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, -2.98023e-08, -3.72529e-09, 1, 0, -2.23517e-08, 0, 1, 17.9988, -3.42209, 28.2069 )
+
+[node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="3" instance=ExtResource( 2 )]
+transform = Transform( -1, 0, 1.50996e-07, 0, 1, 0, -1.50996e-07, 0, -1, 0, 0, 0 )

@@ -1,6 +1,9 @@
 #[allow(dead_code)]
 mod mission;
-pub mod game_state;
+mod game_state;
+mod level;
 
 pub use mission::*;
 pub use game_state::*;
+pub use level::*;
+

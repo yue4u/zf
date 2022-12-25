@@ -18,11 +18,10 @@ use zf_ffi::{
 
 use crate::{
     common::{current_level, find_ref, get_tree},
-    entities::{GameEvent, MissionLegacy},
+    entities::{GameEvent, LevelHelper, MissionLegacy, LEVELS},
     refs::{
         groups, next_level,
         path::{auto_load, base_level, LevelName},
-        LevelHelper, LEVELS,
     },
     ui::{ScreenTransition, Terminal},
     units::TargetPointInfo,

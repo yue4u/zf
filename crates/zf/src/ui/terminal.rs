@@ -16,9 +16,9 @@ use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
     common::{current_level, find_ref, PackedSceneRef, SceneLoader, StyledLabel},
-    entities::GameEvent,
+    entities::{GameEvent, LevelHelper},
     managers::VMManager,
-    refs::{self, HasPath, LevelHelper},
+    refs::{self, HasPath},
     vm::{CommandInput, CommandResult, VMSignal},
 };
 

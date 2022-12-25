@@ -59,7 +59,6 @@ pub enum LevelName {
     Unknown,
 }
 
-
 impl LevelName {
     pub fn from_path(value: &str) -> Self {
         match value {
@@ -494,4 +493,3 @@ pub mod assets {
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
 }
-

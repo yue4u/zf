@@ -13,5 +13,5 @@ impl Default for GlobalGameState {
     }
 }
 
-pub const GLOBAL_GAME_STATE: Lazy<Mutex<GlobalGameState>> =
+pub const _GLOBAL_GAME_STATE: Lazy<Mutex<GlobalGameState>> =
     Lazy::new(|| Mutex::new(GlobalGameState::default()));

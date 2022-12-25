@@ -92,7 +92,7 @@ We can use `engine rel` to move relative from the orbit!
 Type `help engine rel` to explore the engine rel command
 "#,
     hint: [
-        "engine rel -x -21 -y 8 -z 30"
+        "engine rel -x 21 -y 8 -z 30"
     ],
 
     @ChallengeEngineRel where

@@ -91,7 +91,8 @@ fn viewers() -> anyhow::Result<()> {
             │ 0 │ 1 │
             │ 1 │ 2 │
             │ 2 │ 3 │
-            ╰───┴───╯"#]],
+            ╰───┴───╯
+        "#]],
     );
     check(
         runtime.eval("[a b c] | grid").unwrap(),
@@ -137,11 +138,12 @@ fn preload() -> anyhow::Result<()> {
             Subcommands:
               engine off - Turn off engine
               engine on - Turn on engine
+              engine rel - Set relative pos from orbit
               engine t - Set engine thruster
               engine thruster - Set engine thruster
 
             Flags:
-              -h, --help - Display this help message
+              -h, --help - Display the help message for this command
 
         "#]],
     );
@@ -152,6 +154,14 @@ fn preload() -> anyhow::Result<()> {
 #[test]
 fn term_size() -> anyhow::Result<()> {
     let mut runtime = test_runtime()?;
+    check(
+        runtime.eval("term size").unwrap(),
+        expect![[r#"
+            ╭─────────┬────╮
+            │ columns │ 80 │
+            │ rows    │ 20 │
+            ╰─────────┴────╯"#]],
+    );
 
     check(
         runtime.eval("term size | table").unwrap(),
@@ -206,5 +216,5 @@ fn fsays() -> anyhow::Result<()> {
 
 #[test]
 fn cmds_len() {
-    check(cmds().len(), expect!["193"])
+    check(cmds().len(), expect!["201"])
 }

@@ -9,6 +9,7 @@ use nu_command::*;
 use nu_engine::eval_block;
 use nu_parser::parse;
 use nu_protocol::{
+    ast::Call,
     engine::{EngineState, Stack, StateWorkingSet},
     CliError, PipelineData, Span,
 };
@@ -583,7 +584,7 @@ pub fn eval_impl(
     stack: &mut Stack,
     source_lines: String,
 ) -> Result<String> {
-    let mut last_output = String::new();
+    let mut last_output = PipelineData::empty();
 
     for (i, line) in source_lines.lines().enumerate() {
         let mut working_set = StateWorkingSet::new(&engine_state);
@@ -606,7 +607,6 @@ pub fn eval_impl(
             .check_outcome(engine_state)?;
 
         let input = PipelineData::new_with_metadata(None, Span::test_data());
-        let config = engine_state.get_config();
 
         last_output = eval_block(
             &engine_state, //
@@ -617,8 +617,26 @@ pub fn eval_impl(
             false,
         )
         .check_outcome(engine_state)?
-        .collect_string("", config)
-        .check_outcome(engine_state)?;
     }
-    Ok(last_output)
+
+    let config = engine_state.get_config();
+
+    if let Some(decl_id) = engine_state.find_decl("table".as_bytes(), &[]) {
+        let command = engine_state.get_decl(decl_id);
+        match command.get_block_id() {
+            Some(_) => last_output,
+            None => command
+                .run(
+                    engine_state,
+                    stack,
+                    &Call::new(Span::new(0, 0)),
+                    last_output,
+                )
+                .check_outcome(engine_state)?,
+        }
+    } else {
+        last_output
+    }
+    .collect_string("", config)
+    .check_outcome(engine_state)
 }

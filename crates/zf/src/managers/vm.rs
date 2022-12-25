@@ -362,7 +362,10 @@ impl RuntimeFunc {
             CommandArgs::Game(g) => {
                 match g {
                     GameCommand::Start => {
-                        caller.data_mut().ext.change_scene(LevelName::Sandbox);
+                        caller
+                            .data_mut()
+                            .ext
+                            .change_scene(LevelName::ChallengeInfinite);
                     }
                     GameCommand::Menu => {
                         caller.data_mut().ext.change_scene(LevelName::StartMenu);

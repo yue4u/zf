@@ -25,21 +25,24 @@ pub mod scenes {
     pub const TARGET_DUMMY: &str = "res://scenes/TargetDummy.tscn";
     pub const MISSION: &str = "res://scenes/Mission.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
+    pub const SANDBOX: &str = "res://scenes/Sandbox.tscn";
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
     pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
+    pub const PLANET: &str = "res://scenes/Planet.tscn";
 }
 
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod levels {
     pub const TUTORIAL_ENGINE_REL: &str = "res://levels/Tutorial_Engine_Rel.tscn";
+    pub const CHALLENGE_INFINITE: &str = "res://levels/Challenge_Infinite.tscn";
     pub const TUTORIAL_TASK_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Task_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_TASK_ENGINE_COMBINE: &str = "res://levels/Tutorial_Task_Engine_Combine.tscn";
     pub const TUTORIAL_FIRE: &str = "res://levels/Tutorial_Fire.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
-    pub const SANDBOX: &str = "res://levels/Sandbox.tscn";
+    pub const CHALLENGE_TASK_ENGINE_COMBINE: &str = "res://levels/Challenge_Task_Engine_Combine.tscn";
     pub const TUTORIAL_ENGINE: &str = "res://levels/Tutorial_Engine.tscn";
 }
 
@@ -48,12 +51,13 @@ pub mod levels {
 #[derive(Debug, Clone, PartialEq, ToVariant, FromVariant)]
 pub enum LevelName {
     TutorialEngineRel,
+    ChallengeInfinite,
     TutorialTaskMissionEngineRel,
     TutorialMissionEngineRel,
     TutorialTaskEngineCombine,
     TutorialFire,
     StartMenu,
-    Sandbox,
+    ChallengeTaskEngineCombine,
     TutorialEngine,
     Unknown,
 }
@@ -63,12 +67,13 @@ impl LevelName {
     pub fn from_path(value: &str) -> Self {
         match value {
             levels::TUTORIAL_ENGINE_REL => LevelName::TutorialEngineRel,
+            levels::CHALLENGE_INFINITE => LevelName::ChallengeInfinite,
             levels::TUTORIAL_TASK_MISSION_ENGINE_REL => LevelName::TutorialTaskMissionEngineRel,
             levels::TUTORIAL_MISSION_ENGINE_REL => LevelName::TutorialMissionEngineRel,
             levels::TUTORIAL_TASK_ENGINE_COMBINE => LevelName::TutorialTaskEngineCombine,
             levels::TUTORIAL_FIRE => LevelName::TutorialFire,
             levels::START_MENU => LevelName::StartMenu,
-            levels::SANDBOX => LevelName::Sandbox,
+            levels::CHALLENGE_TASK_ENGINE_COMBINE => LevelName::ChallengeTaskEngineCombine,
             levels::TUTORIAL_ENGINE => LevelName::TutorialEngine,
             _ => LevelName::Unknown,
         }
@@ -79,12 +84,13 @@ impl LevelName {
     pub fn path(&self) -> &'static str {
         match self {
             LevelName::TutorialEngineRel => levels::TUTORIAL_ENGINE_REL,
+            LevelName::ChallengeInfinite => levels::CHALLENGE_INFINITE,
             LevelName::TutorialTaskMissionEngineRel => levels::TUTORIAL_TASK_MISSION_ENGINE_REL,
             LevelName::TutorialMissionEngineRel => levels::TUTORIAL_MISSION_ENGINE_REL,
             LevelName::TutorialTaskEngineCombine => levels::TUTORIAL_TASK_ENGINE_COMBINE,
             LevelName::TutorialFire => levels::TUTORIAL_FIRE,
             LevelName::StartMenu => levels::START_MENU,
-            LevelName::Sandbox => levels::SANDBOX,
+            LevelName::ChallengeTaskEngineCombine => levels::CHALLENGE_TASK_ENGINE_COMBINE,
             LevelName::TutorialEngine => levels::TUTORIAL_ENGINE,
             LevelName::Unknown => unreachable!(),
         }
@@ -95,12 +101,13 @@ impl LevelName {
     pub fn from(name: &str) -> LevelName {
         match name {
             "Tutorial-Engine-Rel" => LevelName::TutorialEngineRel,
+            "Challenge-Infinite" => LevelName::ChallengeInfinite,
             "Tutorial-Task-Mission-Engine-Rel" => LevelName::TutorialTaskMissionEngineRel,
             "Tutorial-Mission-Engine-Rel" => LevelName::TutorialMissionEngineRel,
             "Tutorial-Task-Engine-Combine" => LevelName::TutorialTaskEngineCombine,
             "Tutorial-Fire" => LevelName::TutorialFire,
             "Start-Menu" => LevelName::StartMenu,
-            "Sandbox" => LevelName::Sandbox,
+            "Challenge-Task-Engine-Combine" => LevelName::ChallengeTaskEngineCombine,
             "Tutorial-Engine" => LevelName::TutorialEngine,
             _ => LevelName::Unknown,
         }
@@ -109,12 +116,13 @@ impl LevelName {
     pub fn as_str(&self) -> &str {
         match &self {
             LevelName::TutorialEngineRel => "Tutorial-Engine-Rel",
+            LevelName::ChallengeInfinite => "Challenge-Infinite",
             LevelName::TutorialTaskMissionEngineRel => "Tutorial-Task-Mission-Engine-Rel",
             LevelName::TutorialMissionEngineRel => "Tutorial-Mission-Engine-Rel",
             LevelName::TutorialTaskEngineCombine => "Tutorial-Task-Engine-Combine",
             LevelName::TutorialFire => "Tutorial-Fire",
             LevelName::StartMenu => "Start-Menu",
-            LevelName::Sandbox => "Sandbox",
+            LevelName::ChallengeTaskEngineCombine => "Challenge-Task-Engine-Combine",
             LevelName::TutorialEngine => "Tutorial-Engine",
             _ => "Unknown",
         }
@@ -216,6 +224,7 @@ pub mod tutorial_complete {
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
     pub const TARGET_POINT: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir/TargetPoint";
+    pub const MARGIN_CONTAINER: &str = "/root/Scene/UI/MarginContainer";
 }
 
 #[rustfmt::skip]
@@ -312,6 +321,30 @@ pub mod terminal_sandbox {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod sandbox {
+    pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const T_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir";
+    pub const CAMERA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Camera";
+    pub const RADAR_AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea/CollisionShape";
+    pub const PROJECTILES: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Projectiles";
+    pub const AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area";
+    pub const COLLISION_SHAPE_1: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area/CollisionShape";
+    pub const ORBIT: &str = "/root/Scene/Level/Path/Orbit";
+    pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
+    pub const T_DUMMY_4: &str = "/root/Scene/Level/EnemyCluster/t-dummy4";
+    pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
+    pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
+    pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
+    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod target_point {
     pub const AREA: &str = "./Area";
     pub const COLLISION_SHAPE: &str = "./Area/CollisionShape";
@@ -345,6 +378,13 @@ pub mod homing_missile {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod planet {
+    pub const SCENE: &str = "/root/Scene/scene";
+    pub const ANIMATION_PLAYER: &str = "/root/Scene/scene/AnimationPlayer";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod tutorial_engine_rel {
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PATH: &str = "/root/Scene/Level/Path";
@@ -356,6 +396,30 @@ pub mod tutorial_engine_rel {
     pub const POINT_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3";
     pub const TARGET_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3/Target_3";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod challenge_infinite {
+    pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const T_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir";
+    pub const CAMERA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Camera";
+    pub const RADAR_AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea/CollisionShape";
+    pub const PROJECTILES: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Projectiles";
+    pub const AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area";
+    pub const COLLISION_SHAPE_1: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area/CollisionShape";
+    pub const ORBIT: &str = "/root/Scene/Level/Path/Orbit";
+    pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
+    pub const T_DUMMY_4: &str = "/root/Scene/Level/EnemyCluster/t-dummy4";
+    pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
+    pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
+    pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
+    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
 }
 
 #[rustfmt::skip]
@@ -420,8 +484,7 @@ pub mod tutorial_fire {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod start_menu {
-    pub const SCENE: &str = "/root/Scene/Level/scene";
-    pub const ANIMATION_PLAYER: &str = "/root/Scene/Level/scene/AnimationPlayer";
+    pub const PLANET: &str = "/root/Scene/Level/Planet";
     pub const CENTER_CONTAINER: &str = "/root/Scene/Level/CenterContainer";
     pub const LEVEL_RESULT: &str = "/root/Scene/Level/CenterContainer/LevelResult";
     pub const OMNI_LIGHT: &str = "/root/Scene/Level/OmniLight";
@@ -430,26 +493,27 @@ pub mod start_menu {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod sandbox {
-    pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
+pub mod challenge_task_engine_combine {
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
-    pub const T_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir";
-    pub const CAMERA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Camera";
-    pub const RADAR_AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea";
-    pub const COLLISION_SHAPE: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea/CollisionShape";
-    pub const PROJECTILES: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Projectiles";
-    pub const AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area";
-    pub const COLLISION_SHAPE_1: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area/CollisionShape";
-    pub const ORBIT: &str = "/root/Scene/Level/Path/Orbit";
-    pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
-    pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
-    pub const T_DUMMY_4: &str = "/root/Scene/Level/EnemyCluster/t-dummy4";
-    pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
-    pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
-    pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
-    pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
-    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+    pub const POINT_1: &str = "/root/Scene/Level/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Point_3/Target_3";
+    pub const POINT_4: &str = "/root/Scene/Level/Point_4";
+    pub const TARGET_4: &str = "/root/Scene/Level/Point_4/Target_4";
+    pub const POINT_5: &str = "/root/Scene/Level/Point_5";
+    pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
+    pub const POINT_6: &str = "/root/Scene/Level/Point_6";
+    pub const TARGET_6: &str = "/root/Scene/Level/Point_6/Target_6";
+    pub const POINT_7: &str = "/root/Scene/Level/Point_7";
+    pub const TARGET_7: &str = "/root/Scene/Level/Point_7/Target_7";
+    pub const POINT_8: &str = "/root/Scene/Level/Point_8";
+    pub const TARGET_8: &str = "/root/Scene/Level/Point_8/Target_8";
 }
 
 #[rustfmt::skip]

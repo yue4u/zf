@@ -15,6 +15,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = { workspace = true, version = "1.0.66"}
 miette = { version = "5.5.0", features = ["fancy"] }
+rand = "0.8"
 # nu-cli = { path= "../nushell", default-features = false }
 # nu-errors = { path= "../nushell", default-features = false }
 nu-command = { path = "../nushell/crates/nu-command", default-features = false }

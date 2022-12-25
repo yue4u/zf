@@ -23,7 +23,7 @@ fn quote(input: &str) -> String {
     out
 }
 
-macro_rules! guides_and_hints {
+macro_rules! levels {
     (
         @$(
             $level:path where
@@ -59,7 +59,11 @@ macro_rules! guides_and_hints {
 use nu_ansi_term::Color::*;
 use LevelName::*;
 
-guides_and_hints!(
+levels!(
+    @Unknown where
+    guide: "???",
+    hint: ["???"],
+
     @StartMenu where
     guide: r#"
 Type `tutorial` to continue or `help` for help.
@@ -111,8 +115,8 @@ or using 0.pos as a index to get detailed info
     guide: r#"
 `task` command is special, we can use `task` to create tasks that runs in the background!
 For example, to run the task we created in the before mission:
-`task run --every 1sec 'mission targets | get 0 | engine rel'`
-Type `help task run` to explore more
+`task run --every 1sec 'random pos | engine rel'`
+Type `help task` and `help task run` to explore more
 "#,
     hint: ["task run --every 1sec 'mission targets | get 0 | engine rel'"],
 
@@ -122,6 +126,10 @@ We can issue two commands togetter in one line seperated by `;`.
 For example: `engine on; 1 + 1`.
 Try combining task command and engine command togetter!
 "#,
+    hint: ["e t 100; task run -e 1sec 'mission targets | get 0 | engine rel'"],
+
+    @ChallengeTaskEngineCombine where
+    guide: "Reach all target points!",
     hint: ["e t 100; task run -e 1sec 'mission targets | get 0 | engine rel'"],
 
     @TutorialFire where
@@ -135,13 +143,9 @@ Combining this two commands to destroy enemies!
         "task run -e 1sec 'radar | get 0 | fire hm'"
     ],
 
-    @Sandbox where
-    guide: "this is a sandbox",
-    hint: ["game end"],
-
-    @Unknown where
-    guide: "???",
-    hint: ["game menu"],
+    @ChallengeInfinite where
+    guide: "Keep alive as long as possible",
+    hint: [],
 );
 
 pub trait LevelHelper {

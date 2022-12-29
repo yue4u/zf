@@ -44,7 +44,7 @@ impl Command for TimeScale {
 
         let scale = val.as_float()?;
         if scale < 0. || scale > 5. {
-            return Err(ShellError::UnsupportedInput(
+            return Err(ShellError::IncompatibleParametersSingle(
                 format!("scale must be in range of 0..5"),
                 val.span()?,
             ));

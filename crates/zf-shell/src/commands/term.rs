@@ -39,7 +39,7 @@ impl Command for TermOpacity {
 
         let opacity = val.as_float()? as f32;
         if opacity < 0. || opacity > 1. {
-            return Err(ShellError::UnsupportedInput(
+            return Err(ShellError::IncompatibleParametersSingle(
                 format!("opacity must be in range of 0.0..1.0"),
                 val.span()?,
             ));

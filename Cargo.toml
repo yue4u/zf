@@ -1,0 +1,25 @@
+[workspace]
+
+members = [
+    "crates/zf",
+    "crates/zf-x",
+    "crates/zf-ffi",
+    "crates/zf-shell",
+    "crates/zf-runtime",
+    "crates/zf-term",
+]
+
+exclude = [
+    "crates/nushell",
+    "crates/wezterm",
+]
+
+[workspace.dependencies]
+anyhow = "1.0.66"
+expect-test = "1.4.0"
+gdnative = { git = "https://github.com/Bromeon/godot-rust.git", rev = "f9200001" }
+tracing = "0.1"
+
+[profile.release]
+incremental = true
+debug = 0

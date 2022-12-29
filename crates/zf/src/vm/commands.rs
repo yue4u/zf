@@ -1,7 +1,7 @@
 use gdnative::derive::{FromVariant, ToVariant};
 
 use crate::vm::CommandInput;
-use zf_bridge::CommandBridge;
+use zf_ffi::CommandBridge;
 
 #[derive(FromVariant, ToVariant, Clone, Debug, PartialEq)]
 pub enum ProcessState {
@@ -97,8 +97,8 @@ impl IntoCommand for CommandBridge {
 
     #[rustfmt::skip]
     fn into_command(self) -> Command {
-        use zf_bridge as bridge;
-        use zf_bridge::CommandBridge as Arg;
+        use zf_ffi as bridge;
+        use zf_ffi::CommandBridge as Arg;
         
         match self {
             Arg::Game(bridge::GameCommand::Start) => Command::Game(GameCommand::Start),

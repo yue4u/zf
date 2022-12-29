@@ -437,10 +437,7 @@ pub enum KeyAssignment {
     SpawnTab(SpawnTabDomain),
     SpawnWindow,
     ToggleFullScreen,
-    Copy,
     CopyTo(ClipboardCopyDestination),
-    Paste,
-    PastePrimarySelection,
     PasteFrom(ClipboardPasteSource),
     ActivateTabRelative(isize),
     ActivateTabRelativeNoWrap(isize),
@@ -536,6 +533,7 @@ pub enum KeyAssignment {
 
     ResetTerminal,
     OpenUri(String),
+    ActivateCommandPalette,
 }
 impl_lua_conversion_dynamic!(KeyAssignment);
 

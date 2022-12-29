@@ -1,7 +1,11 @@
+use crate::inputmap::InputMap;
 use config::keyassignment::*;
 use config::{ConfigHandle, DeferredKeyCode};
+use mux::domain::DomainState;
+use mux::Mux;
 use ordered_float::NotNan;
 use std::borrow::Cow;
+use std::cmp::Ordering;
 use std::convert::TryFrom;
 use window::{KeyCode, Modifiers};
 use KeyAssignment::*;
@@ -60,6 +64,7 @@ pub struct CommandDef {
     pub args: &'static [ArgType],
     /// Where to place the command in a menubar
     pub menubar: &'static [&'static str],
+    pub icon: Option<&'static str>,
 }
 
 #[derive(Debug, Clone)]
@@ -69,6 +74,7 @@ pub struct ExpandedCommand {
     pub action: KeyAssignment,
     pub keys: Vec<(Modifiers, KeyCode)>,
     pub menubar: &'static [&'static str],
+    pub icon: Option<&'static str>,
 }
 
 impl std::fmt::Debug for CommandDef {
@@ -149,23 +155,203 @@ impl CommandDef {
         result
     }
 
+    fn expand_action(
+        action: KeyAssignment,
+        config: &ConfigHandle,
+        is_built_in: bool,
+    ) -> Option<ExpandedCommand> {
+        match derive_command_from_key_assignment(&action) {
+            None => {
+                if is_built_in {
+                    log::warn!(
+                        "{action:?} is a default action, but we cannot derive a CommandDef for it"
+                    );
+                }
+                None
+            }
+            Some(def) => {
+                let keys = def.permute_keys(config);
+                Some(ExpandedCommand {
+                    brief: def.brief.into(),
+                    doc: def.doc.into(),
+                    keys,
+                    action,
+                    menubar: def.menubar,
+                    icon: def.icon,
+                })
+            }
+        }
+    }
+
     /// Produces the complete set of expanded commands.
     pub fn expanded_commands(config: &ConfigHandle) -> Vec<ExpandedCommand> {
         let mut result = vec![];
 
         for action in compute_default_actions() {
-            match derive_command_from_key_assignment(&action) {
-                None => log::warn!(
-                    "{action:?} is a default action, but we cannot derive a CommandDef for it"
-                ),
-                Some(def) => {
-                    let keys = def.permute_keys(config);
+            if let Some(command) = Self::expand_action(action, config, true) {
+                result.push(command);
+            }
+        }
+
+        result
+    }
+
+    pub fn actions_for_palette_and_menubar(config: &ConfigHandle) -> Vec<ExpandedCommand> {
+        let mut result = Self::expanded_commands(config);
+
+        // Generate some stuff based on the config
+        for cmd in &config.launch_menu {
+            let label = match cmd.label.as_ref() {
+                Some(label) => label.to_string(),
+                None => match cmd.args.as_ref() {
+                    Some(args) => args.join(" "),
+                    None => "(default shell)".to_string(),
+                },
+            };
+            result.push(ExpandedCommand {
+                brief: format!("{label} (New Tab)").into(),
+                doc: "".into(),
+                keys: vec![],
+                action: KeyAssignment::SpawnCommandInNewTab(cmd.clone()),
+                menubar: &["Shell"],
+                icon: Some("mdi_tab_plus"),
+            });
+        }
+
+        // Generate some stuff based on the mux state
+        if let Some(mux) = Mux::try_get() {
+            let mut domains = mux.iter_domains();
+            domains.sort_by(|a, b| {
+                let a_state = a.state();
+                let b_state = b.state();
+                if a_state != b_state {
+                    return if a_state == DomainState::Attached {
+                        Ordering::Less
+                    } else {
+                        Ordering::Greater
+                    };
+                }
+                a.domain_id().cmp(&b.domain_id())
+            });
+            for dom in &domains {
+                let name = dom.domain_name();
+                // FIXME: use domain_label here, but needs to be async
+                let label = name.clone();
+
+                if dom.spawnable() {
+                    if dom.state() == DomainState::Attached {
+                        result.push(ExpandedCommand {
+                            brief: format!("New Tab (Domain {label})").into(),
+                            doc: "".into(),
+                            keys: vec![],
+                            action: KeyAssignment::SpawnCommandInNewTab(SpawnCommand {
+                                domain: SpawnTabDomain::DomainName(name.to_string()),
+                                ..SpawnCommand::default()
+                            }),
+                            menubar: &["Shell"],
+                            icon: Some("mdi_tab_plus"),
+                        });
+                    } else {
+                        result.push(ExpandedCommand {
+                            brief: format!("Attach Domain {label}").into(),
+                            doc: "".into(),
+                            keys: vec![],
+                            action: KeyAssignment::AttachDomain(name.to_string()),
+                            menubar: &["Shell", "Attach"],
+                            icon: Some("mdi_pipe"),
+                        });
+                    }
+                }
+            }
+            for dom in &domains {
+                let name = dom.domain_name();
+                // FIXME: use domain_label here, but needs to be async
+                let label = name.clone();
+
+                if dom.state() == DomainState::Attached {
+                    if name == "local" {
+                        continue;
+                    }
                     result.push(ExpandedCommand {
-                        brief: def.brief.into(),
-                        doc: def.doc.into(),
-                        keys,
-                        action,
-                        menubar: def.menubar,
+                        brief: format!("Detach Domain {label}").into(),
+                        doc: "".into(),
+                        keys: vec![],
+                        action: KeyAssignment::DetachDomain(SpawnTabDomain::DomainName(
+                            name.to_string(),
+                        )),
+                        menubar: &["Shell", "Detach"],
+                        icon: Some("mdi_pipe_disconnected"),
+                    });
+                }
+            }
+
+            let active_workspace = mux.active_workspace();
+            for workspace in mux.iter_workspaces() {
+                if workspace != active_workspace {
+                    result.push(ExpandedCommand {
+                        brief: format!("Switch to workspace {workspace}").into(),
+                        doc: "".into(),
+                        keys: vec![],
+                        action: KeyAssignment::SwitchToWorkspace {
+                            name: Some(workspace.clone()),
+                            spawn: None,
+                        },
+                        menubar: &["Window", "Workspace"],
+                        icon: None,
+                    });
+                }
+            }
+            result.push(ExpandedCommand {
+                brief: "Create new Workspace".into(),
+                doc: "".into(),
+                keys: vec![],
+                action: KeyAssignment::SwitchToWorkspace {
+                    name: None,
+                    spawn: None,
+                },
+                menubar: &["Window", "Workspace"],
+                icon: None,
+            });
+        }
+
+        // And sweep to pick up stuff from their key assignments
+        let inputmap = InputMap::new(config);
+        for entry in inputmap.keys.default.values() {
+            if result
+                .iter()
+                .position(|cmd| cmd.action == entry.action)
+                .is_some()
+            {
+                continue;
+            }
+            if let Some(cmd) = derive_command_from_key_assignment(&entry.action) {
+                result.push(ExpandedCommand {
+                    brief: cmd.brief.into(),
+                    doc: cmd.doc.into(),
+                    keys: vec![],
+                    action: entry.action.clone(),
+                    menubar: cmd.menubar,
+                    icon: cmd.icon,
+                });
+            }
+        }
+        for table in inputmap.keys.by_name.values() {
+            for entry in table.values() {
+                if result
+                    .iter()
+                    .position(|cmd| cmd.action == entry.action)
+                    .is_some()
+                {
+                    continue;
+                }
+                if let Some(cmd) = derive_command_from_key_assignment(&entry.action) {
+                    result.push(ExpandedCommand {
+                        brief: cmd.brief.into(),
+                        doc: cmd.doc.into(),
+                        keys: vec![],
+                        action: entry.action.clone(),
+                        menubar: cmd.menubar,
+                        icon: cmd.icon,
                     });
                 }
             }
@@ -177,14 +363,54 @@ impl CommandDef {
     #[cfg(not(target_os = "macos"))]
     pub fn recreate_menubar(_config: &ConfigHandle) {}
 
+    /// Update the menubar to reflect the current config state.
+    /// We cannot simply build a completely new one and replace it at runtime,
+    /// because something in cocoa get's unhappy and crashes shortly after.
+    /// The strategy we have is to try to find the existing item with the
+    /// same action and update it.
+    /// We use the macos menu item tag to do a mark-sweep style garbage
+    /// collection to figure out which items were not reused/updated
+    /// and remove them at the end.
     #[cfg(target_os = "macos")]
     pub fn recreate_menubar(config: &ConfigHandle) {
         use window::os::macos::menu::*;
 
-        let main_menu = Menu::new_with_title("MainMenu");
-        main_menu.assign_as_main_menu();
+        let inputmap = InputMap::new(config);
 
-        let mut commands = Self::expanded_commands(config);
+        let mut candidates_for_removal = vec![];
+        let wezterm_perform_key_assignment_sel = sel!(weztermPerformKeyAssignment:);
+
+        /// Mark menu items as candidates for removal
+        fn mark_candidates(menu: &Menu, candidates: &mut Vec<MenuItem>, action: SEL) {
+            for item in menu.items() {
+                if let Some(submenu) = item.get_sub_menu() {
+                    mark_candidates(&submenu, candidates, action);
+                }
+                if item.get_action() == Some(action) {
+                    item.set_tag(0);
+                    candidates.push(item);
+                }
+            }
+        }
+
+        let main_menu = match Menu::get_main_menu() {
+            Some(existing) => {
+                mark_candidates(
+                    &existing,
+                    &mut candidates_for_removal,
+                    wezterm_perform_key_assignment_sel,
+                );
+
+                existing
+            }
+            None => {
+                let menu = Menu::new_with_title("MainMenu");
+                menu.assign_as_main_menu();
+                menu
+            }
+        };
+
+        let mut commands = Self::actions_for_palette_and_menubar(config);
         commands.retain(|cmd| !cmd.menubar.is_empty());
 
         // Prefer to put the menus in this order
@@ -241,13 +467,101 @@ impl CommandDef {
                     submenu = submenu.get_or_create_sub_menu(sub_title, |_menu| {});
                 }
 
-                // And add the current command to the menu
-                let item =
-                    MenuItem::new_with(&cmd.brief, Some(sel!(weztermPerformKeyAssignment:)), "");
+                let mut candidate = inputmap.locate_app_wide_key_assignment(&cmd.action);
+                candidate.sort_by(|(a_key, a_mods), (b_key, b_mods)| {
+                    fn score_mods(mods: &Modifiers) -> usize {
+                        let mut score: usize = mods.bits() as usize;
+                        // Prefer keys with CMD on macOS
+                        if mods.contains(Modifiers::SUPER) {
+                            score += 1000;
+                        }
+                        score
+                    }
 
-                item.set_represented_item(RepresentedItem::KeyAssignment(cmd.action.clone()));
+                    let a_mods = score_mods(a_mods);
+                    let b_mods = score_mods(b_mods);
+
+                    match b_mods.cmp(&a_mods) {
+                        Ordering::Equal => {}
+                        ordering => return ordering,
+                    }
+
+                    a_key.cmp(&b_key)
+                });
+
+                fn key_code_to_equivalent(key: &KeyCode) -> String {
+                    match key {
+                        KeyCode::Hyper
+                        | KeyCode::Super
+                        | KeyCode::Meta
+                        | KeyCode::Cancel
+                        | KeyCode::Composed(_)
+                        | KeyCode::RawCode(_) => "".to_string(),
+                        KeyCode::Char(c) => c.to_string(),
+                        KeyCode::Physical(phys) => key_code_to_equivalent(&phys.to_key_code()),
+                        _ => "".to_string(),
+                    }
+                }
+
+                let short_cut = candidate
+                    .get(0)
+                    .map(|(key, _)| key_code_to_equivalent(key))
+                    .unwrap_or_else(String::new);
+
+                let represented_item = RepresentedItem::KeyAssignment(cmd.action.clone());
+                let item = match submenu.get_item_with_represented_item(&represented_item) {
+                    Some(existing) => {
+                        existing.set_title(&cmd.brief);
+                        existing.set_key_equivalent(&short_cut);
+                        existing
+                    }
+                    None => {
+                        let item = MenuItem::new_with(
+                            &cmd.brief,
+                            Some(wezterm_perform_key_assignment_sel),
+                            &short_cut,
+                        );
+                        submenu.add_item(&item);
+                        item
+                    }
+                };
+
+                if !short_cut.is_empty() {
+                    let mods: Modifiers = candidate[0].1;
+                    let mut equiv_mods = NSEventModifierFlags::empty();
+
+                    equiv_mods.set(
+                        NSEventModifierFlags::NSShiftKeyMask,
+                        mods.contains(Modifiers::SHIFT),
+                    );
+                    equiv_mods.set(
+                        NSEventModifierFlags::NSAlternateKeyMask,
+                        mods.contains(Modifiers::ALT),
+                    );
+                    equiv_mods.set(
+                        NSEventModifierFlags::NSControlKeyMask,
+                        mods.contains(Modifiers::CTRL),
+                    );
+                    equiv_mods.set(
+                        NSEventModifierFlags::NSCommandKeyMask,
+                        mods.contains(Modifiers::SUPER),
+                    );
+
+                    item.set_key_equiv_modifier_mask(equiv_mods);
+                }
+
+                item.set_represented_item(represented_item);
                 item.set_tool_tip(&cmd.doc);
-                submenu.add_item(&item);
+                // Update the tag to indicate that this item should
+                // not be removed by the sweep below
+                item.set_tag(1);
+            }
+        }
+
+        // Now sweep away any items that were not updated
+        for item in candidates_for_removal {
+            if item.get_tag() == 0 {
+                item.get_menu().map(|menu| menu.remove_item(&item));
             }
         }
     }
@@ -279,13 +593,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SHIFT, "Insert".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
-        },
-        PastePrimarySelection => CommandDef {
-            brief: "Paste primary selection".into(),
-            doc: "Pastes text from the primary selection".into(),
-            keys: vec![],
-            args: &[ArgType::ActivePane],
-            menubar: &[],
+            icon: Some("mdi_content_paste"),
         },
         CopyTo(ClipboardCopyDestination::PrimarySelection) => CommandDef {
             brief: "Copy to primary selection".into(),
@@ -293,6 +601,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL, "Insert".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
+            icon: Some("mdi_content_copy"),
         },
         CopyTo(ClipboardCopyDestination::Clipboard) => CommandDef {
             brief: "Copy to clipboard".into(),
@@ -303,6 +612,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             ],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
+            icon: Some("mdi_content_copy"),
         },
         CopyTo(ClipboardCopyDestination::ClipboardAndPrimarySelection) => CommandDef {
             brief: "Copy to clipboard and primary selection".into(),
@@ -310,13 +620,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL, "Insert".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
-        },
-        Copy => CommandDef {
-            brief: "Copy to clipboard and primary selection".into(),
-            doc: "Copies text to the clipboard and the primary selection".into(),
-            keys: vec![],
-            args: &[ArgType::ActivePane],
-            menubar: &[],
+            icon: Some("mdi_content_copy"),
         },
         PasteFrom(ClipboardPasteSource::Clipboard) => CommandDef {
             brief: "Paste from clipboard".into(),
@@ -327,13 +631,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             ],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
-        },
-        Paste => CommandDef {
-            brief: "Paste from clipboard".into(),
-            doc: "Pastes text from the clipboard".into(),
-            keys: vec![],
-            args: &[ArgType::ActivePane],
-            menubar: &[],
+            icon: Some("mdi_content_paste"),
         },
         ToggleFullScreen => CommandDef {
             brief: "Toggle full screen mode".into(),
@@ -341,6 +639,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::ALT, "Return".into())],
             args: &[ArgType::ActiveWindow],
             menubar: &["View"],
+            icon: Some("mdi_fullscreen"),
         },
         Hide => CommandDef {
             brief: "Hide/Minimize Window".into(),
@@ -348,6 +647,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "m".into())],
             args: &[ArgType::ActiveWindow],
             menubar: &["Window"],
+            icon: Some("mdi_window_minimize"),
         },
         Show => CommandDef {
             brief: "Show/Restore Window".into(),
@@ -355,6 +655,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &[],
+            icon: Some("mdi_window_restore"),
         },
         HideApplication => CommandDef {
             brief: "Hide Application".into(),
@@ -364,6 +665,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "h".into())],
             args: &[],
             menubar: &["WezTerm"],
+            icon: None,
         },
         SpawnWindow => CommandDef {
             brief: "New Window".into(),
@@ -371,6 +673,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "n".into())],
             args: &[],
             menubar: &["Shell"],
+            icon: Some("cod_empty_window"),
         },
         ClearScrollback(ScrollbackEraseMode::ScrollbackOnly) => CommandDef {
             brief: "Clear scrollback".into(),
@@ -380,6 +683,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "k".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
+            icon: Some("cod_clear_all"),
         },
         ClearScrollback(ScrollbackEraseMode::ScrollbackAndViewport) => CommandDef {
             brief: "Clear the scrollback and viewport".into(),
@@ -387,6 +691,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
+            icon: Some("cod_clear_all"),
         },
         Search(Pattern::CurrentSelectionOrEmptyString) => CommandDef {
             brief: "Search pane output".into(),
@@ -394,6 +699,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "f".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
+            icon: Some("oct_search"),
         },
         Search(_) => CommandDef {
             brief: "Search pane output".into(),
@@ -401,6 +707,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &[],
+            icon: Some("oct_search"),
         },
         ShowDebugOverlay => CommandDef {
             brief: "Show debug overlay".into(),
@@ -408,6 +715,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "l".into())],
             args: &[ArgType::ActiveWindow],
             menubar: &["Help"],
+            icon: Some("cod_debug"),
         },
         QuickSelect => CommandDef {
             brief: "Enter QuickSelect mode".into(),
@@ -415,6 +723,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "Space".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
+            icon: None,
         },
         QuickSelectArgs(_) => CommandDef {
             brief: "Enter QuickSelect mode".into(),
@@ -422,6 +731,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &[],
+            icon: None,
         },
         CharSelect(_) => CommandDef {
             brief: "Enter Emoji / Character selection mode".into(),
@@ -429,13 +739,15 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "u".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
+            icon: Some("mdi_sticker_emoji"),
         },
         PaneSelect(_) => CommandDef {
             brief: "Enter Pane selection mode".into(),
             doc: "Activates the pane selection UI".into(),
-            keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "p".into())],
+            keys: vec![], // FIXME: find a new assignment
             args: &[ArgType::ActivePane],
             menubar: &["Window"],
+            icon: Some("cod_multiple_windows"),
         },
         DecreaseFontSize => CommandDef {
             brief: "Decrease font size".into(),
@@ -446,6 +758,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             ],
             args: &[ArgType::ActiveWindow],
             menubar: &["View", "Font Size"],
+            icon: Some("mdi_format_size"),
         },
         IncreaseFontSize => CommandDef {
             brief: "Increase font size".into(),
@@ -456,6 +769,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             ],
             args: &[ArgType::ActiveWindow],
             menubar: &["View", "Font Size"],
+            icon: Some("mdi_format_size"),
         },
         ResetFontSize => CommandDef {
             brief: "Reset font size".into(),
@@ -466,6 +780,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             ],
             args: &[ArgType::ActiveWindow],
             menubar: &["View", "Font Size"],
+            icon: Some("mdi_format_size"),
         },
         ResetFontAndWindowSize => CommandDef {
             brief: "Reset the window and font size".into(),
@@ -473,6 +788,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &["View", "Font Size"],
+            icon: Some("mdi_format_size"),
         },
         SpawnTab(SpawnTabDomain::CurrentPaneDomain) => CommandDef {
             brief: "New Tab".into(),
@@ -480,6 +796,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "t".into())],
             args: &[ArgType::ActiveWindow],
             menubar: &["Shell"],
+            icon: Some("mdi_tab_plus"),
         },
         SpawnTab(SpawnTabDomain::DefaultDomain) => CommandDef {
             brief: "New Tab (Default Domain)".into(),
@@ -487,6 +804,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &["Shell"],
+            icon: Some("mdi_tab_plus"),
         },
         SpawnTab(SpawnTabDomain::DomainName(name)) => CommandDef {
             brief: format!("New Tab (`{name}` Domain)").into(),
@@ -494,6 +812,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &["Shell"],
+            icon: Some("mdi_tab_plus"),
         },
         SpawnTab(SpawnTabDomain::DomainId(id)) => CommandDef {
             brief: format!("New Tab (Domain with id {id})").into(),
@@ -501,6 +820,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &["Shell"],
+            icon: Some("mdi_tab_plus"),
         },
         SpawnCommandInNewTab(cmd) => CommandDef {
             brief: format!("Spawn a new Tab with {cmd:?}").into(),
@@ -508,6 +828,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: Some("mdi_tab_plus"),
         },
         SpawnCommandInNewWindow(cmd) => CommandDef {
             brief: format!("Spawn a new Window with {cmd:?}").into(),
@@ -515,6 +836,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: Some("mdi_open_in_new"),
         },
         ActivateTab(-1) => CommandDef {
             brief: "Activate right-most tab".into(),
@@ -522,10 +844,11 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "9".into())],
             args: &[ArgType::ActiveWindow],
             menubar: &["Window", "Select Tab"],
+            icon: None,
         },
         ActivateTab(n) => {
             let n = *n;
-            let ordinal = english_ordinal(n);
+            let ordinal = english_ordinal(n + 1);
             let keys = if n >= 0 && n <= 7 {
                 vec![(Modifiers::SUPER, (n + 1).to_string())]
             } else {
@@ -537,6 +860,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys,
                 args: &[ArgType::ActiveWindow],
                 menubar: &["Window", "Select Tab"],
+                icon: None,
             }
         }
         ActivatePaneByIndex(n) => {
@@ -548,6 +872,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[ArgType::ActiveWindow],
                 menubar: &[],
+                icon: None,
             }
         }
         SetPaneZoomState(true) => CommandDef {
@@ -560,6 +885,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &[],
+            icon: Some("mdi_fullscreen"),
         },
         SetPaneZoomState(false) => CommandDef {
             brief: format!("Un-Zooms the current Pane").into(),
@@ -567,6 +893,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &[],
+            icon: Some("mdi_fullscreen"),
         },
         EmitEvent(name) => CommandDef {
             brief: format!("Emit event `{name}`").into(),
@@ -578,6 +905,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &[],
+            icon: None,
         },
         CloseCurrentTab { confirm: true } => CommandDef {
             brief: "Close current Tab".into(),
@@ -587,6 +915,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "w".into())],
             args: &[ArgType::ActiveTab],
             menubar: &["Shell"],
+            icon: Some("mdi_close_box_outline"),
         },
         CloseCurrentTab { confirm: false } => CommandDef {
             brief: "Close current Tab".into(),
@@ -596,6 +925,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveTab],
             menubar: &[],
+            icon: Some("mdi_close_box_outline"),
         },
         CloseCurrentPane { confirm: true } => CommandDef {
             brief: "Close current Pane".into(),
@@ -605,6 +935,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &["Shell"],
+            icon: Some("mdi_close_box_outline"),
         },
         CloseCurrentPane { confirm: false } => CommandDef {
             brief: "Close current Pane".into(),
@@ -614,6 +945,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &[],
+            icon: Some("mdi_close_box_outline"),
         },
         ActivateTabRelative(-1) => CommandDef {
             brief: "Activate the tab to the left".into(),
@@ -627,6 +959,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             ],
             args: &[ArgType::ActiveWindow],
             menubar: &["Window", "Select Tab"],
+            icon: None,
         },
         ActivateTabRelative(1) => CommandDef {
             brief: "Activate the tab to the right".into(),
@@ -640,10 +973,11 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             ],
             args: &[ArgType::ActiveWindow],
             menubar: &["Window", "Select Tab"],
+            icon: None,
         },
         ActivateTabRelative(n) => {
             let (direction, amount) = if *n < 0 { ("left", -n) } else { ("right", *n) };
-            let ordinal = english_ordinal(amount);
+            let ordinal = english_ordinal(amount + 1);
             CommandDef {
                 brief: format!("Activate the {ordinal} tab to the {direction}").into(),
                 doc: format!(
@@ -654,6 +988,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[ArgType::ActiveWindow],
                 menubar: &[],
+                icon: None,
             }
         }
         ActivateTabRelativeNoWrap(-1) => CommandDef {
@@ -662,6 +997,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &[],
+            icon: None,
         },
         ActivateTabRelativeNoWrap(1) => CommandDef {
             brief: "Activate the tab to the right (no wrapping)".into(),
@@ -669,16 +1005,18 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &[],
+            icon: None,
         },
         ActivateTabRelativeNoWrap(n) => {
             let (direction, amount) = if *n < 0 { ("left", -n) } else { ("right", *n) };
-            let ordinal = english_ordinal(amount);
+            let ordinal = english_ordinal(amount + 1);
             CommandDef {
                 brief: format!("Activate the {ordinal} tab to the {direction}").into(),
                 doc: format!("Activates the {ordinal} tab to the {direction}").into(),
                 keys: vec![],
                 args: &[ArgType::ActiveWindow],
                 menubar: &[],
+                icon: None,
             }
         }
         ReloadConfiguration => CommandDef {
@@ -687,6 +1025,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "r".into())],
             args: &[],
             menubar: &["WezTerm"],
+            icon: Some("mdi_reload"),
         },
         QuitApplication => CommandDef {
             brief: "Quit WezTerm".into(),
@@ -694,6 +1033,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::SUPER, "q".into())],
             args: &[],
             menubar: &["WezTerm"],
+            icon: Some("oct_stop"),
         },
         MoveTabRelative(-1) => CommandDef {
             brief: "Move tab one place to the left".into(),
@@ -703,6 +1043,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "PageUp".into())],
             args: &[ArgType::ActiveTab],
             menubar: &["Window", "Move Tab"],
+            icon: Some("fa_long_arrow_left"),
         },
         MoveTabRelative(1) => CommandDef {
             brief: "Move tab one place to the right".into(),
@@ -712,12 +1053,13 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "PageDown".into())],
             args: &[ArgType::ActiveTab],
             menubar: &["Window", "Move Tab"],
+            icon: Some("fa_long_arrow_right"),
         },
         MoveTabRelative(n) => {
-            let (direction, amount) = if *n < 0 {
-                ("left", (-n).to_string())
+            let (direction, amount, icon) = if *n < 0 {
+                ("left", (-n).to_string(), "mdi_chevron_double_left")
             } else {
-                ("right", n.to_string())
+                ("right", n.to_string(), "mdi_chevron_double_right")
             };
 
             CommandDef {
@@ -730,6 +1072,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[ArgType::ActiveTab],
                 menubar: &[],
+                icon: Some(icon),
             }
         }
         MoveTab(n) => {
@@ -744,6 +1087,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[ArgType::ActiveTab],
                 menubar: &[],
+                icon: None,
             }
         }
         ScrollByPage(amount) => {
@@ -755,6 +1099,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                     keys: vec![(Modifiers::SHIFT, "PageUp".into())],
                     args: &[ArgType::ActivePane],
                     menubar: &["View"],
+                    icon: None,
                 }
             } else if amount == 1.0 {
                 CommandDef {
@@ -763,6 +1108,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                     keys: vec![(Modifiers::SHIFT, "PageDown".into())],
                     args: &[ArgType::ActivePane],
                     menubar: &["View"],
+                    icon: None,
                 }
             } else if amount < 0.0 {
                 let amount = -amount;
@@ -772,6 +1118,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                     keys: vec![],
                     args: &[ArgType::ActivePane],
                     menubar: &["View"],
+                    icon: None,
                 }
             } else {
                 CommandDef {
@@ -780,6 +1127,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                     keys: vec![],
                     args: &[ArgType::ActivePane],
                     menubar: &["View"],
+                    icon: None,
                 }
             }
         }
@@ -799,6 +1147,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[ArgType::ActivePane],
                 menubar: &[],
+                icon: None,
             }
         }
         ScrollToPrompt(n) => {
@@ -814,6 +1163,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[ArgType::ActivePane],
                 menubar: &[],
+                icon: Some("oct_terminal"),
             }
         }
         ScrollByCurrentEventWheelDelta => CommandDef {
@@ -826,6 +1176,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &[],
+            icon: None,
         },
         ScrollToBottom => CommandDef {
             brief: "Scroll to the bottom".into(),
@@ -833,6 +1184,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &["View"],
+            icon: Some("mdi_format_align_bottom"),
         },
         ScrollToTop => CommandDef {
             brief: "Scroll to the top".into(),
@@ -840,6 +1192,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &["View"],
+            icon: Some("mdi_format_align_top"),
         },
         ActivateCopyMode => CommandDef {
             brief: "Activate Copy Mode".into(),
@@ -849,6 +1202,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "x".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Edit"],
+            icon: Some("mdi_content_copy"),
         },
         SplitVertical(SpawnCommand {
             domain: SpawnTabDomain::CurrentPaneDomain,
@@ -866,6 +1220,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             )],
             args: &[ArgType::ActivePane],
             menubar: &["Shell"],
+            icon: Some("cod_split_vertical"),
         },
         SplitHorizontal(SpawnCommand {
             domain: SpawnTabDomain::CurrentPaneDomain,
@@ -883,6 +1238,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             )],
             args: &[ArgType::ActivePane],
             menubar: &["Shell"],
+            icon: Some("cod_split_horizontal"),
         },
         SplitHorizontal(_) => CommandDef {
             brief: "Split Horizontally (Left/Right)".into(),
@@ -892,6 +1248,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &[],
+            icon: Some("cod_split_horizontal"),
         },
         SplitVertical(_) => CommandDef {
             brief: "Split Vertically (Top/Bottom)".into(),
@@ -901,9 +1258,10 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &[],
+            icon: Some("cod_split_vertical"),
         },
         AdjustPaneSize(PaneDirection::Left, amount) => CommandDef {
-            brief: format!("Resize Pane {amount} cells to the Left").into(),
+            brief: format!("Resize Pane {amount} cell(s) to the Left").into(),
             doc: "Adjusts the closest split divider to the left".into(),
             keys: vec![(
                 Modifiers::CTRL
@@ -913,9 +1271,10 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             )],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Resize Pane"],
+            icon: None,
         },
         AdjustPaneSize(PaneDirection::Right, amount) => CommandDef {
-            brief: format!("Resize Pane {amount} cells to the Right").into(),
+            brief: format!("Resize Pane {amount} cell(s) to the Right").into(),
             doc: "Adjusts the closest split divider to the right".into(),
             keys: vec![(
                 Modifiers::CTRL
@@ -925,9 +1284,10 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             )],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Resize Pane"],
+            icon: None,
         },
         AdjustPaneSize(PaneDirection::Up, amount) => CommandDef {
-            brief: format!("Resize Pane {amount} cells Upwards").into(),
+            brief: format!("Resize Pane {amount} cell(s) Upwards").into(),
             doc: "Adjusts the closest split divider towards the top".into(),
             keys: vec![(
                 Modifiers::CTRL
@@ -937,9 +1297,10 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             )],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Resize Pane"],
+            icon: None,
         },
         AdjustPaneSize(PaneDirection::Down, amount) => CommandDef {
-            brief: format!("Resize Pane {amount} cells Downwards").into(),
+            brief: format!("Resize Pane {amount} cell(s) Downwards").into(),
             doc: "Adjusts the closest split divider towards the bottom".into(),
             keys: vec![(
                 Modifiers::CTRL
@@ -949,6 +1310,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             )],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Resize Pane"],
+            icon: None,
         },
         AdjustPaneSize(PaneDirection::Next | PaneDirection::Prev, _) => return None,
         ActivatePaneDirection(PaneDirection::Next | PaneDirection::Prev) => return None,
@@ -958,6 +1320,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "LeftArrow".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Select Pane"],
+            icon: Some("fa_long_arrow_left"),
         },
         ActivatePaneDirection(PaneDirection::Right) => CommandDef {
             brief: "Activate Pane Right".into(),
@@ -965,6 +1328,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "RightArrow".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Select Pane"],
+            icon: Some("fa_long_arrow_right"),
         },
         ActivatePaneDirection(PaneDirection::Up) => CommandDef {
             brief: "Activate Pane Up".into(),
@@ -972,6 +1336,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "UpArrow".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Select Pane"],
+            icon: Some("fa_long_arrow_up"),
         },
         ActivatePaneDirection(PaneDirection::Down) => CommandDef {
             brief: "Activate Pane Down".into(),
@@ -979,6 +1344,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "DownArrow".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Select Pane"],
+            icon: Some("fa_long_arrow_down"),
         },
         TogglePaneZoomState => CommandDef {
             brief: "Toggle Pane Zoom".into(),
@@ -986,6 +1352,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "z".into())],
             args: &[ArgType::ActivePane],
             menubar: &["Window"],
+            icon: Some("mdi_fullscreen"),
         },
         ActivateLastTab => CommandDef {
             brief: "Activate the last active tab".into(),
@@ -993,6 +1360,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &["Window", "Select Tab"],
+            icon: None,
         },
         ClearKeyTableStack => CommandDef {
             brief: "Clear the key table stack".into(),
@@ -1000,6 +1368,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &["Edit"],
+            icon: None,
         },
         OpenLinkAtMouseCursor => CommandDef {
             brief: "Open link at mouse cursor".into(),
@@ -1007,6 +1376,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &["Shell"],
+            icon: None,
         },
         ShowLauncherArgs(_) | ShowLauncher => CommandDef {
             brief: "Show the launcher".into(),
@@ -1014,6 +1384,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &["Shell"],
+            icon: None,
         },
         ShowTabNavigator => CommandDef {
             brief: "Navigate tabs".into(),
@@ -1021,34 +1392,39 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActiveWindow],
             menubar: &["Window", "Select Tab"],
+            icon: Some("cod_list_flat"),
         },
         DetachDomain(SpawnTabDomain::CurrentPaneDomain) => CommandDef {
             brief: "Detach the domain of the active pane".into(),
             doc: "Detaches (disconnects from) the domain of the active pane".into(),
             keys: vec![],
             args: &[ArgType::ActivePane],
-            menubar: &["Shell"],
+            menubar: &["Shell", "Detach"],
+            icon: Some("mdi_pipe_disconnected"),
         },
         DetachDomain(SpawnTabDomain::DefaultDomain) => CommandDef {
             brief: "Detach the default domain".into(),
             doc: "Detaches (disconnects from) the default domain".into(),
             keys: vec![],
             args: &[ArgType::ActivePane],
-            menubar: &[],
+            menubar: &["Shell", "Detach"],
+            icon: Some("mdi_pipe_disconnected"),
         },
         DetachDomain(SpawnTabDomain::DomainName(name)) => CommandDef {
             brief: format!("Detach the `{name}` domain").into(),
             doc: format!("Detaches (disconnects from) the domain named `{name}`").into(),
             keys: vec![],
             args: &[ArgType::ActivePane],
-            menubar: &[],
+            menubar: &["Shell", "Detach"],
+            icon: Some("mdi_pipe_disconnected"),
         },
         DetachDomain(SpawnTabDomain::DomainId(id)) => CommandDef {
             brief: format!("Detach the domain with id {id}").into(),
             doc: format!("Detaches (disconnects from) the domain with id {id}").into(),
             keys: vec![],
             args: &[ArgType::ActivePane],
-            menubar: &[],
+            menubar: &["Shell", "Detach"],
+            icon: Some("mdi_pipe_disconnected"),
         },
         OpenUri(uri) => match uri.as_ref() {
             "https://wezfurlong.org/wezterm/" => CommandDef {
@@ -1057,6 +1433,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[],
                 menubar: &["Help"],
+                icon: Some("mdi_help"),
             },
             "https://github.com/wez/wezterm/discussions/" => CommandDef {
                 brief: "Discuss on GitHub".into(),
@@ -1064,6 +1441,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[],
                 menubar: &["Help"],
+                icon: Some("oct_comment_discussion"),
             },
             "https://github.com/wez/wezterm/issues/" => CommandDef {
                 brief: "Search or report issue on GitHub".into(),
@@ -1071,6 +1449,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[],
                 menubar: &["Help"],
+                icon: Some("fa_ticket"),
             },
             _ => CommandDef {
                 brief: format!("Open {uri} in your browser").into(),
@@ -1078,6 +1457,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[],
                 menubar: &[],
+                icon: Some("oct_browser"),
             },
         },
         SendString(text) => CommandDef {
@@ -1094,6 +1474,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: Some("mdi_keyboard_variant"),
         },
         SendKey(key) => CommandDef {
             brief: format!(
@@ -1109,6 +1490,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: Some("mdi_keyboard_variant"),
         },
         Nop => CommandDef {
             brief: "Does nothing".into(),
@@ -1116,6 +1498,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: None,
         },
         DisableDefaultAssignment => return None,
         SelectTextAtMouseCursor(mode) => CommandDef {
@@ -1132,6 +1515,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: None,
         },
         ExtendSelectionToMouseCursor(mode) => CommandDef {
             brief: format!(
@@ -1147,6 +1531,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: None,
         },
         ClearSelection => CommandDef {
             brief: "Clears the selection in the current pane".into(),
@@ -1154,6 +1539,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: None,
         },
         CompleteSelection(destination) => CommandDef {
             brief: format!("Completes selection, and copy {destination:?}").into(),
@@ -1165,6 +1551,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: None,
         },
         CompleteSelectionOrOpenLinkAtMouseCursor(destination) => CommandDef {
             brief: format!(
@@ -1180,6 +1567,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: None,
         },
         StartWindowDrag => CommandDef {
             brief: "Requests a window drag operation from \
@@ -1191,6 +1579,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[],
             menubar: &[],
+            icon: Some("mdi_drag"),
         },
         Multiple(actions) => {
             let mut brief = String::new();
@@ -1213,6 +1602,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[ArgType::ActivePane],
                 menubar: &[],
+                icon: None,
             }
         }
         SwitchToWorkspace {
@@ -1231,7 +1621,8 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             .into(),
             keys: vec![],
             args: &[],
-            menubar: &[],
+            menubar: &["Window", "Workspace"],
+            icon: None,
         },
         SwitchToWorkspace {
             name: Some(name),
@@ -1249,7 +1640,8 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             .into(),
             keys: vec![],
             args: &[],
-            menubar: &[],
+            menubar: &["Window", "Workspace"],
+            icon: None,
         },
         SwitchToWorkspace {
             name: Some(name),
@@ -1267,7 +1659,8 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             .into(),
             keys: vec![],
             args: &[],
-            menubar: &[],
+            menubar: &["Window", "Workspace"],
+            icon: None,
         },
         SwitchToWorkspace {
             name: None,
@@ -1277,7 +1670,8 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             doc: format!("Spawn the {prog:?} into a new workspace and switch to it").into(),
             keys: vec![],
             args: &[],
-            menubar: &[],
+            menubar: &["Window", "Workspace"],
+            icon: None,
         },
         SwitchWorkspaceRelative(n) => {
             let (direction, amount) = if *n < 0 {
@@ -1295,7 +1689,8 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 .into(),
                 keys: vec![],
                 args: &[ArgType::ActivePane],
-                menubar: &[],
+                menubar: &["Window", "Workspace"],
+                icon: None,
             }
         }
         ActivateKeyTable { name, .. } => CommandDef {
@@ -1304,6 +1699,7 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &[],
+            icon: None,
         },
         PopKeyTable => CommandDef {
             brief: "Pop the current key table".into(),
@@ -1311,20 +1707,23 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &[],
+            icon: None,
         },
         AttachDomain(name) => CommandDef {
             brief: format!("Attach domain `{name}`").into(),
             doc: format!("Attach domain `{name}`").into(),
             keys: vec![],
             args: &[ArgType::ActivePane],
-            menubar: &[],
+            menubar: &["Shell", "Attach"],
+            icon: Some("mdi_pipe"),
         },
-        CopyMode(_) => CommandDef {
-            brief: "Activate Copy Mode".into(),
-            doc: "Activate Copy Mode".into(),
+        CopyMode(copy_mode) => CommandDef {
+            brief: format!("{copy_mode:?}").into(),
+            doc: "".into(),
             keys: vec![],
             args: &[ArgType::ActivePane],
-            menubar: &["Edit"],
+            menubar: &["Edit", "Copy Mode"],
+            icon: None,
         },
         RotatePanes(direction) => CommandDef {
             brief: format!("Rotate panes {direction:?}").into(),
@@ -1332,6 +1731,10 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &["Window", "Rotate Pane"],
+            icon: Some(match direction {
+                RotationDirection::Clockwise => "mdi_rotate_right",
+                RotationDirection::CounterClockwise => "mdi_rotate_left",
+            }),
         },
         SplitPane(split) => {
             let direction = split.direction;
@@ -1341,6 +1744,11 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
                 keys: vec![],
                 args: &[ArgType::ActivePane],
                 menubar: &[],
+                icon: match split.direction {
+                    PaneDirection::Up | PaneDirection::Down => Some("cod_split_vertical"),
+                    PaneDirection::Left | PaneDirection::Right => Some("cod_split_horizontal"),
+                    PaneDirection::Next | PaneDirection::Prev => None,
+                },
             }
         }
         ResetTerminal => CommandDef {
@@ -1349,6 +1757,15 @@ pub fn derive_command_from_key_assignment(action: &KeyAssignment) -> Option<Comm
             keys: vec![],
             args: &[ArgType::ActivePane],
             menubar: &["Shell"],
+            icon: None,
+        },
+        ActivateCommandPalette => CommandDef {
+            brief: "Activate Command Palette".into(),
+            doc: "Shows the command palette modal".into(),
+            keys: vec![(Modifiers::CTRL.union(Modifiers::SHIFT), "p".into())],
+            args: &[ArgType::ActivePane],
+            menubar: &["Edit"],
+            icon: None,
         },
     })
 }
@@ -1392,6 +1809,7 @@ fn compute_default_actions() -> Vec<KeyAssignment> {
         CharSelect(CharSelectArguments::default()),
         ActivateCopyMode,
         ClearKeyTableStack,
+        ActivateCommandPalette,
         // ----------------- View
         DecreaseFontSize,
         IncreaseFontSize,

@@ -7,7 +7,7 @@ pub struct GangutSpaceHub;
 #[methods]
 impl GangutSpaceHub {
     fn new(_base: &Node) -> Self {
-        godot_print!("prepare GangutSpaceHub");
+        // tracing::info!("prepare GangutSpaceHub");
         GangutSpaceHub
     }
 

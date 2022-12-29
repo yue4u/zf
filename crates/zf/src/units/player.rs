@@ -1,21 +1,51 @@
 use std::cell::RefCell;
 
-use gdnative::{api::PathFollow, prelude::*};
+use gdnative::{
+    api::{Area, PathFollow},
+    prelude::*,
+};
+use zf_ffi::{CommandArgs, EngineCommand};
 
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
-    path::path::scenes,
-    vm::{register_vm_signal, Command, CommandInput, EngineCommand, VMConnecter, VMSignal},
+    refs::{
+        groups::{self, Layer},
+        path::scenes,
+    },
+    vm::{CommandInput, VMConnecter, VMSignal},
+    weapons::HomingMissile,
 };
 
-#[derive(NativeClass, Default)]
+#[derive(NativeClass)]
 #[inherit(Spatial)]
-#[register_with(register_vm_signal)]
+#[register_with(Self::register_signal)]
 pub struct Player {
+    #[allow(unused)]
+    base: Ref<Spatial>,
     speed: RefCell<f64>,
     position: RefCell<Position>,
     rotation: RefCell<Rotation>,
-    engine: RefCell<EngineStatus>,
+    engine: EngineState,
+}
+
+impl From<Ref<Spatial>> for Player {
+    fn from(value: Ref<Spatial>) -> Self {
+        Player {
+            base: value,
+            speed: RefCell::<f64>::default(),
+            position: RefCell::<Position>::default(),
+            rotation: RefCell::<Rotation>::default(),
+            engine: EngineState::default(),
+        }
+    }
+}
+
+type EngineRelState = Vector3;
+
+#[derive(Debug, Default)]
+struct EngineState {
+    status: EngineStatus,
+    rel: EngineRelState,
 }
 
 #[derive(Debug)]
@@ -32,15 +62,38 @@ impl Default for EngineStatus {
 
 const MAX_SPEED: f64 = 1. / 30.;
 
+impl Player {
+    pub fn path_from<'a>(base: &'a Node) -> String {
+        let player = unsafe {
+            base.get_tree()
+                .unwrap()
+                .assume_safe()
+                .get_nodes_in_group(groups::PLAYER)
+                .get(0)
+                .to::<Ref<Node>>()
+                .unwrap()
+        };
+        unsafe { player.assume_safe() }.get_path().to_string()
+    }
+}
+
+pub const PLAYER_HIT: &'static str = "player_hit";
+
 #[methods]
 impl Player {
-    fn new(_base: &Spatial) -> Self {
-        godot_print!("prepare Player");
-        Player::default()
+    fn new(base: TRef<Spatial>) -> Self {
+        // tracing::info!("prepare Player");
+        Player::from(base.claim())
+    }
+
+    pub fn register_signal<T: NativeClass>(builder: &ClassBuilder<T>) {
+        builder.signal(VMSignal::OnCmdResult.as_str()).done();
+        builder.signal(PLAYER_HIT).done();
     }
 
     #[method]
     fn _ready(&self, #[base] base: TRef<Spatial>) -> Option<()> {
+        base.add_to_group(groups::PLAYER, false);
         // FIXME: this is a hack to get it to work.
         let node = unsafe { base.get_node_as::<Node>(".")? };
         node.connect_vm_signal(VMSignal::OnCmdParsed.into());
@@ -48,20 +101,38 @@ impl Player {
     }
 
     #[method]
-    fn on_cmd_parsed(&self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
-        godot_dbg!(&input);
-        let current_status = self.engine.borrow();
+    fn on_cmd_parsed(&mut self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
+        // tracing::debug!("{:?}",&input);
         let next_status = match &input.cmd {
-            Command::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
-            Command::Engine(EngineCommand::Thruster(percent)) => match &*current_status {
-                EngineStatus::On(_) => Some(EngineStatus::On(*percent)),
-                _ => None,
-            },
-            Command::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
-            Command::Fire(fire) => {
-                godot_print!("fire: {:?}", fire);
-                let missile = common::load_as::<Spatial>(scenes::HOMING_MISSILE).unwrap();
-                missile.set_scale(Vector3::new(0.05, 0.05, 0.05));
+            CommandArgs::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
+            CommandArgs::Engine(EngineCommand::Thruster(percent)) => {
+                Some(EngineStatus::On(*percent))
+            }
+            CommandArgs::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
+            CommandArgs::Engine(EngineCommand::Rel { x, y, z }) => {
+                let transform = base.transform();
+                let rel = Vector3::new(
+                    x.unwrap_or(transform.origin.x),
+                    y.unwrap_or(transform.origin.y),
+                    z.unwrap_or(transform.origin.z),
+                );
+
+                self.engine.rel = rel;
+                None
+            }
+            CommandArgs::Fire(fire) => {
+                // tracing::info!("fire: {:?}", fire);
+                let weapon =
+                    common::SceneLoader::load_and_instance_as::<Spatial>(scenes::HOMING_MISSILE)
+                        .unwrap();
+                let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
+                Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
+                let missile = weapon.cast_instance::<HomingMissile>().unwrap();
+
+                missile
+                    .map_mut(|m, _| m.target_pos = fire.pos.map(|(x, y, z)| Vector3::new(x, y, z)))
+                    .unwrap();
+
                 unsafe { base.get_node("Projectiles").unwrap().assume_safe() }
                     .add_child(missile, true);
                 None
@@ -69,15 +140,14 @@ impl Player {
             _ => None,
         }?;
 
-        godot_dbg!(&next_status);
+        // tracing::debug!("{:?}",&next_status);
 
         let speed = match next_status {
             EngineStatus::On(percent) => MAX_SPEED * (percent as f64) / 100.,
             EngineStatus::Off => 0.,
         };
-        drop(current_status);
 
-        self.engine.replace(next_status);
+        self.engine.status = next_status;
         self.speed.replace(speed);
 
         let res = input.into_result(Ok("ok".to_string()));
@@ -87,31 +157,47 @@ impl Player {
 
     #[method]
     fn _process(&mut self, #[base] base: &Spatial, delta: f64) -> Option<()> {
-        let transform = base.cast::<Spatial>()?.global_transform();
-        self.position.replace(transform.origin);
-        self.rotation.replace(transform.basis.to_euler());
+        let global_transform = base.cast::<Spatial>()?.global_transform();
+        self.position.replace(global_transform.origin);
+        self.rotation.replace(global_transform.basis.to_euler());
+
+        let local_transform = base.transform();
+
+        base.set_transform(Transform {
+            basis: local_transform.basis,
+            origin: local_transform
+                .origin
+                .linear_interpolate(self.engine.rel, delta as f32),
+        });
+
         let speed = *self.speed.borrow();
-        (speed > 0.01).then_some(())?;
 
         let follow = unsafe { base.get_parent()?.assume_safe() }.cast::<PathFollow>()?;
-        follow.set_unit_offset((follow.unit_offset() + speed * delta).fract());
+        follow.set_offset(follow.offset() + speed * 500. * delta);
         Some(())
+    }
+
+    #[method]
+    pub fn damage(&self, ammount: u32) {
+        unsafe { self.base.assume_safe() }.emit_signal(PLAYER_HIT, &[ammount.to_variant()]);
     }
 
     pub fn display(&self) -> String {
         format!(
-            r#"[b]Status[/b]
+            r#"[b][color=#4FFFCA]Status[/color][/b]
 speed: {:.2}
 position: {}
 rotation: {}
 
-[b]Engine[/b]
-engine: {:?}
+[b][color=#4FFFCA]Engine[/color][/b]
+status: {:?}
+rel: {:?}
 "#,
             self.speed.borrow(),
             self.position.borrow().display(),
             self.rotation.borrow().display(),
-            self.engine.borrow()
+            self.engine.status,
+            self.engine.rel
         )
     }
 }

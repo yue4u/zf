@@ -3,7 +3,7 @@ use nu_cli::{eval_config_contents, eval_source, report_error};
 use nu_parser::ParseError;
 use nu_path::canonicalize_with;
 use nu_protocol::engine::{EngineState, Stack, StateWorkingSet};
-use nu_protocol::{PipelineData, Span, Spanned};
+use nu_protocol::{PipelineData, Spanned};
 use nu_utils::{get_default_config, get_default_env};
 use std::fs::File;
 use std::io::Write;
@@ -17,7 +17,6 @@ pub(crate) fn read_config_file(
     engine_state: &mut EngineState,
     stack: &mut Stack,
     config_file: Option<Spanned<String>>,
-    is_perf_true: bool,
     is_env_config: bool,
 ) {
     // Load config startup file
@@ -75,7 +74,16 @@ pub(crate) fn read_config_file(
                 "y" | "" => match File::create(&config_path) {
                     Ok(mut output) => match write!(output, "{}", config_file) {
                         Ok(_) => {
-                            println!("Config file created at: {}", config_path.to_string_lossy())
+                            let config_type = if is_env_config {
+                                "Environment config"
+                            } else {
+                                "Config"
+                            };
+                            println!(
+                                "{} file created at: {}",
+                                config_type,
+                                config_path.to_string_lossy()
+                            );
                         }
                         Err(_) => {
                             eprintln!(
@@ -105,16 +113,10 @@ pub(crate) fn read_config_file(
         eval_config_contents(config_path, engine_state, stack);
     }
 
-    if is_perf_true {
-        info!("read_config_file {}:{}:{}", file!(), line!(), column!());
-    }
+    info!("read_config_file {}:{}:{}", file!(), line!(), column!());
 }
 
-pub(crate) fn read_loginshell_file(
-    engine_state: &mut EngineState,
-    stack: &mut Stack,
-    is_perf_true: bool,
-) {
+pub(crate) fn read_loginshell_file(engine_state: &mut EngineState, stack: &mut Stack) {
     // read and execute loginshell file if exists
     if let Some(mut config_path) = nu_path::config_dir() {
         config_path.push(NUSHELL_FOLDER);
@@ -125,28 +127,20 @@ pub(crate) fn read_loginshell_file(
         }
     }
 
-    if is_perf_true {
-        info!("read_loginshell_file {}:{}:{}", file!(), line!(), column!());
-    }
+    info!("read_loginshell_file {}:{}:{}", file!(), line!(), column!());
 }
 
-pub(crate) fn read_default_env_file(
-    engine_state: &mut EngineState,
-    stack: &mut Stack,
-    is_perf_true: bool,
-) {
+pub(crate) fn read_default_env_file(engine_state: &mut EngineState, stack: &mut Stack) {
     let config_file = get_default_env();
     eval_source(
         engine_state,
         stack,
         config_file.as_bytes(),
         "default_env.nu",
-        PipelineData::new(Span::new(0, 0)),
+        PipelineData::empty(),
     );
 
-    if is_perf_true {
-        info!("read_config_file {}:{}:{}", file!(), line!(), column!());
-    }
+    info!("read_config_file {}:{}:{}", file!(), line!(), column!());
     // Merge the environment in case env vars changed in the config
     match nu_engine::env::current_dir(engine_state, stack) {
         Ok(cwd) => {
@@ -179,7 +173,7 @@ fn eval_default_config(
         } else {
             "default_config.nu"
         },
-        PipelineData::new(Span::new(0, 0)),
+        PipelineData::empty(),
     );
 
     // Merge the environment in case env vars changed in the config

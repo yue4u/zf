@@ -1,6 +1,6 @@
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, Signature};
+use nu_protocol::{Category, Example, PipelineData, Signature, Span, Type, Value};
 
 #[derive(Clone)]
 pub struct Ignore;
@@ -15,7 +15,9 @@ impl Command for Ignore {
     }
 
     fn signature(&self) -> nu_protocol::Signature {
-        Signature::build("ignore").category(Category::Core)
+        Signature::build("ignore")
+            .input_output_types(vec![(Type::Any, Type::Nothing)])
+            .category(Category::Core)
     }
 
     fn search_terms(&self) -> Vec<&str> {
@@ -30,14 +32,14 @@ impl Command for Ignore {
         input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
         input.into_value(call.head);
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {
         vec![Example {
             description: "Ignore the output of an echo command",
             example: "echo done | ignore",
-            result: None,
+            result: Some(Value::nothing(Span::test_data())),
         }]
     }
 }

@@ -1,10 +1,11 @@
 use gdnative::{api::object::ConnectFlags, prelude::*};
+use zf_ffi::CommandArgs;
 
-use crate::{common::find_ref, managers::VMManager, vm::Command};
+use crate::{common::find_ref, managers::VMManager};
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct CommandInput {
-    pub cmd: Command,
+    pub cmd: CommandArgs,
     pub id: u32,
 }
 
@@ -34,6 +35,7 @@ pub enum VMSignal {
     OnCmdEntered,
     OnCmdParsed,
     OnCmdResult,
+    OnGameState,
 }
 
 pub struct VMSignalConnectOptions {
@@ -70,6 +72,7 @@ impl VMSignal {
             VMSignal::OnCmdEntered => "on_cmd_entered",
             VMSignal::OnCmdParsed => "on_cmd_parsed",
             VMSignal::OnCmdResult => "on_cmd_result",
+            VMSignal::OnGameState => "on_game_state",
         }
     }
 }
@@ -101,7 +104,10 @@ impl<'a> VMConnecter for TRef<'a, Node> {
                 VariantArray::new_shared(),
                 ConnectFlags::DEFERRED.into(),
             )
-            .expect(&format!("failed to connect vm {}", config.signal.as_str()));
+            .expect(&format!(
+                "failed to connect to vm {}",
+                config.signal.as_str()
+            ));
 
         if config.bidirectional {
             self.connect(

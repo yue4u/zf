@@ -1,6 +1,9 @@
-use crate::imports;
-use nu_protocol::{engine::Command, IntoPipelineData, ShellError, Signature, Value};
-use zf_bridge::CommandBridge;
+use nu_protocol::{
+    ast::Call,
+    engine::{Command, EngineState, Stack},
+    IntoPipelineData, PipelineData, ShellError, Signature, Value,
+};
+use zf_ffi::CommandArgs;
 
 #[derive(Clone)]
 pub(crate) struct Mystery;
@@ -15,18 +18,18 @@ impl Command for Mystery {
     }
 
     fn usage(&self) -> &str {
-        "this is mysterious command"
+        "this is a mysterious command"
     }
 
     fn run(
         &self,
-        _engine_state: &nu_protocol::engine::EngineState,
-        _stack: &mut nu_protocol::engine::Stack,
-        call: &nu_protocol::ast::Call,
-        _input: nu_protocol::PipelineData,
-    ) -> Result<nu_protocol::PipelineData, ShellError> {
-        let args = CommandBridge::Mystery;
-        let val = imports::zf_call(args);
+        _engine_state: &EngineState,
+        _stack: &mut Stack,
+        call: &Call,
+        _input: PipelineData,
+    ) -> Result<PipelineData, ShellError> {
+        let args = CommandArgs::Mystery;
+        let val = zf_ffi::cmd_legacy(args);
         Ok(Value::String {
             val,
             span: call.head,

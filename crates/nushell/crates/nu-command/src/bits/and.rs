@@ -2,7 +2,7 @@ use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -15,6 +15,8 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("bits and")
+            .input_output_types(vec![(Type::Int, Type::Int)])
+            .vectorizes_over_list(true)
             .required(
                 "target",
                 SyntaxShape::Int,
@@ -52,10 +54,7 @@ impl Command for SubCommand {
             Example {
                 description: "Apply bits and to two numbers",
                 example: "2 | bits and 2",
-                result: Some(Value::Int {
-                    val: 2,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::int(2, Span::test_data())),
             },
             Example {
                 description: "Apply logical and to a list of numbers",

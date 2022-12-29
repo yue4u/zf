@@ -3,7 +3,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
     Category, Example, IntoInterruptiblePipelineData, PipelineData, Signature, Span, Spanned,
-    SyntaxShape, Value,
+    SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -16,6 +16,14 @@ impl Command for Group {
 
     fn signature(&self) -> Signature {
         Signature::build("group")
+            // TODO: It accepts Table also, but currently there is no Table
+            // example. Perhaps Table should be a subtype of List, in which case
+            // the current signature would suffice even when a Table example
+            // exists.
+            .input_output_types(vec![(
+                Type::List(Box::new(Type::Any)),
+                Type::List(Box::new(Type::List(Box::new(Type::Any)))),
+            )])
             .required("group_size", SyntaxShape::Int, "the size of each group")
             .category(Category::Filters)
     }
@@ -28,34 +36,22 @@ impl Command for Group {
         let stream_test_1 = vec![
             Value::List {
                 vals: vec![
-                    Value::Int {
-                        val: 1,
-                        span: Span::test_data(),
-                    },
-                    Value::Int {
-                        val: 2,
-                        span: Span::test_data(),
-                    },
+                    Value::int(1, Span::test_data()),
+                    Value::int(2, Span::test_data()),
                 ],
                 span: Span::test_data(),
             },
             Value::List {
                 vals: vec![
-                    Value::Int {
-                        val: 3,
-                        span: Span::test_data(),
-                    },
-                    Value::Int {
-                        val: 4,
-                        span: Span::test_data(),
-                    },
+                    Value::int(3, Span::test_data()),
+                    Value::int(4, Span::test_data()),
                 ],
                 span: Span::test_data(),
             },
         ];
 
         vec![Example {
-            example: "echo [1 2 3 4] | group 2",
+            example: "[1 2 3 4] | group 2",
             description: "Group the a list by pairs",
             result: Some(Value::List {
                 vals: stream_test_1,

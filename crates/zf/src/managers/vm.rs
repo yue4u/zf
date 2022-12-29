@@ -1,20 +1,39 @@
-use gdnative::prelude::*;
+use gdnative::{api::Engine, prelude::*};
+use serde::{Deserialize, Serialize};
 use std::{
-    cell::{RefCell, RefMut},
+    cell::RefCell,
     collections::HashMap,
+    fmt::Display,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    thread::JoinHandle,
+    time::Duration,
+};
+use zf_ffi::{
+    memory::Tag, CommandArgs, CommandResults, GameCommand, LevelCommand, MissionCommand,
+    TaskCommand,
 };
 
-use crate::vm::{Command, CommandInput, CommandResult, IntoCommand, Process, VMSignal};
+use crate::{
+    common::{current_level, find_ref, get_tree},
+    entities::{GameEvent, LevelHelper, MissionLegacy, LEVELS},
+    refs::{
+        groups, next_level,
+        path::{auto_load, base_level, LevelName},
+    },
+    ui::{ScreenTransition, Terminal},
+    units::TargetPointInfo,
+    vm::{CommandInput, CommandResult, VMSignal},
+};
 
-use zf_runtime::{cmd_args_from_caller, Caller, ExtendedStore, Runtime};
+use zf_runtime::{decode_from_caller, Caller, ExtendedStore, HostWrite, Runtime};
 
 #[derive(NativeClass)]
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
 pub struct VMManager {
-    // process_id: RefCell<u32>,
-    // cmd_id: RefCell<u32>,
-    process_buffer: RefCell<Vec<Process>>,
     result_buffer: RefCell<ResultBuffer>,
     // TODO: more pts
     runtime: Option<Runtime<VMData>>,
@@ -22,18 +41,91 @@ pub struct VMManager {
 
 type ResultBuffer = HashMap<u32, CommandResult>;
 
+struct TaskRunner {
+    id: usize,
+    cmd: String,
+    stop: Arc<AtomicBool>,
+    handle: JoinHandle<()>,
+}
+
+impl TaskRunner {
+    fn info(&self) -> TaskRunnerInfo {
+        TaskRunnerInfo {
+            id: self.id,
+            cmd: self.cmd.clone(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct TaskRunnerInfo {
+    id: usize,
+    cmd: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TaskRunnerInfoVec(Vec<TaskRunnerInfo>);
+
+impl Display for TaskRunner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("task: `{}` ({})", self.id, self.cmd))
+    }
+}
+
 struct VMData {
     cmd_id: u32,
+    thead_handles: HashMap<usize, TaskRunner>,
     base: Ref<Node>,
+}
+
+impl VMData {
+    fn from_base(base: Ref<Node>) -> Self {
+        Self {
+            cmd_id: 0,
+            thead_handles: HashMap::new(),
+            base,
+        }
+    }
+
+    fn scene_tree(&self) -> TRef<SceneTree> {
+        unsafe { self.base.assume_safe().get_tree().unwrap().assume_safe() }
+    }
+
+    fn clean_theads(&mut self) {
+        tracing::debug!("vm: clean_theads");
+
+        self.thead_handles.drain().for_each(|(id, handle)| {
+            tracing::trace!("vm: stop {} on level change", id);
+            handle.stop.store(true, Ordering::Relaxed)
+        });
+    }
+
+    fn change_scene(&mut self, scene: LevelName) {
+        self.clean_theads();
+
+        unsafe {
+            self.base
+                .assume_safe()
+                .get_node_as_instance::<ScreenTransition>(auto_load::POST_PROCESSING_TEXTURE_RECT)
+        }
+        .unwrap()
+        .map_mut(|screen_transition, _| screen_transition.to(scene))
+        .unwrap();
+    }
+
+    fn current_level(&self) -> LevelName {
+        current_level(unsafe { self.base.assume_safe().as_ref() })
+    }
+
+    fn reload_scene(&mut self) {
+        self.change_scene(self.current_level());
+    }
 }
 
 #[methods]
 impl VMManager {
     pub(crate) fn new(_base: &Node) -> Self {
         VMManager {
-            // process_id: RefCell::new(0),
-            // cmd_id: RefCell::new(0),
-            process_buffer: RefCell::new(vec![]),
             result_buffer: RefCell::new(HashMap::new()),
             runtime: None,
         }
@@ -43,47 +135,39 @@ impl VMManager {
         builder.signal(VMSignal::OnCmdEntered.as_str()).done();
         builder.signal(VMSignal::OnCmdParsed.as_str()).done();
         builder.signal(VMSignal::OnCmdResult.as_str()).done();
+        builder.signal(VMSignal::OnGameState.as_str()).done();
     }
 
     #[method]
     pub(crate) fn _ready(&mut self, #[base] base: TRef<Node>) {
-        godot_print!("vm host ready");
+        tracing::info!("vm host ready");
+        let root = unsafe { base.get_node("/root").unwrap().assume_safe() };
 
-        let vm_data = VMData {
-            cmd_id: 0,
-            base: base.claim(),
-        };
-
-        self.runtime = Some(
-            Runtime::init(vm_data, |linker| -> anyhow::Result<()> {
-                linker.func_wrap(
-                    "zf",
-                    "zf_cmd",
-                    |mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64| -> i64 {
-                        let cmd = cmd_args_from_caller(&mut caller, tag);
-                        godot_dbg!(&cmd);
-                        fire_and_forget(&mut caller.data_mut().ext, cmd.into_command());
-                        0
-                    },
-                )?;
-
-                Ok(())
-            })
-            .unwrap(),
+        root.connect(
+            "child_entered_tree",
+            base,
+            "on_child_entered_tree",
+            VariantArray::new_shared(),
+            0,
         )
+        .expect("failed to connect child_entered_tree");
+
+        let mut runtime: Runtime<VMData> = VMData::from_base(base.claim()).into();
+        runtime.eval(zf_runtime::SHELL_PRELOAD).unwrap();
+        self.runtime = Some(runtime);
     }
 
     #[method]
     pub(crate) fn on_cmd_entered(&mut self, #[base] base: &Node, text: String) -> Option<()> {
         let runtime = self.runtime.as_mut()?;
-        godot_print!("on_cmd_entered: {text}!");
+        tracing::info!("on_cmd_entered: {text}!");
         base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
 
         let result = runtime.eval(text).map_err(|e| e.to_string());
         let id = runtime.store.data_mut().ext.cmd_id + 1;
         runtime.store.data_mut().ext.cmd_id = id;
         let result = CommandResult { id, result };
-        godot_dbg!(&result);
+        tracing::debug!("{:?}", &result);
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
 
         Some(())
@@ -91,22 +175,73 @@ impl VMManager {
 
     #[method]
     pub fn on_cmd_result(&self, #[base] base: &Node, result: CommandResult) -> Option<()> {
-        godot_print!("receive_command_result: {}", result.id);
+        tracing::info!("receive_command_result: {}", result.id);
 
         let mut result_buffer = self.result_buffer.borrow_mut();
         base.emit_signal(VMSignal::OnCmdResult, &result.as_var());
         result_buffer.insert(result.id, result);
 
-        for process in self.process_buffer.borrow_mut().iter_mut() {
-            run(base, &mut result_buffer, process);
-        }
-
         Some(())
+    }
+
+    #[method]
+    pub fn on_game_state(&mut self, #[base] base: &Node, event: GameEvent) -> Option<()> {
+        tracing::trace!("receive_game_event: {:?}", event);
+
+        let event = match event {
+            GameEvent::MissionComplete(msg) => {
+                let runtime = self.runtime.as_mut()?;
+                runtime.store.data_mut().ext.clean_theads();
+
+                let result = runtime
+                    .eval(format!("fsays 'Mission completed: {}'", msg))
+                    .expect("fsays should work");
+                unsafe {
+                    base.get_node_as::<Label>(base_level::LEVEL_RESULT)
+                        .unwrap()
+                        .set_visible(true);
+                }
+                get_tree(base).set_pause(true);
+                GameEvent::MissionComplete(result)
+            }
+            GameEvent::MissionFailed => {
+                let runtime = self.runtime.as_mut()?;
+                runtime.store.data_mut().ext.clean_theads();
+                // let result = runtime
+                //     .eval(format!("fsays 'Mission completed: {}'", "Mission failed"))
+                //     .expect("fsays should work");
+                let label = unsafe { base.get_node_as::<Label>(base_level::LEVEL_RESULT).unwrap() };
+                label.set_text("Mission failed");
+                // cd00fff3 -> cdff0099
+                // a1e4c95f -> a17052b0
+                label.add_color_override("font_color", Color::from_html("#cdff0099").unwrap());
+                label.add_color_override(
+                    "font_color_shadow",
+                    Color::from_html("#a17052b0").unwrap(),
+                );
+                label.set_visible(true);
+                get_tree(base).set_pause(true);
+                GameEvent::MissionFailed
+            }
+            as_is => as_is,
+        };
+
+        base.emit_signal(VMSignal::OnGameState, &[event.to_variant()]);
+        Some(())
+    }
+
+    #[method]
+    fn on_child_entered_tree(&mut self, #[base] base: &Node, node: Ref<Node>) {
+        let scene = current_level(unsafe { node.assume_safe() }.as_ref());
+        base.emit_signal(
+            VMSignal::OnGameState,
+            &[GameEvent::LevelChange(scene).to_variant()],
+        );
     }
 }
 
-fn fire_and_forget(vm_data: &VMData, cmd: Command) {
-    godot_dbg!(&cmd);
+fn fire_and_forget(vm_data: &VMData, cmd: CommandArgs) {
+    tracing::debug!("{:?}", &cmd);
     unsafe { vm_data.base.assume_safe() }.emit_signal(
         VMSignal::OnCmdParsed,
         &[CommandInput {
@@ -117,24 +252,206 @@ fn fire_and_forget(vm_data: &VMData, cmd: Command) {
     );
 }
 
-fn run(base: &Node, result_buffer: &mut RefMut<ResultBuffer>, process: &mut Process) -> Option<()> {
-    let waiting = process.cmds.len();
-    process.cmds = process
-        .cmds
-        .clone()
-        .into_iter()
-        .skip_while(|cmd| {
-            if let Some(_res) = result_buffer.get(&cmd.id) {
-                process.active_id += 1;
-                return true;
-            }
-            false
-        })
-        .collect();
+struct RuntimeFunc;
 
-    if process.cmds.len() < waiting {
-        let cmd = process.cmds.first()?;
-        base.emit_signal(VMSignal::OnCmdParsed, &[Variant::new(cmd)]);
+impl RuntimeFunc {
+    fn zf_terminal_size(caller: Caller<'_, ExtendedStore<VMData>>) -> i64 {
+        let terminal =
+            find_ref::<Terminal, Control>(unsafe { caller.data().ext.base.assume_safe() })
+                .expect("find ref termial")
+                .cast_instance::<Terminal>()
+                .expect("cast instance termial");
+        let size = terminal.map(|t, _| t.get_size()).expect("term.get_size");
+        Tag::into(size.cols as i32, size.rows as i32)
     }
-    Some(())
+
+    fn zf_cmd(mut caller: Caller<'_, ExtendedStore<VMData>>, tag: i64) -> i64 {
+        let cmd = decode_from_caller::<_, CommandArgs>(&mut caller, tag);
+        tracing::debug!("{:?}", &cmd);
+        match cmd {
+            CommandArgs::Task(task) => {
+                let ret = match task {
+                    TaskCommand::Run { cmd: input, every } => {
+                        let store = caller.data_mut();
+                        let base = store.ext.base;
+                        let stop = Arc::new(AtomicBool::new(false));
+                        let stop_clone = stop.clone();
+                        let name = input.clone();
+                        let handle = std::thread::spawn(move || {
+                            let mut runtime: Runtime<VMData> = VMData::from_base(base).into();
+                            let ret = runtime.eval(&input);
+                            _ = tracing::debug!("{:?}", ret);
+
+                            if let Some(dur) = every {
+                                loop {
+                                    if stop_clone.load(Ordering::Relaxed) {
+                                        tracing::debug!("{:?}", format!("stop `{}` done!", &input));
+                                        break;
+                                    }
+                                    std::thread::sleep(Duration::from_nanos(dur));
+                                    let ret = runtime.eval(&input);
+                                    _ = tracing::debug!("{:?}", ret);
+                                }
+                            }
+                        });
+                        let task_id = caller.data_mut().ext.thead_handles.len() + 1;
+                        let task = TaskRunner {
+                            id: task_id,
+                            stop,
+                            cmd: name,
+                            handle,
+                        };
+                        let start_info = format!("start {}", &task);
+                        caller.data_mut().ext.thead_handles.insert(task_id, task);
+
+                        start_info
+                    }
+                    TaskCommand::Stop(id) => (|| {
+                        if let Ok(id) = id.parse() {
+                            if let Some(task_runner) =
+                                caller.data_mut().ext.thead_handles.remove(&id)
+                            {
+                                task_runner.stop.store(true, Ordering::Relaxed);
+                                return format!("stop {}", task_runner);
+                            };
+                        }
+                        format!("no task`{}` found", id)
+                    })(),
+                    TaskCommand::Status => {
+                        let handles = &mut caller.data_mut().ext.thead_handles;
+
+                        // clear finished task
+                        handles.retain(|_, task_runner| !task_runner.handle.is_finished());
+
+                        let info = handles
+                            .values()
+                            .map(|h| h.info())
+                            .collect::<Vec<TaskRunnerInfo>>();
+                        serde_json::to_string(&TaskRunnerInfoVec(info))
+                            .expect("fail to serialize task runner info")
+                    }
+                };
+                tracing::debug!("{:?}", &ret);
+                caller.write_string_from_host(ret)
+            }
+            CommandArgs::Mission(m) => match m {
+                MissionCommand::Info => {
+                    // FIXME: this is outdated
+                    caller.write_string_from_host(MissionLegacy::dummy().summary())
+                }
+                MissionCommand::Targets => {
+                    let targets = caller
+                        .data()
+                        .ext
+                        .scene_tree()
+                        .get_nodes_in_group(groups::TARGET_POINT)
+                        .iter()
+                        .filter_map(|point| point.to_object::<Spatial>())
+                        .map(|s| {
+                            let Vector3 { x, y, z } = unsafe { s.assume_safe() }.transform().origin;
+                            TargetPointInfo {
+                                name: unsafe { s.assume_safe() }.name().to_string(),
+                                pos: [x, y, z],
+                            }
+                        })
+                        .collect::<Vec<TargetPointInfo>>();
+                    let json = serde_json::to_string(&targets).unwrap();
+                    caller.write_string_from_host(json)
+                }
+            },
+            CommandArgs::Game(g) => {
+                match g {
+                    GameCommand::Start => {
+                        caller
+                            .data_mut()
+                            .ext
+                            .change_scene(LevelName::ChallengeInfinite);
+                    }
+                    GameCommand::Menu => {
+                        caller.data_mut().ext.change_scene(LevelName::StartMenu);
+                    }
+                    GameCommand::End => {
+                        caller.data().ext.scene_tree().quit(0);
+                    }
+                };
+                0
+            }
+            CommandArgs::Level(level) => match level {
+                LevelCommand::Start(name) => {
+                    let scene = LevelName::from(&name);
+                    if scene != LevelName::Unknown {
+                        caller.data_mut().ext.change_scene(scene);
+                    }
+                    0
+                }
+                LevelCommand::Restart => {
+                    caller.data_mut().ext.reload_scene();
+                    0
+                }
+                LevelCommand::Next => {
+                    let current = caller.data().ext.current_level().to_string();
+                    if let Some(next) = next_level(current) {
+                        caller.data_mut().ext.change_scene(next);
+                    };
+                    0
+                }
+                LevelCommand::List => {
+                    let levels = LEVELS
+                        .iter()
+                        .map(|l| l.to_string())
+                        .collect::<Vec<String>>();
+                    caller.write_result(CommandResults::Levels(levels))
+                }
+            },
+            CommandArgs::Time(time) => {
+                Engine::godot_singleton().set_time_scale(time.scale);
+                0
+            }
+            CommandArgs::Tutorial => {
+                caller
+                    .data_mut()
+                    .ext
+                    .change_scene(LevelName::TutorialEngine);
+                0
+            }
+            CommandArgs::Hint => {
+                let hint = caller.data().ext.current_level().hint();
+                caller.write_string_from_host(hint)
+            }
+            CommandArgs::Radar(_) => {
+                let radars = caller
+                    .data()
+                    .ext
+                    .scene_tree()
+                    .get_nodes_in_group(groups::RADAR);
+                // TODO: maybe more radars
+                let result = unsafe {
+                    radars
+                        .get(0)
+                        .call("detected", &[])
+                        .unwrap()
+                        .to::<String>()
+                        .unwrap()
+                };
+                caller.write_string_from_host(result)
+            }
+            cmd => {
+                fire_and_forget(&mut caller.data_mut().ext, cmd);
+                0
+            }
+        }
+    }
+}
+
+impl Into<Runtime<VMData>> for VMData {
+    fn into(self) -> Runtime<VMData> {
+        Runtime::init(self, |linker| -> anyhow::Result<()> {
+            linker
+                .func_wrap("zf", "zf_terminal_size", RuntimeFunc::zf_terminal_size)?
+                .func_wrap("zf", "zf_cmd", RuntimeFunc::zf_cmd)?;
+
+            Ok(())
+        })
+        .expect("failed to init runtime")
+    }
 }

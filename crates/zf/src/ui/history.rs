@@ -14,14 +14,14 @@ impl CommandHistory {
 
     #[method]
     fn _ready(&self, #[base] base: TRef<Node>) -> Option<()> {
-        godot_print!("command history ready");
+        tracing::info!("command history ready");
         base.connect_vm_signal(VMSignal::OnCmdEntered.into());
         Some(())
     }
 
     #[method]
     fn on_cmd_entered(&self, #[base] base: &Node, text: String) -> Option<()> {
-        godot_print!("add item {text}");
+        tracing::info!("add item {text}");
         base.cast::<ItemList>()?
             .add_item(text, GodotObject::null(), false);
         Some(())

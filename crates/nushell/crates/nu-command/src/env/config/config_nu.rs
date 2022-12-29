@@ -2,7 +2,7 @@ use nu_engine::env_to_strings;
 use nu_protocol::{
     ast::Call,
     engine::{Command, EngineState, Stack},
-    Category, Example, PipelineData, ShellError, Signature, Span, Spanned,
+    Category, Example, PipelineData, ShellError, Signature, Span, Spanned, Type,
 };
 
 use crate::ExternalCommand;
@@ -18,7 +18,10 @@ impl Command for ConfigNu {
     }
 
     fn signature(&self) -> Signature {
-        Signature::build(self.name()).category(Category::Env)
+        Signature::build(self.name())
+            .category(Category::Env)
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
+        // TODO: Signature narrower than what run actually supports theoretically
     }
 
     fn usage(&self) -> &str {
@@ -37,7 +40,7 @@ impl Command for ConfigNu {
         &self,
         engine_state: &EngineState,
         stack: &mut Stack,
-        _call: &Call,
+        call: &Call,
         input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
         let env_vars_str = env_to_strings(engine_state, stack)?;
@@ -59,12 +62,12 @@ impl Command for ConfigNu {
 
         let name = Spanned {
             item: get_editor(engine_state, stack)?,
-            span: Span { start: 0, end: 0 },
+            span: call.head,
         };
 
         let args = vec![Spanned {
             item: nu_config.to_string_lossy().to_string(),
-            span: Span { start: 0, end: 0 },
+            span: Span::unknown(),
         }];
 
         let command = ExternalCommand {
@@ -74,8 +77,9 @@ impl Command for ConfigNu {
             redirect_stdout: false,
             redirect_stderr: false,
             env_vars: env_vars_str,
+            trim_end_newline: false,
         };
 
-        command.run_with_input(engine_state, stack, input)
+        command.run_with_input(engine_state, stack, input, true)
     }
 }

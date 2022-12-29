@@ -3,7 +3,7 @@ use nu_engine::CallExt;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, Spanned, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, Spanned, SyntaxShape, Type, Value,
 };
 use num_traits::int::PrimInt;
 use std::fmt::Display;
@@ -18,6 +18,8 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("bits ror")
+            .input_output_types(vec![(Type::Int, Type::Int)])
+            .vectorizes_over_list(true)
             .required("bits", SyntaxShape::Int, "number of bits to rotate right")
             .switch(
                 "signed",
@@ -74,10 +76,7 @@ impl Command for SubCommand {
             Example {
                 description: "Rotate right a number with 60 bits",
                 example: "17 | bits ror 60",
-                result: Some(Value::Int {
-                    val: 272,
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::int(272, Span::test_data())),
             },
             Example {
                 description: "Rotate right a list of numbers of one byte",

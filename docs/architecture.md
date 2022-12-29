@@ -1,24 +1,5 @@
 # Some architecture diagrams
 
-## Execution architecture
-
-```mermaid
-sequenceDiagram
-  command input ->> parser: text
-  parser ->> component(radar weapon ...): cmd + id
-  parser ->> result: id
-  result -->> result: show spinner
-component(radar weapon ...) ->> result: result + id
-  result -->> result: show result
-component(radar weapon ...) ->> next cmd: result + id
-  parser ->> next cmd: cmd
-  next cmd -->> component(radar weapon ...): start next execution
-```
-
-1. communications between components
-2. component(radar weapon ...) holds tmp ref of objects so only can do execution
-3. sperate state management from randering code
-
 ## Command / Code Runtime
 
 ```mermaid
@@ -26,24 +7,25 @@ C4Context
   Person(player ,"player")
   Boundary(zf, "ZF") {
     Boundary("godot", "godot") {
-      Component(ui, "game UI", "ui")
+      Component(zf term, "zf term", "zf term")
       Component_Ext(engine, "godot engine", "rust")
-      Component(vm, "vm", "vm")
-      Component(wasmtime, "wasmtime", "wasm")
+      Component(zf runtime, "zf runtime(wasmtime)", "zf runtime")
+    }
+    Boundary("shell wasm", "wasm sandbox") {
+      Component(zf shell, "shell", "shell")
     }
   }
 
-  BiRel(player, ui, "interact")
-  Rel(ui, vm, "command / code")
-  Rel(vm, wasmtime, "call")
-  Rel(wasmtime, engine, "dispatch execution")
-  Rel(engine, ui, "update ui")
-  Rel(engine, vm, "update state")
+  BiRel(player, zf term, "interact")
+  BiRel(zf shell, engine, "call via host function")
+  Rel(zf term, zf runtime, "events")
+  Rel(zf runtime, engine, "eval result")
+  Rel(engine, zf term, "render")
+  BiRel(zf runtime, zf shell, "eval")
 
-  UpdateRelStyle(player, ui, $offsetX="10", $offsetY="5")
-  UpdateRelStyle(vm, wasmtime, $offsetY="-20")
-  UpdateRelStyle(engine, ui, $offsetX="-20", $offsetY="-20")
-  UpdateRelStyle(engine, vm, $offsetX="-50", $offsetY="-20")
-  UpdateRelStyle(wasmtime, engine, $offsetX="10")
+  UpdateRelStyle(player, zf term, $offsetX="10", $offsetY="5")
+  UpdateRelStyle(engine, zf term, $offsetX="-20", $offsetY="-20")
+  UpdateRelStyle(engine, zf runtime, $offsetX="-50", $offsetY="-20")
+  UpdateRelStyle(zf shell, engine, $offsetX="-50", $offsetY="-20")
   UpdateLayoutConfig($c4ShapeInRow="2")
 ```

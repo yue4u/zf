@@ -14,13 +14,26 @@ config/name="zf"
 run/main_scene="res://levels/StartMenu.tscn"
 config/icon="res://icon.png"
 
-[editor_plugins]
+[autoload]
 
-enabled=PoolStringArray( "res://addons/godot_xterm/plugin.cfg" )
+AutoLoad="*res://scenes/AutoLoad.tscn"
 
 [global]
 
 thread=false
+custom=false
+
+[layer_names]
+
+3d_physics/layer_1="env"
+3d_physics/layer_2="player"
+3d_physics/layer_3="enemy"
+3d_physics/layer_4="player_fire"
+3d_physics/layer_5="enemy_fire"
+
+[logging]
+
+file_logging/enable_file_logging=true
 
 [physics]
 

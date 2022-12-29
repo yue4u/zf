@@ -2,7 +2,7 @@ use inflector::cases::screamingsnakecase::to_screaming_snake_case;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 
 use crate::operate;
@@ -16,10 +16,12 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("str screaming-snake-case")
+            .input_output_types(vec![(Type::String, Type::String)])
+            .vectorizes_over_list(true)
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "optionally convert text to SCREAMING_SNAKE_CASE by column paths",
+                "For a data structure input, convert strings at the given cell paths",
             )
             .category(Category::Strings)
     }
@@ -47,26 +49,17 @@ impl Command for SubCommand {
             Example {
                 description: "convert a string to SCREAMING_SNAKE_CASE",
                 example: r#" "NuShell" | str screaming-snake-case"#,
-                result: Some(Value::String {
-                    val: "NU_SHELL".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("NU_SHELL", Span::test_data())),
             },
             Example {
                 description: "convert a string to SCREAMING_SNAKE_CASE",
                 example: r#" "this_is_the_second_case" | str screaming-snake-case"#,
-                result: Some(Value::String {
-                    val: "THIS_IS_THE_SECOND_CASE".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("THIS_IS_THE_SECOND_CASE", Span::test_data())),
             },
             Example {
                 description: "convert a string to SCREAMING_SNAKE_CASE",
                 example: r#""this-is-the-first-case" | str screaming-snake-case"#,
-                result: Some(Value::String {
-                    val: "THIS_IS_THE_FIRST_CASE".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("THIS_IS_THE_FIRST_CASE", Span::test_data())),
             },
             Example {
                 description: "convert a column from a table to SCREAMING_SNAKE_CASE",
@@ -76,10 +69,7 @@ impl Command for SubCommand {
                         span: Span::test_data(),
                         cols: vec!["lang".to_string(), "gems".to_string()],
                         vals: vec![
-                            Value::String {
-                                val: "NU_TEST".to_string(),
-                                span: Span::test_data(),
-                            },
+                            Value::string("NU_TEST", Span::test_data()),
                             Value::test_int(100),
                         ],
                     }],

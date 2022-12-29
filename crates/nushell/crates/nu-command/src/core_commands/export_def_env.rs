@@ -1,6 +1,6 @@
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, Signature, Span, SyntaxShape, Value};
+use nu_protocol::{Category, Example, PipelineData, Signature, Span, SyntaxShape, Type, Value};
 
 #[derive(Clone)]
 pub struct ExportDefEnv;
@@ -16,13 +16,10 @@ impl Command for ExportDefEnv {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("export def-env")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .required("name", SyntaxShape::String, "definition name")
             .required("params", SyntaxShape::Signature, "parameters")
-            .required(
-                "block",
-                SyntaxShape::Block(Some(vec![])),
-                "body of the definition",
-            )
+            .required("block", SyntaxShape::Block, "body of the definition")
             .category(Category::Core)
     }
 
@@ -65,20 +62,21 @@ export def-env cd_with_fallback [arg = ""] {
         &self,
         _engine_state: &EngineState,
         _stack: &mut Stack,
-        call: &Call,
+        _call: &Call,
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {
         vec![Example {
             description: "Define a custom command that participates in the environment in a module and call it",
             example: r#"module foo { export def-env bar [] { let-env FOO_BAR = "BAZ" } }; use foo bar; bar; $env.FOO_BAR"#,
-            result: Some(Value::String {
-                val: "BAZ".to_string(),
-                span: Span::test_data(),
-            }),
+            result: Some(Value::string("BAZ", Span::test_data())),
         }]
+    }
+
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["module"]
     }
 }

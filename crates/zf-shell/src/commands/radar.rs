@@ -1,11 +1,11 @@
 use nu_protocol::{IntoPipelineData, Signature};
-use zf_bridge::{CommandBridge, RadarCommand};
+use zf_ffi::{CommandArgs, RadarCommand};
 
-use super::zf_call;
+use crate::cmd;
 
-zf_call::proxy_command!(
+cmd::proxy!(
     Radar,
     name: "radar",
     usage: "Get radar result",
-    arg: CommandBridge::Radar(RadarCommand{})
+    arg: CommandArgs::Radar(RadarCommand{})
 );

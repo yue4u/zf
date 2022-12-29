@@ -198,14 +198,17 @@ fn commands_have_usage() -> TestResult {
 
 #[test]
 fn equals_separates_long_flag() -> TestResult {
-    run_test(r#"seq 1 4 --separator='+'"#, "1+2+3+4")
+    run_test(
+        r#"'nushell' | str lpad --length=10 --character='-'"#,
+        "---nushell",
+    )
 }
 
 #[test]
 fn let_env_expressions() -> TestResult {
     let env = HashMap::from([("VENV_OLD_PATH", "Foobar"), ("Path", "Quux")]);
     run_test_with_env(
-        r#"let-env Path = if (env | any name == VENV_OLD_PATH) { $env.VENV_OLD_PATH } else { $env.Path }; echo $env.Path"#,
+        r#"let-env Path = if (env | any {|x| $x.name == VENV_OLD_PATH}) { $env.VENV_OLD_PATH } else { $env.Path }; echo $env.Path"#,
         "Foobar",
         &env,
     )
@@ -346,7 +349,7 @@ fn proper_missing_param() -> TestResult {
 
 #[test]
 fn block_arity_check1() -> TestResult {
-    fail_test(r#"ls | each { |x, y| 1}"#, "expected 1 block parameter")
+    fail_test(r#"ls | each { |x, y, z| 1}"#, "expected 2 block parameters")
 }
 
 #[test]
@@ -426,4 +429,16 @@ fn date_literal() -> TestResult {
 #[test]
 fn and_and_or() -> TestResult {
     run_test(r#"true and false or true"#, "true")
+}
+
+#[test]
+fn and_and_xor() -> TestResult {
+    // Assumes the precedence NOT > AND > XOR > OR
+    run_test(r#"true and true xor true and false"#, "true")
+}
+
+#[test]
+fn or_and_xor() -> TestResult {
+    // Assumes the precedence NOT > AND > XOR > OR
+    run_test(r#"true or false xor true or false"#, "true")
 }

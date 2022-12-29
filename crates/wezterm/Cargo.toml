@@ -1,0 +1,26 @@
+[workspace]
+members = [
+  "bidi",
+  "bidi/generate",
+  "strip-ansi-escapes",
+  "sync-color-schemes",
+  "wezterm",
+  "wezterm-dynamic",
+  "wezterm-gui",
+  "wezterm-mux-server",
+  "wezterm-ssh"
+]
+resolver = "2"
+exclude = [
+  "termwiz/codegen"
+]
+
+[profile.release]
+opt-level = 3
+# debug = 2
+
+[profile.dev]
+# https://jakedeichert.com/blog/reducing-rust-incremental-compilation-times-on-macos-by-70-percent/
+# Disabled because it breaks builds on Windows
+#split-debuginfo = "unpacked"
+

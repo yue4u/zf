@@ -53,7 +53,7 @@ fn in_and_if_else() -> TestResult {
 
 #[test]
 fn help_works_with_missing_requirements() -> TestResult {
-    run_test(r#"each --help | lines | length"#, "29")
+    run_test(r#"each --help | lines | length"#, "40")
 }
 
 #[test]
@@ -107,7 +107,7 @@ fn missing_flags_are_nothing4() -> TestResult {
 #[test]
 fn proper_variable_captures() -> TestResult {
     run_test(
-        r#"def foo [x] { let y = 100; { $y + $x } }; do (foo 23)"#,
+        r#"def foo [x] { let y = 100; { || $y + $x } }; do (foo 23)"#,
         "123",
     )
 }
@@ -126,11 +126,6 @@ fn proper_variable_captures_with_nesting() -> TestResult {
         r#"def foo [x] { let z = 100; def bar [y] { $y - $x + $z } ; { |z| bar $z } }; do (foo 11) 13"#,
         "102",
     )
-}
-
-#[test]
-fn proper_variable_for() -> TestResult {
-    run_test(r#"for x in 1..3 { if $x == 2 { "bob" } } | get 0"#, "bob")
 }
 
 #[test]
@@ -243,12 +238,17 @@ fn datetime_literal() -> TestResult {
 
 #[test]
 fn shortcircuiting_and() -> TestResult {
-    run_test(r#"false && (5 / 0; false)"#, "false")
+    run_test(r#"false and (5 / 0; false)"#, "false")
 }
 
 #[test]
 fn shortcircuiting_or() -> TestResult {
-    run_test(r#"true || (5 / 0; false)"#, "true")
+    run_test(r#"true or (5 / 0; false)"#, "true")
+}
+
+#[test]
+fn nonshortcircuiting_xor() -> TestResult {
+    run_test(r#"true xor (print "hello"; false) | ignore"#, "hello")
 }
 
 #[test]

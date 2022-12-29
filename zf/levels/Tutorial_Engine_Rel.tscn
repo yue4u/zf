@@ -1,0 +1,34 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://scenes/TargetPoint.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=3]
+[ext_resource path="res://scenes/Orbit.tscn" type="PackedScene" id=4]
+
+[sub_resource type="Curve3D" id=1]
+_data = {
+"points": PoolVector3Array( -0.0181575, 0.569999, -8.61523, 0.0181575, -0.569999, 8.61523, 0, 0, 0, 2.37355, 0.57904, -3.21465, -2.37355, -0.57904, 3.21465, 2.9867, -8.27486, 26.3654, 6.19683, -2.3864, 11.4877, -6.19683, 2.3864, -11.4877, -18.9968, -15.5171, 20.2341, -4.28185, -1.60937, 3.0332, 4.28185, 1.60937, -3.0332, -15.66, -5.90118, -3.2572, -3.2923, 0.765278, -8.59851, 3.2923, -0.765278, 8.59851, 0, 0, 0 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0 )
+}
+
+[node name="Scene" instance=ExtResource( 3 )]
+
+[node name="Orbit" parent="Level" index="1" instance=ExtResource( 4 )]
+path_node = NodePath("../Path")
+
+[node name="Path" type="Path" parent="Level" index="2"]
+transform = Transform( 1.00549, 0, 0, 0, 1.00549, 0, 0, 0, 1.00549, 0, 0, 0 )
+curve = SubResource( 1 )
+
+[node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
+transform = Transform( 0.994379, -0.0391384, -0.098376, 0, 0.929166, -0.369664, 0.105876, 0.367586, 0.923943, 0, 0, 0 )
+rotation_mode = 4
+
+[node name="Point_1" type="Spatial" parent="Level/Path/PathFollow" index="0"]
+transform = Transform( 0.99454, 0, 0, 0, 0.99454, 0, 0, 0, 0.99454, 0, 0, 0 )
+
+[node name="Target_1" parent="Level/Path/PathFollow/Point_1" index="0" instance=ExtResource( 1 )]
+transform = Transform( 1, 3.72529e-09, -2.23517e-08, 0, 1, -8.9407e-08, 0, 1.78814e-07, 1, 21.0386, 8.41267, 30.0693 )
+
+[node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="1" instance=ExtResource( 2 )]
+transform = Transform( -1, 0, 1.50996e-07, 0, 1, 0, -1.50996e-07, 0, -1, 0, 0, 0 )

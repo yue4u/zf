@@ -1,0 +1,38 @@
+[package]
+name = "env-bootstrap"
+version = "0.1.0"
+authors = ["Wez Furlong <wez@wezfurlong.org>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+backtrace = "0.3"
+chrono = {version="0.4", features=["unstable-locales"]}
+config = { path = "../config" }
+dirs-next = "2.0"
+lazy_static = "1.4"
+libc = "0.2"
+log = "0.4"
+env_logger = "0.10"
+termwiz = { path = "../termwiz" }
+battery = { path = "../lua-api-crates/battery" }
+color-funcs = { path = "../lua-api-crates/color-funcs" }
+termwiz-funcs = { path = "../lua-api-crates/termwiz-funcs" }
+logging = { path = "../lua-api-crates/logging" }
+mux-lua = { path = "../lua-api-crates/mux" }
+procinfo-funcs = { path = "../lua-api-crates/procinfo-funcs" }
+filesystem = { path = "../lua-api-crates/filesystem" }
+json = { path = "../lua-api-crates/json" }
+share-data = { path = "../lua-api-crates/share-data" }
+ssh-funcs = { path = "../lua-api-crates/ssh-funcs" }
+spawn-funcs = { path = "../lua-api-crates/spawn-funcs" }
+time-funcs = { path = "../lua-api-crates/time-funcs" }
+
+[target."cfg(windows)".dependencies]
+winapi = "0.3"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+cocoa = "0.20"
+objc = "0.2"
+

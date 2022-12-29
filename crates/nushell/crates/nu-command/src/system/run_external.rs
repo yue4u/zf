@@ -2,19 +2,22 @@ use fancy_regex::Regex;
 use itertools::Itertools;
 use nu_engine::env_to_strings;
 use nu_engine::CallExt;
-use nu_protocol::ast::{Expr, Expression};
-use nu_protocol::did_you_mean;
-use nu_protocol::engine::{EngineState, Stack};
-use nu_protocol::{ast::Call, engine::Command, ShellError, Signature, SyntaxShape, Value};
-use nu_protocol::{Category, Example, ListStream, PipelineData, RawStream, Span, Spanned};
+use nu_protocol::{
+    ast::{Call, Expr, Expression},
+    did_you_mean,
+    engine::{Command, EngineState, Stack},
+    Category, Example, ListStream, PipelineData, RawStream, ShellError, Signature, Span, Spanned,
+    SyntaxShape, Type, Value,
+};
 use nu_system::ForegroundProcess;
 use pathdiff::diff_paths;
 use std::collections::HashMap;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command as CommandSys, Stdio};
-use std::sync::atomic::Ordering;
-use std::sync::mpsc;
+use std::sync::atomic::AtomicBool;
+use std::sync::mpsc::{self, SyncSender};
+use std::sync::Arc;
 
 const OUTPUT_BUFFER_SIZE: usize = 1024;
 const OUTPUT_BUFFERS_IN_FLIGHT: usize = 3;
@@ -33,8 +36,10 @@ impl Command for External {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build(self.name())
-            .switch("redirect-stdout", "redirect-stdout", None)
-            .switch("redirect-stderr", "redirect-stderr", None)
+            .input_output_types(vec![(Type::Any, Type::Any)])
+            .switch("redirect-stdout", "redirect stdout to the pipeline", None)
+            .switch("redirect-stderr", "redirect stderr to the pipeline", None)
+            .switch("trim-end-newline", "trimming end newlines", None)
             .required("command", SyntaxShape::Any, "external command to run")
             .rest("args", SyntaxShape::Any, "arguments for external command")
             .category(Category::System)
@@ -47,78 +52,106 @@ impl Command for External {
         call: &Call,
         input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
-        let name: Spanned<String> = call.req(engine_state, stack, 0)?;
-        let args: Vec<Value> = call.rest(engine_state, stack, 1)?;
         let redirect_stdout = call.has_flag("redirect-stdout");
         let redirect_stderr = call.has_flag("redirect-stderr");
+        let trim_end_newline = call.has_flag("trim-end-newline");
 
-        // Translate environment variables from Values to Strings
-        let env_vars_str = env_to_strings(engine_state, stack)?;
-
-        fn value_as_spanned(value: Value) -> Result<Spanned<String>, ShellError> {
-            let span = value.span()?;
-
-            value
-                .as_string()
-                .map(|item| Spanned { item, span })
-                .map_err(|_| {
-                    ShellError::ExternalCommand(
-                        "Cannot convert argument to a string".into(),
-                        "All arguments to an external command need to be string-compatible".into(),
-                        span,
-                    )
-                })
-        }
-
-        let mut spanned_args = vec![];
-        let args_expr: Vec<Expression> = call.positional_iter().skip(1).cloned().collect();
-        let mut arg_keep_raw = vec![];
-        for (one_arg, one_arg_expr) in args.into_iter().zip(args_expr) {
-            match one_arg {
-                Value::List { vals, .. } => {
-                    // turn all the strings in the array into params.
-                    // Example: one_arg may be something like ["ls" "-a"]
-                    // convert it to "ls" "-a"
-                    for v in vals {
-                        spanned_args.push(value_as_spanned(v)?);
-                        // for arguments in list, it's always treated as a whole arguments
-                        arg_keep_raw.push(true);
-                    }
-                }
-                val => {
-                    spanned_args.push(value_as_spanned(val)?);
-                    match one_arg_expr.expr {
-                        // refer to `parse_dollar_expr` function
-                        // the expression type of $variable_name, $"($variable_name)"
-                        // will be Expr::StringInterpolation, Expr::FullCellPath
-                        Expr::StringInterpolation(_) | Expr::FullCellPath(_) => {
-                            arg_keep_raw.push(true)
-                        }
-                        _ => arg_keep_raw.push(false),
-                    }
-                    {}
-                }
-            }
-        }
-
-        let command = ExternalCommand {
-            name,
-            args: spanned_args,
-            arg_keep_raw,
+        let command = create_external_command(
+            engine_state,
+            stack,
+            call,
             redirect_stdout,
             redirect_stderr,
-            env_vars: env_vars_str,
-        };
-        command.run_with_input(engine_state, stack, input)
+            trim_end_newline,
+        )?;
+
+        command.run_with_input(engine_state, stack, input, false)
     }
 
     fn examples(&self) -> Vec<Example> {
-        vec![Example {
-            description: "Run an external command",
-            example: r#"run-external "echo" "-n" "hello""#,
-            result: None,
-        }]
+        vec![
+            Example {
+                description: "Run an external command",
+                example: r#"run-external "echo" "-n" "hello""#,
+                result: None,
+            },
+            Example {
+                description: "Redirect stdout from an external command into the pipeline",
+                example: r#"run-external --redirect-stdout "echo" "-n" "hello" | split chars"#,
+                result: None,
+            },
+        ]
     }
+}
+
+/// Creates ExternalCommand from a call
+pub fn create_external_command(
+    engine_state: &EngineState,
+    stack: &mut Stack,
+    call: &Call,
+    redirect_stdout: bool,
+    redirect_stderr: bool,
+    trim_end_newline: bool,
+) -> Result<ExternalCommand, ShellError> {
+    let name: Spanned<String> = call.req(engine_state, stack, 0)?;
+    let args: Vec<Value> = call.rest(engine_state, stack, 1)?;
+
+    // Translate environment variables from Values to Strings
+    let env_vars_str = env_to_strings(engine_state, stack)?;
+
+    fn value_as_spanned(value: Value) -> Result<Spanned<String>, ShellError> {
+        let span = value.span()?;
+
+        value
+            .as_string()
+            .map(|item| Spanned { item, span })
+            .map_err(|_| {
+                ShellError::ExternalCommand(
+                    format!("Cannot convert {} to a string", value.get_type()),
+                    "All arguments to an external command need to be string-compatible".into(),
+                    span,
+                )
+            })
+    }
+
+    let mut spanned_args = vec![];
+    let args_expr: Vec<Expression> = call.positional_iter().skip(1).cloned().collect();
+    let mut arg_keep_raw = vec![];
+    for (one_arg, one_arg_expr) in args.into_iter().zip(args_expr) {
+        match one_arg {
+            Value::List { vals, .. } => {
+                // turn all the strings in the array into params.
+                // Example: one_arg may be something like ["ls" "-a"]
+                // convert it to "ls" "-a"
+                for v in vals {
+                    spanned_args.push(value_as_spanned(v)?);
+                    // for arguments in list, it's always treated as a whole arguments
+                    arg_keep_raw.push(true);
+                }
+            }
+            val => {
+                spanned_args.push(value_as_spanned(val)?);
+                match one_arg_expr.expr {
+                    // refer to `parse_dollar_expr` function
+                    // the expression type of $variable_name, $"($variable_name)"
+                    // will be Expr::StringInterpolation, Expr::FullCellPath
+                    Expr::StringInterpolation(_) | Expr::FullCellPath(_) => arg_keep_raw.push(true),
+                    _ => arg_keep_raw.push(false),
+                }
+                {}
+            }
+        }
+    }
+
+    Ok(ExternalCommand {
+        name,
+        args: spanned_args,
+        arg_keep_raw,
+        redirect_stdout,
+        redirect_stderr,
+        env_vars: env_vars_str,
+        trim_end_newline,
+    })
 }
 
 #[derive(Clone)]
@@ -129,6 +162,7 @@ pub struct ExternalCommand {
     pub redirect_stdout: bool,
     pub redirect_stderr: bool,
     pub env_vars: HashMap<String, String>,
+    pub trim_end_newline: bool,
 }
 
 impl ExternalCommand {
@@ -137,6 +171,7 @@ impl ExternalCommand {
         engine_state: &EngineState,
         stack: &mut Stack,
         input: PipelineData,
+        reconfirm_command_name: bool,
     ) -> Result<PipelineData, ShellError> {
         let head = self.name.span;
 
@@ -255,8 +290,31 @@ impl ExternalCommand {
 
                         let suggestion = suggest_command(&self.name.item, engine_state);
                         let label = match suggestion {
-                            Some(s) => format!("did you mean '{s}'?"),
-                            None => "can't run executable".into(),
+                            Some(s) => {
+                                if reconfirm_command_name {
+                                    format!(
+                                        "'{}' was not found; did you mean '{s}'?",
+                                        self.name.item
+                                    )
+                                } else if self.name.item == s {
+                                    let sugg = engine_state.which_module_has_decl(s.as_bytes());
+                                    if let Some(sugg) = sugg {
+                                        let sugg = String::from_utf8_lossy(sugg);
+                                        format!("command '{s}' was not found but it exists in module '{sugg}'; try using `{sugg} {s}`")
+                                    } else {
+                                        format!("did you mean '{s}'?")
+                                    }
+                                } else {
+                                    format!("did you mean '{s}'?")
+                                }
+                            }
+                            None => {
+                                if reconfirm_command_name {
+                                    format!("executable '{}' was not found", self.name.item)
+                                } else {
+                                    "executable was not found".into()
+                                }
+                            }
                         };
 
                         Err(ShellError::ExternalCommand(
@@ -310,59 +368,26 @@ impl ExternalCommand {
                     }
                 }
 
+                #[cfg(unix)]
+                let commandname = self.name.item.clone();
                 let redirect_stdout = self.redirect_stdout;
                 let redirect_stderr = self.redirect_stderr;
                 let span = self.name.span;
                 let output_ctrlc = ctrlc.clone();
+                let stderr_ctrlc = ctrlc.clone();
                 let (stdout_tx, stdout_rx) = mpsc::sync_channel(OUTPUT_BUFFERS_IN_FLIGHT);
-                let (stderr_tx, stderr_rx) = mpsc::sync_channel(OUTPUT_BUFFERS_IN_FLIGHT);
                 let (exit_code_tx, exit_code_rx) = mpsc::channel();
 
+                let stdout = child.as_mut().stdout.take();
+                let stderr = child.as_mut().stderr.take();
+                // If this external is not the last expression, then its output is piped to a channel
+                // and we create a ListStream that can be consumed
+                //
+                // Create two threads: one for redirect stdout message, and wait for child process to complete.
+                // The other may be created when we want to redirect stderr message.
                 std::thread::spawn(move || {
-                    // If this external is not the last expression, then its output is piped to a channel
-                    // and we create a ListStream that can be consumed
-
-                    if redirect_stderr {
-                        let stderr = child.as_mut().stderr.take().ok_or_else(|| {
-                            ShellError::ExternalCommand(
-                                "Error taking stderr from external".to_string(),
-                                "Redirects need access to stderr of an external command"
-                                    .to_string(),
-                                span,
-                            )
-                        })?;
-
-                        // Stderr is read using the Buffer reader. It will do so until there is an
-                        // error or there are no more bytes to read
-                        let mut buf_read = BufReader::with_capacity(OUTPUT_BUFFER_SIZE, stderr);
-                        while let Ok(bytes) = buf_read.fill_buf() {
-                            if bytes.is_empty() {
-                                break;
-                            }
-
-                            // The Cow generated from the function represents the conversion
-                            // from bytes to String. If no replacements are required, then the
-                            // borrowed value is a proper UTF-8 string. The Owned option represents
-                            // a string where the values had to be replaced, thus marking it as bytes
-                            let bytes = bytes.to_vec();
-                            let length = bytes.len();
-                            buf_read.consume(length);
-
-                            if let Some(ctrlc) = &ctrlc {
-                                if ctrlc.load(Ordering::SeqCst) {
-                                    break;
-                                }
-                            }
-
-                            match stderr_tx.send(bytes) {
-                                Ok(_) => continue,
-                                Err(_) => break,
-                            }
-                        }
-                    }
-
                     if redirect_stdout {
-                        let stdout = child.as_mut().stdout.take().ok_or_else(|| {
+                        let stdout = stdout.ok_or_else(|| {
                             ShellError::ExternalCommand(
                                 "Error taking stdout from external".to_string(),
                                 "Redirects need access to stdout of an external command"
@@ -371,33 +396,7 @@ impl ExternalCommand {
                             )
                         })?;
 
-                        // Stdout is read using the Buffer reader. It will do so until there is an
-                        // error or there are no more bytes to read
-                        let mut buf_read = BufReader::with_capacity(OUTPUT_BUFFER_SIZE, stdout);
-                        while let Ok(bytes) = buf_read.fill_buf() {
-                            if bytes.is_empty() {
-                                break;
-                            }
-
-                            // The Cow generated from the function represents the conversion
-                            // from bytes to String. If no replacements are required, then the
-                            // borrowed value is a proper UTF-8 string. The Owned option represents
-                            // a string where the values had to be replaced, thus marking it as bytes
-                            let bytes = bytes.to_vec();
-                            let length = bytes.len();
-                            buf_read.consume(length);
-
-                            if let Some(ctrlc) = &ctrlc {
-                                if ctrlc.load(Ordering::SeqCst) {
-                                    break;
-                                }
-                            }
-
-                            match stdout_tx.send(bytes) {
-                                Ok(_) => continue,
-                                Err(_) => break,
-                            }
-                        }
+                        read_and_redirect_message(stdout, stdout_tx, ctrlc)
                     }
 
                     match child.as_mut().wait() {
@@ -407,23 +406,57 @@ impl ExternalCommand {
                             span,
                         )),
                         Ok(x) => {
+                            #[cfg(unix)]
+                            {
+                                use nu_ansi_term::{Color, Style};
+                                use std::os::unix::process::ExitStatusExt;
+                                if x.core_dumped() {
+                                    let style = Style::new().bold().on(Color::Red);
+                                    eprintln!(
+                                        "{}",
+                                        style.paint(format!(
+                                            "nushell: oops, process '{commandname}' core dumped"
+                                        ))
+                                    );
+                                    let _ = exit_code_tx.send(Value::Error {
+                                        error: ShellError::ExternalCommand(
+                                            "core dumped".to_string(),
+                                            format!("Child process '{commandname}' core dumped"),
+                                            head,
+                                        ),
+                                    });
+                                    return Ok(());
+                                }
+                            }
                             if let Some(code) = x.code() {
-                                let _ = exit_code_tx.send(Value::Int {
-                                    val: code as i64,
-                                    span: head,
-                                });
+                                let _ = exit_code_tx.send(Value::int(code as i64, head));
                             } else if x.success() {
-                                let _ = exit_code_tx.send(Value::Int { val: 0, span: head });
+                                let _ = exit_code_tx.send(Value::int(0, head));
                             } else {
-                                let _ = exit_code_tx.send(Value::Int {
-                                    val: -1,
-                                    span: head,
-                                });
+                                let _ = exit_code_tx.send(Value::int(-1, head));
                             }
                             Ok(())
                         }
                     }
                 });
+
+                let (stderr_tx, stderr_rx) = mpsc::sync_channel(OUTPUT_BUFFERS_IN_FLIGHT);
+                if redirect_stderr {
+                    std::thread::spawn(move || {
+                        let stderr = stderr.ok_or_else(|| {
+                            ShellError::ExternalCommand(
+                                "Error taking stderr from external".to_string(),
+                                "Redirects need access to stderr of an external command"
+                                    .to_string(),
+                                span,
+                            )
+                        })?;
+
+                        read_and_redirect_message(stderr, stderr_tx, stderr_ctrlc);
+                        Ok::<(), ShellError>(())
+                    });
+                }
+
                 let stdout_receiver = ChannelReceiver::new(stdout_rx);
                 let stderr_receiver = ChannelReceiver::new(stderr_rx);
                 let exit_code_receiver = ValueReceiver::new(exit_code_rx);
@@ -438,17 +471,22 @@ impl ExternalCommand {
                     } else {
                         None
                     },
-                    stderr: Some(RawStream::new(
-                        Box::new(stderr_receiver),
-                        output_ctrlc.clone(),
-                        head,
-                    )),
+                    stderr: if redirect_stderr {
+                        Some(RawStream::new(
+                            Box::new(stderr_receiver),
+                            output_ctrlc.clone(),
+                            head,
+                        ))
+                    } else {
+                        None
+                    },
                     exit_code: Some(ListStream::from_stream(
                         Box::new(exit_code_receiver),
                         output_ctrlc,
                     )),
                     span: head,
                     metadata: None,
+                    trim_end_newline: self.trim_end_newline,
                 })
             }
         }
@@ -499,7 +537,7 @@ impl ExternalCommand {
 
         // If there is an input from the pipeline. The stdin from the process
         // is piped so it can be used to send the input information
-        if !matches!(input, PipelineData::Value(Value::Nothing { .. }, ..)) {
+        if !input.is_nothing() {
             process.stdin(Stdio::piped());
         }
 
@@ -531,7 +569,7 @@ impl ExternalCommand {
             .to_string_lossy()
             .to_string();
 
-        let mut process = std::process::Command::new(&head);
+        let mut process = std::process::Command::new(head);
 
         for (arg, arg_keep_raw) in self.args.iter().zip(self.arg_keep_raw.iter()) {
             // if arg is quoted, like "aa", 'aa', `aa`, or:
@@ -571,8 +609,8 @@ impl ExternalCommand {
                     for m in matches {
                         if let Ok(arg) = m {
                             let arg = if let Some(prefix) = &prefix {
-                                if let Ok(remainder) = arg.strip_prefix(&prefix) {
-                                    let new_prefix = if let Some(pfx) = diff_paths(&prefix, &cwd) {
+                                if let Ok(remainder) = arg.strip_prefix(prefix) {
+                                    let new_prefix = if let Some(pfx) = diff_paths(prefix, &cwd) {
                                         pfx
                                     } else {
                                         prefix.to_path_buf()
@@ -695,6 +733,44 @@ fn remove_quotes(input: String) -> String {
             .replace(r#"\""#, "\""),
         (Some('\''), true) => chars.collect::<String>().replacen('\'', "", 1),
         _ => input,
+    }
+}
+
+// read message from given `reader`, and send out through `sender`.
+//
+// `ctrlc` is used to control the process, if ctrl-c is pressed, the read and redirect
+// process will be breaked.
+fn read_and_redirect_message<R>(
+    reader: R,
+    sender: SyncSender<Vec<u8>>,
+    ctrlc: Option<Arc<AtomicBool>>,
+) where
+    R: Read,
+{
+    // read using the BufferReader. It will do so until there is an
+    // error or there are no more bytes to read
+    let mut buf_read = BufReader::with_capacity(OUTPUT_BUFFER_SIZE, reader);
+    while let Ok(bytes) = buf_read.fill_buf() {
+        if bytes.is_empty() {
+            break;
+        }
+
+        // The Cow generated from the function represents the conversion
+        // from bytes to String. If no replacements are required, then the
+        // borrowed value is a proper UTF-8 string. The Owned option represents
+        // a string where the values had to be replaced, thus marking it as bytes
+        let bytes = bytes.to_vec();
+        let length = bytes.len();
+        buf_read.consume(length);
+
+        if nu_utils::ctrl_c::was_pressed(&ctrlc) {
+            break;
+        }
+
+        match sender.send(bytes) {
+            Ok(_) => continue,
+            Err(_) => break,
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, Signature, Span, SyntaxShape, Value};
+use nu_protocol::{Category, Example, PipelineData, Signature, Span, SyntaxShape, Type, Value};
 
 #[derive(Clone)]
 pub struct ExportUse;
@@ -16,6 +16,7 @@ impl Command for ExportUse {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("export use")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .required("pattern", SyntaxShape::ImportPattern, "import pattern")
             .category(Category::Core)
     }
@@ -33,10 +34,10 @@ impl Command for ExportUse {
         &self,
         _engine_state: &EngineState,
         _stack: &mut Stack,
-        call: &Call,
+        _call: &Call,
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {
@@ -47,10 +48,11 @@ impl Command for ExportUse {
     use eggs foo
     foo
             "#,
-            result: Some(Value::String {
-                val: "foo".to_string(),
-                span: Span::test_data(),
-            }),
+            result: Some(Value::string("foo", Span::test_data())),
         }]
+    }
+
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["reexport", "import", "module"]
     }
 }

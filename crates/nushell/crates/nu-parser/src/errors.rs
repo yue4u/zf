@@ -42,6 +42,34 @@ pub enum ParseError {
     #[diagnostic(code(nu::parser::type_mismatch), url(docsrs))]
     Mismatch(String, String, #[label("expected {0}, found {1}")] Span), // expected, found, span
 
+    #[error("The '&&' operator is not supported in Nushell")]
+    #[diagnostic(
+        code(nu::parser::shell_andand),
+        url(docsrs),
+        help("use ';' instead of the shell '&&', or 'and' instead of the boolean '&&'")
+    )]
+    ShellAndAnd(#[label("instead of '&&', use ';' or 'and'")] Span),
+
+    #[error("The '||' operator is not supported in Nushell")]
+    #[diagnostic(
+        code(nu::parser::shell_oror),
+        url(docsrs),
+        help("use 'try' instead of the shell '||', or 'or' instead of the boolean '||'")
+    )]
+    ShellOrOr(#[label("instead of '||', use 'try' or 'or'")] Span),
+
+    #[error("The '2>' shell operation is 'err>' in Nushell.")]
+    #[diagnostic(code(nu::parser::shell_err), url(docsrs))]
+    ShellErrRedirect(#[label("use 'err>' instead of '2>' in Nushell")] Span),
+
+    #[error("The '2>&1' shell operation is 'out+err>' in Nushell.")]
+    #[diagnostic(
+        code(nu::parser::shell_outerr),
+        url(docsrs),
+        help("Nushell redirection will write all of stdout before stderr.")
+    )]
+    ShellOutErrRedirect(#[label("use 'out+err>' instead of '2>&1' in Nushell")] Span),
+
     #[error("Types mismatched for operation.")]
     #[diagnostic(
         code(nu::parser::unsupported_operation),
@@ -56,6 +84,10 @@ pub enum ParseError {
         Type,
     ),
 
+    #[error("Capture of mutable variable.")]
+    #[diagnostic(code(nu::parser::expected_keyword), url(docsrs))]
+    CaptureOfMutableVar(#[label("capture of mutable variable")] Span),
+
     #[error("Expected keyword.")]
     #[diagnostic(code(nu::parser::expected_keyword), url(docsrs))]
     ExpectedKeyword(String, #[label("expected {0}")] Span),
@@ -67,6 +99,14 @@ pub enum ParseError {
         help("'{0}' keyword is allowed only in a module.")
     )]
     UnexpectedKeyword(String, #[label("unexpected {0}")] Span),
+
+    #[error("Unknown operator")]
+    #[diagnostic(code(nu::parser::unknown_operator), url(docsrs), help("{1}"))]
+    UnknownOperator(
+        &'static str,
+        &'static str,
+        #[label("Operator '{0}' not supported")] Span,
+    ),
 
     #[error("Statement used in pipeline.")]
     #[diagnostic(
@@ -88,6 +128,16 @@ pub enum ParseError {
     )]
     LetInPipeline(String, String, #[label("let in pipeline")] Span),
 
+    #[error("Mut statement used in pipeline.")]
+    #[diagnostic(
+        code(nu::parser::unexpected_keyword),
+        url(docsrs),
+        help(
+            "Assigning '{0}' to '{1}' does not produce a value to be piped. If the pipeline result is meant to be assigned to '{1}', use 'mut {1} = ({0} | ...)'."
+        )
+    )]
+    MutInPipeline(String, String, #[label("let in pipeline")] Span),
+
     #[error("Let used with builtin variable name.")]
     #[diagnostic(
         code(nu::parser::let_builtin_var),
@@ -95,6 +145,14 @@ pub enum ParseError {
         help("'{0}' is the name of a builtin Nushell variable. `let` cannot assign to it.")
     )]
     LetBuiltinVar(String, #[label("already a builtin variable")] Span),
+
+    #[error("Mut used with builtin variable name.")]
+    #[diagnostic(
+        code(nu::parser::let_builtin_var),
+        url(docsrs),
+        help("'{0}' is the name of a builtin Nushell variable. `mut` cannot assign to it.")
+    )]
+    MutBuiltinVar(String, #[label("already a builtin variable")] Span),
 
     #[error("Incorrect value")]
     #[diagnostic(code(nu::parser::incorrect_value), url(docsrs), help("{2}"))]
@@ -193,12 +251,8 @@ pub enum ParseError {
     NonUtf8(#[label = "non-UTF8 string"] Span),
 
     #[error("The `{0}` command doesn't have flag `{1}`.")]
-    #[diagnostic(
-        code(nu::parser::unknown_flag),
-        url(docsrs),
-        help("use {0} --help for a list of flags")
-    )]
-    UnknownFlag(String, String, #[label = "unknown flag"] Span),
+    #[diagnostic(code(nu::parser::unknown_flag), url(docsrs), help("{3}"))]
+    UnknownFlag(String, String, #[label = "unknown flag"] Span, String),
 
     #[error("Unknown type.")]
     #[diagnostic(code(nu::parser::unknown_type), url(docsrs))]
@@ -324,6 +378,19 @@ pub enum ParseError {
     #[diagnostic(code(nu::shell::error_reading_file), url(docsrs))]
     ReadingFile(String, #[label("{0}")] Span),
 
+    /// Tried assigning non-constant value to a constant
+    ///
+    /// ## Resolution
+    ///
+    /// Only a subset of expressions are allowed to be assigned as a constant during parsing.
+    #[error("Not a constant.")]
+    #[diagnostic(
+        code(nu::parser::not_a_constant),
+        url(docsrs),
+        help("Only a subset of expressions are allowed constants during parsing. Try using the 'let' command or typing the value literally.")
+    )]
+    NotAConstant(#[label = "Value is not a parse-time constant"] Span),
+
     #[error("{0}")]
     #[diagnostic()]
     LabeledError(String, String, #[label("{1}")] Span),
@@ -343,7 +410,10 @@ impl ParseError {
             ParseError::UnexpectedKeyword(_, s) => *s,
             ParseError::BuiltinCommandInPipeline(_, s) => *s,
             ParseError::LetInPipeline(_, _, s) => *s,
+            ParseError::MutInPipeline(_, _, s) => *s,
             ParseError::LetBuiltinVar(_, s) => *s,
+            ParseError::MutBuiltinVar(_, s) => *s,
+            ParseError::CaptureOfMutableVar(s) => *s,
             ParseError::IncorrectValue(_, s, _) => *s,
             ParseError::MultipleRestParams(s) => *s,
             ParseError::VariableNotFound(s) => *s,
@@ -361,7 +431,7 @@ impl ParseError {
             ParseError::DuplicateCommandDef(s) => *s,
             ParseError::UnknownCommand(s) => *s,
             ParseError::NonUtf8(s) => *s,
-            ParseError::UnknownFlag(_, _, s) => *s,
+            ParseError::UnknownFlag(_, _, s, _) => *s,
             ParseError::RequiredAfterOptional(_, s) => *s,
             ParseError::UnknownType(s) => *s,
             ParseError::MissingFlagParam(_, s) => *s,
@@ -388,6 +458,12 @@ impl ParseError {
             ParseError::FileNotFound(_, s) => *s,
             ParseError::ReadingFile(_, s) => *s,
             ParseError::LabeledError(_, _, s) => *s,
+            ParseError::ShellAndAnd(s) => *s,
+            ParseError::ShellOrOr(s) => *s,
+            ParseError::ShellErrRedirect(s) => *s,
+            ParseError::ShellOutErrRedirect(s) => *s,
+            ParseError::UnknownOperator(_, _, s) => *s,
+            ParseError::NotAConstant(s) => *s,
         }
     }
 }

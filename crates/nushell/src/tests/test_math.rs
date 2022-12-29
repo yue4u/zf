@@ -47,12 +47,22 @@ fn sub_bit_shr() -> TestResult {
 
 #[test]
 fn and() -> TestResult {
-    run_test("true && false", "false")
+    run_test("true and false", "false")
 }
 
 #[test]
 fn or() -> TestResult {
-    run_test("true || false", "true")
+    run_test("true or false", "true")
+}
+
+#[test]
+fn xor_1() -> TestResult {
+    run_test("false xor true", "true")
+}
+
+#[test]
+fn xor_2() -> TestResult {
+    run_test("true xor true", "false")
 }
 
 #[test]
@@ -102,5 +112,10 @@ fn floating_add() -> TestResult {
 
 #[test]
 fn precedence_of_or_groups() -> TestResult {
-    run_test(r#"4 mod 3 == 0 || 5 mod 5 == 0"#, "true")
+    run_test(r#"4 mod 3 == 0 or 5 mod 5 == 0"#, "true")
+}
+
+#[test]
+fn test_filesize_op() -> TestResult {
+    run_test("-5kb + 4.5kb", "-500 B")
 }

@@ -1,0 +1,54 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://scenes/Orbit.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/TargetPoint.tscn" type="PackedScene" id=3]
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=4]
+
+[sub_resource type="Curve3D" id=1]
+_data = {
+"points": PoolVector3Array( -2.03945, 1.54388, -7.38431, 2.03945, -1.54388, 7.38431, 0, 0, 0, 4.54367, -4.36038, -13.6641, -4.54367, 4.36038, 13.6641, -12.506, -10.6505, 37.5274, -3.82407, -1.78405, -6.20289, 3.82407, 1.78405, 6.20289, -5.9317, -1.80978, 71.9283, -12.3996, 2.81551, 1.50142, 12.3996, -2.81551, -1.50142, 16.5106, 3.85797, 93.3021, 8.85263, -1.21167, 24.1775, -8.85263, 1.21167, -24.1775, 49.0025, -21.8465, 37.2314, 18.5314, 11.4799, 19.4791, -18.5314, -11.4799, -19.4791, 22.8819, 2.66672, -18.0437, -2.97947, 4.25481, -6.5106, 2.97947, -4.25481, 6.5106, 0, 0, 0 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0 )
+}
+
+[node name="Scene" instance=ExtResource( 4 )]
+
+[node name="Orbit" parent="Level" index="1" instance=ExtResource( 1 )]
+path_node = NodePath("../Path")
+
+[node name="Path" type="Path" parent="Level" index="2"]
+curve = SubResource( 1 )
+
+[node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
+transform = Transform( 0.967897, 0.0524383, 0.245814, 0, 0.977995, -0.208629, -0.251346, 0.201932, 0.946596, 0, 0, 0 )
+rotation_mode = 4
+
+[node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="0" instance=ExtResource( 2 )]
+
+[node name="Point_1" type="Spatial" parent="Level" index="3"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -12.506, -10.6505, 37.5274 )
+
+[node name="Target_1" parent="Level/Point_1" index="0" instance=ExtResource( 3 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.5123, 0 )
+
+[node name="Point_2" type="Spatial" parent="Level" index="4"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -5.9317, -1.80978, 71.9283 )
+
+[node name="Target_2" parent="Level/Point_2" index="0" instance=ExtResource( 3 )]
+
+[node name="Point_3" type="Spatial" parent="Level" index="5"]
+transform = Transform( -0.0362462, 0.150129, 0.988002, -0.508937, 0.848066, -0.147537, -0.86004, -0.508178, 0.0456673, 16.5106, 3.85797, 93.3021 )
+
+[node name="Target_3" parent="Level/Point_3" index="0" instance=ExtResource( 3 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 4.846, -4.867, 5.376 )
+
+[node name="Point_4" type="Spatial" parent="Level" index="6"]
+transform = Transform( -0.938961, 0.0486695, -0.340565, 0.0281047, 0.997485, 0.0650622, 0.342875, 0.0515194, -0.937967, 48.8569, -21.8234, 36.8325 )
+
+[node name="Target_4" parent="Level/Point_4" index="0" instance=ExtResource( 3 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 6.28912, 0, 9.89634 )
+
+[node name="Point_5" type="Spatial" parent="Level" index="7"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 22.8819, 2.66672, -18.0437 )
+
+[node name="Target_5" parent="Level/Point_5" index="0" instance=ExtResource( 3 )]

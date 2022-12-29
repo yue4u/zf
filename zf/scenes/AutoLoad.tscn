@@ -1,0 +1,113 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://assets/code_theme.tres" type="Theme" id=1]
+[ext_resource path="res://scripts/PerfLabel.gdns" type="Script" id=2]
+[ext_resource path="res://scripts/VMManager.gdns" type="Script" id=3]
+[ext_resource path="res://scripts/ScreenTransition.gdns" type="Script" id=4]
+[ext_resource path="res://icon.png" type="Texture" id=5]
+[ext_resource path="res://assets/pixelate.tres" type="Material" id=6]
+[ext_resource path="res://scenes/Terminal.tscn" type="PackedScene" id=7]
+[ext_resource path="res://assets/UITheme.tres" type="Theme" id=8]
+
+[sub_resource type="Animation" id=1]
+resource_name = "Pixelate"
+length = 1.2
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:material:shader_param/factor")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.6, 1, 1.2 ),
+"transitions": PoolRealArray( 1, 0.5, 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, 0.95, 0.99, 0.95, 0.0 ]
+}
+tracks/1/type = "method"
+tracks/1/path = NodePath(".")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0.6 ),
+"transitions": PoolRealArray( 1 ),
+"values": [ {
+"args": [ "change_scene" ],
+"method": "call"
+} ]
+}
+
+[sub_resource type="Animation" id=2]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:material:shader_param/factor")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 1.0 ]
+}
+
+[node name="AutoLoad" type="Node"]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="MarginContainer" type="MarginContainer" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 30.0
+margin_top = 30.0
+margin_right = -30.0
+margin_bottom = -30.0
+theme = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": true
+}
+
+[node name="Control" type="Control" parent="UI/MarginContainer"]
+margin_right = 964.0
+margin_bottom = 540.0
+
+[node name="PerfLabel" type="Label" parent="UI/MarginContainer/Control"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -100.0
+margin_bottom = 43.0
+theme = ExtResource( 8 )
+text = "fps:
+mem:"
+script = ExtResource( 2 )
+
+[node name="Terminal" parent="UI/MarginContainer/Control" instance=ExtResource( 7 )]
+anchor_top = 0.6
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UIExtra" type="CanvasLayer" parent="UI/MarginContainer"]
+
+[node name="PostProcessingTextureRect" type="TextureRect" parent="UI"]
+pause_mode = 2
+material = ExtResource( 6 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource( 5 )
+expand = true
+stretch_mode = 2
+script = ExtResource( 4 )
+
+[node name="ScreenTransitionPlayer" type="AnimationPlayer" parent="UI/PostProcessingTextureRect"]
+anims/Pixelate = SubResource( 1 )
+anims/RESET = SubResource( 2 )
+
+[node name="Managers" type="Node" parent="."]
+pause_mode = 2
+
+[node name="VM" type="Node" parent="Managers"]
+script = ExtResource( 3 )

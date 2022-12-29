@@ -1,3 +1,4 @@
+#![feature(iter_collect_into)]
 // mod bits;
 // mod bytes;
 // mod charting;
@@ -11,14 +12,15 @@ mod date;
 // mod experimental;
 // mod filesystem;
 mod filters;
-// mod formats;
+mod formats;
 // mod generators;
 // mod hash;
+mod input_handler;
 mod math;
 // mod misc;
 // mod network;
 // mod path;
-// mod platform;
+mod platform;
 mod random;
 // mod shells;
 mod sort_utils;
@@ -40,14 +42,14 @@ pub use date::*;
 // pub use experimental::*;
 // pub use filesystem::*;
 pub use filters::*;
-// pub use formats::*;
+pub use formats::*;
 // pub use generators::*;
 // pub use hash::*;
 pub use math::*;
 // pub use misc::*;
 // pub use network::*;
 // pub use path::*;
-// pub use platform::*;
+pub use platform::*;
 pub use random::*;
 // pub use shells::*;
 pub use sort_utils::*;
@@ -61,8 +63,8 @@ pub use viewers::*;
 // #[cfg(feature = "dataframe")]
 // pub use dataframe::*;
 
-// #[cfg(feature = "database")]
+// #[cfg(feature = "sqlite")]
 // mod database;
 
-// #[cfg(feature = "database")]
+// #[cfg(feature = "sqlite")]
 // pub use database::*;

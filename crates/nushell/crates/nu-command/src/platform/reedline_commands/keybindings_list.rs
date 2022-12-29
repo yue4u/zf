@@ -1,7 +1,7 @@
 use nu_protocol::{
     ast::Call,
     engine::{Command, EngineState, Stack},
-    Category, Example, IntoPipelineData, PipelineData, Signature, Span, Value,
+    Category, Example, IntoPipelineData, PipelineData, Signature, Span, Type, Value,
 };
 use reedline::{
     get_reedline_edit_commands, get_reedline_keybinding_modifiers, get_reedline_keycodes,
@@ -18,6 +18,7 @@ impl Command for KeybindingsList {
 
     fn signature(&self) -> Signature {
         Signature::build(self.name())
+            .input_output_types(vec![(Type::Nothing, Type::Table(vec![]))])
             .switch("modifiers", "list of modifiers", Some('m'))
             .switch("keycodes", "list of keycodes", Some('k'))
             .switch("modes", "list of edit modes", Some('o'))
@@ -95,15 +96,9 @@ fn get_records(entry_type: &str, span: &Span) -> Vec<Value> {
 }
 
 fn convert_to_record(edit: &str, entry_type: &str, span: &Span) -> Value {
-    let entry_type = Value::String {
-        val: entry_type.to_string(),
-        span: *span,
-    };
+    let entry_type = Value::string(entry_type, *span);
 
-    let name = Value::String {
-        val: edit.to_string(),
-        span: *span,
-    };
+    let name = Value::string(edit, *span);
 
     Value::Record {
         cols: vec!["type".to_string(), "name".to_string()],

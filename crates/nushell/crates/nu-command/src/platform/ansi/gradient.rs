@@ -2,8 +2,9 @@ use nu_ansi_term::{build_all_gradient_text, gradient::TargetGround, Gradient, Rg
 use nu_engine::CallExt;
 use nu_protocol::{
     ast::Call, ast::CellPath, engine::Command, engine::EngineState, engine::Stack, Category,
-    Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
+
 #[derive(Clone)]
 pub struct SubCommand;
 
@@ -39,15 +40,21 @@ impl Command for SubCommand {
                 Some('d'),
             )
             .rest(
-                "column path",
+                "cell path",
                 SyntaxShape::CellPath,
-                "optionally, draw gradients using text from column paths",
+                "for a data structure input, add a gradient to strings at the given cell paths",
             )
+            .input_output_types(vec![
+                (Type::String, Type::String),
+                (Type::Table(vec![]), Type::Table(vec![])),
+            ])
+            .vectorizes_over_list(true)
+            .allow_variants_without_examples(true)
             .category(Category::Platform)
     }
 
     fn usage(&self) -> &str {
-        "Draw text with a provided start and end code making a gradient"
+        "Add a color gradient (using ANSI color codes) to the given string"
     }
 
     fn run(
@@ -65,25 +72,25 @@ impl Command for SubCommand {
             Example {
             description: "draw text in a gradient with foreground start and end colors",
             example:
-                "echo 'Hello, Nushell! This is a gradient.' | ansi gradient --fgstart 0x40c9ff --fgend 0xe81cff",
+                "'Hello, Nushell! This is a gradient.' | ansi gradient --fgstart 0x40c9ff --fgend 0xe81cff",
             result: None,
         },
         Example {
             description: "draw text in a gradient with foreground start and end colors and background start and end colors",
             example:
-                "echo 'Hello, Nushell! This is a gradient.' | ansi gradient --fgstart 0x40c9ff --fgend 0xe81cff --bgstart 0xe81cff --bgend 0x40c9ff",
+                "'Hello, Nushell! This is a gradient.' | ansi gradient --fgstart 0x40c9ff --fgend 0xe81cff --bgstart 0xe81cff --bgend 0x40c9ff",
             result: None,
         },
         Example {
             description: "draw text in a gradient by specifying foreground start color - end color is assumed to be black",
             example:
-                "echo 'Hello, Nushell! This is a gradient.' | ansi gradient --fgstart 0x40c9ff",
+                "'Hello, Nushell! This is a gradient.' | ansi gradient --fgstart 0x40c9ff",
             result: None,
         },
         Example {
             description: "draw text in a gradient by specifying foreground end color - start color is assumed to be black",
             example:
-                "echo 'Hello, Nushell! This is a gradient.' | ansi gradient --fgend 0xe81cff",
+                "'Hello, Nushell! This is a gradient.' | ansi gradient --fgend 0xe81cff",
             result: None,
         },
         ]

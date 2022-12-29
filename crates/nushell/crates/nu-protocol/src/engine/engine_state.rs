@@ -20,7 +20,7 @@ static PWD_ENV: &str = "PWD";
 
 // TODO: move to different file? where?
 /// An operation to be performed with the current buffer of the interactive shell.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ReplOperation {
     Append(String),
     Insert(String),
@@ -92,6 +92,8 @@ pub struct EngineState {
     sig_quit: Option<Arc<AtomicBool>>,
     config_path: HashMap<String, PathBuf>,
     pub history_session_id: i64,
+    // If Nushell was started, e.g., with `nu spam.nu`, the file's parent is stored here
+    pub currently_parsed_cwd: Option<PathBuf>,
 }
 
 pub const NU_VARIABLE_ID: usize = 0;
@@ -105,11 +107,11 @@ impl EngineState {
             files: vec![],
             file_contents: vec![],
             vars: vec![
-                Variable::new(Span::new(0, 0), Type::Any),
-                Variable::new(Span::new(0, 0), Type::Any),
-                Variable::new(Span::new(0, 0), Type::Any),
-                Variable::new(Span::new(0, 0), Type::Any),
-                Variable::new(Span::new(0, 0), Type::Any),
+                Variable::new(Span::new(0, 0), Type::Any, false),
+                Variable::new(Span::new(0, 0), Type::Any, false),
+                Variable::new(Span::new(0, 0), Type::Any, false),
+                Variable::new(Span::new(0, 0), Type::Any, false),
+                Variable::new(Span::new(0, 0), Type::Any, false),
             ],
             decls: vec![],
             aliases: vec![],
@@ -134,6 +136,7 @@ impl EngineState {
             sig_quit: None,
             config_path: HashMap::new(),
             history_session_id: 0,
+            currently_parsed_cwd: None,
         }
     }
 
@@ -169,6 +172,9 @@ impl EngineState {
                 }
                 for item in delta_overlay.vars.into_iter() {
                     existing_overlay.vars.insert(item.0, item.1);
+                }
+                for item in delta_overlay.constants.into_iter() {
+                    existing_overlay.constants.insert(item.0, item.1);
                 }
                 for item in delta_overlay.aliases.into_iter() {
                     existing_overlay.aliases.insert(item.0, item.1);
@@ -233,10 +239,18 @@ impl EngineState {
                     // Updating existing overlay
                     for (k, v) in env.drain() {
                         if k == "config" {
-                            self.config = v.clone().into_config().unwrap_or_default();
+                            // Don't insert the record as the "config" env var as-is.
+                            // Instead, mutate a clone of it with into_config(), and put THAT in env_vars.
+                            let mut new_record = v.clone();
+                            let (config, error) = new_record.into_config(&self.config);
+                            self.config = config;
+                            env_vars.insert(k, new_record);
+                            if let Some(e) = error {
+                                return Err(e);
+                            }
+                        } else {
+                            env_vars.insert(k, v);
                         }
-
-                        env_vars.insert(k, v);
                     }
                 } else {
                     // Pushing a new overlay
@@ -249,6 +263,15 @@ impl EngineState {
         std::env::set_current_dir(cwd)?;
 
         Ok(())
+    }
+
+    /// Mark a starting point if it is a script (e.g., nu spam.nu)
+    pub fn start_in_file(&mut self, file_path: Option<&str>) {
+        self.currently_parsed_cwd = if let Some(path) = file_path {
+            Path::new(path).parent().map(PathBuf::from)
+        } else {
+            None
+        };
     }
 
     pub fn has_overlay(&self, name: &[u8]) -> bool {
@@ -546,6 +569,26 @@ impl EngineState {
         None
     }
 
+    pub fn which_module_has_decl(&self, name: &[u8]) -> Option<&[u8]> {
+        for (module_id, m) in self.modules.iter().enumerate() {
+            if m.has_decl(name) {
+                for overlay_frame in self.active_overlays(&[]).iter() {
+                    let module_name = overlay_frame.modules.iter().find_map(|(key, &val)| {
+                        if val == module_id {
+                            Some(key)
+                        } else {
+                            None
+                        }
+                    });
+                    if let Some(final_name) = module_name {
+                        return Some(&final_name[..]);
+                    }
+                }
+            }
+        }
+        None
+    }
+
     pub fn find_overlay(&self, name: &[u8]) -> Option<OverlayId> {
         self.scope.find_overlay(name)
     }
@@ -584,6 +627,16 @@ impl EngineState {
         }
 
         output
+    }
+
+    pub fn find_constant(&self, var_id: VarId, removed_overlays: &[Vec<u8>]) -> Option<&Value> {
+        for overlay_frame in self.active_overlays(removed_overlays).iter().rev() {
+            if let Some(val) = overlay_frame.constants.get(&var_id) {
+                return Some(val);
+            }
+        }
+
+        None
     }
 
     pub fn get_span_contents(&self, span: &Span) -> &[u8] {
@@ -668,7 +721,7 @@ impl EngineState {
     pub fn get_signatures_with_examples(
         &self,
         include_hidden: bool,
-    ) -> Vec<(Signature, Vec<Example>, bool, bool)> {
+    ) -> Vec<(Signature, Vec<Example>, bool, bool, bool)> {
         self.get_decl_ids_sorted(include_hidden)
             .map(|id| {
                 let decl = self.get_decl(id);
@@ -680,6 +733,7 @@ impl EngineState {
                     decl.examples(),
                     decl.is_plugin().is_some(),
                     decl.get_block_id().is_some(),
+                    decl.is_parser_keyword(),
                 )
             })
             .collect()
@@ -722,10 +776,7 @@ impl EngineState {
     pub fn get_file_source(&self, file_id: usize) -> String {
         for file in self.files.iter().enumerate() {
             if file.0 == file_id {
-                let contents = self.get_span_contents(&Span {
-                    start: file.1 .1,
-                    end: file.1 .2,
-                });
+                let contents = self.get_span_contents(&Span::new(file.1 .1, file.1 .2));
                 let output = String::from_utf8_lossy(contents).to_string();
 
                 return output;
@@ -967,7 +1018,7 @@ impl<'a> StateWorkingSet<'a> {
             permanent_state,
             external_commands: vec![],
             type_scope: TypeScope::default(),
-            currently_parsed_cwd: None,
+            currently_parsed_cwd: permanent_state.currently_parsed_cwd.clone(),
             parsed_module_files: vec![],
         }
     }
@@ -1285,10 +1336,9 @@ impl<'a> StateWorkingSet<'a> {
     pub fn get_file_source(&self, file_id: usize) -> String {
         for file in self.files().enumerate() {
             if file.0 == file_id {
-                let output = String::from_utf8_lossy(self.get_span_contents(Span {
-                    start: file.1 .1,
-                    end: file.1 .2,
-                }))
+                let output = String::from_utf8_lossy(
+                    self.get_span_contents(Span::new(file.1 .1, file.1 .2)),
+                )
                 .to_string();
 
                 return output;
@@ -1551,7 +1601,13 @@ impl<'a> StateWorkingSet<'a> {
         None
     }
 
-    pub fn add_variable(&mut self, mut name: Vec<u8>, span: Span, ty: Type) -> VarId {
+    pub fn add_variable(
+        &mut self,
+        mut name: Vec<u8>,
+        span: Span,
+        ty: Type,
+        mutable: bool,
+    ) -> VarId {
         let next_id = self.next_var_id();
 
         // correct name if necessary
@@ -1561,7 +1617,7 @@ impl<'a> StateWorkingSet<'a> {
 
         self.last_overlay_mut().vars.insert(name, next_id);
 
-        self.delta.vars.push(Variable::new(span, ty));
+        self.delta.vars.push(Variable::new(span, ty, mutable));
 
         next_id
     }
@@ -1611,6 +1667,29 @@ impl<'a> StateWorkingSet<'a> {
         }
     }
 
+    pub fn add_constant(&mut self, var_id: VarId, val: Value) {
+        self.last_overlay_mut().constants.insert(var_id, val);
+    }
+
+    pub fn find_constant(&self, var_id: VarId) -> Option<&Value> {
+        let mut removed_overlays = vec![];
+
+        for scope_frame in self.delta.scope.iter().rev() {
+            for overlay_frame in scope_frame
+                .active_overlays(&mut removed_overlays)
+                .iter()
+                .rev()
+            {
+                if let Some(val) = overlay_frame.constants.get(&var_id) {
+                    return Some(val);
+                }
+            }
+        }
+
+        self.permanent_state
+            .find_constant(var_id, &removed_overlays)
+    }
+
     pub fn get_variable(&self, var_id: VarId) -> &Variable {
         let num_permanent_vars = self.permanent_state.num_vars();
         if var_id < num_permanent_vars {
@@ -1620,6 +1699,15 @@ impl<'a> StateWorkingSet<'a> {
                 .vars
                 .get(var_id - num_permanent_vars)
                 .expect("internal error: missing variable")
+        }
+    }
+
+    pub fn get_variable_if_possible(&self, var_id: VarId) -> Option<&Variable> {
+        let num_permanent_vars = self.permanent_state.num_vars();
+        if var_id < num_permanent_vars {
+            Some(self.permanent_state.get_var(var_id))
+        } else {
+            self.delta.vars.get(var_id - num_permanent_vars)
         }
     }
 
@@ -1993,10 +2081,7 @@ impl<'a> miette::SourceCode for &StateWorkingSet<'a> {
                     let found_file = "Found matching file";
                     dbg!(found_file);
                 }
-                let our_span = Span {
-                    start: *start,
-                    end: *end,
-                };
+                let our_span = Span::new(*start, *end);
                 // We need to move to a local span because we're only reading
                 // the specific file contents via self.get_span_contents.
                 let local_span = (span.offset() - *start, span.len()).into();

@@ -1,20 +1,37 @@
+mod clear;
 mod engine;
 mod fire;
+mod fsays;
 mod game;
 mod hi;
+mod hint;
+mod level;
 mod mission;
 mod mystery;
 mod radar;
+mod random_pos;
+mod task;
+mod term;
+mod time;
+mod tutorial;
 mod ui;
-mod zf_call;
 
+pub(crate) use clear::*;
 pub(crate) use engine::*;
 pub(crate) use fire::*;
+pub(crate) use fsays::*;
 pub(crate) use game::*;
 pub(crate) use hi::*;
+pub(crate) use hint::*;
+pub(crate) use level::*;
 pub(crate) use mission::*;
 pub(crate) use mystery::*;
 pub(crate) use radar::*;
+pub(crate) use random_pos::*;
+pub(crate) use task::*;
+pub(crate) use term::*;
+pub(crate) use time::*;
+pub(crate) use tutorial::*;
 pub(crate) use ui::*;
 
 use nu_engine::CallExt;

@@ -1,8 +1,11 @@
+use super::run_external::create_external_command;
+use nu_engine::{current_dir, CallExt};
 use nu_protocol::{
     ast::Call,
     engine::{Command, EngineState, Stack},
-    Category, Example, PipelineData, ShellError, Signature, SyntaxShape,
+    Category, Example, PipelineData, ShellError, Signature, Spanned, SyntaxShape, Type,
 };
+use std::os::unix::process::CommandExt;
 
 #[derive(Clone)]
 pub struct Exec;
@@ -14,12 +17,9 @@ impl Command for Exec {
 
     fn signature(&self) -> Signature {
         Signature::build("exec")
+            .input_output_types(vec![(Type::Nothing, Type::Any)])
             .required("command", SyntaxShape::String, "the command to execute")
-            .rest(
-                "rest",
-                SyntaxShape::String,
-                "any additional arguments for the command",
-            )
+            .allows_unknown_args()
             .category(Category::System)
     }
 
@@ -57,51 +57,30 @@ impl Command for Exec {
     }
 }
 
-#[cfg(unix)]
 fn exec(
     engine_state: &EngineState,
     stack: &mut Stack,
     call: &Call,
 ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-    use std::os::unix::process::CommandExt;
-
-    use super::run_external::ExternalCommand;
-    use nu_engine::{current_dir, env_to_strings, CallExt};
-    use nu_protocol::ast::Expr;
-    use nu_protocol::Spanned;
-
     let name: Spanned<String> = call.req(engine_state, stack, 0)?;
     let name_span = name.span;
 
-    let args: Vec<Spanned<String>> = call.rest(engine_state, stack, 1)?;
-    let args_expr: Vec<nu_protocol::ast::Expression> =
-        call.positional_iter().skip(1).cloned().collect();
-    let mut arg_keep_raw = vec![];
-    for one_arg_expr in args_expr {
-        match one_arg_expr.expr {
-            // refer to `parse_dollar_expr` function
-            // the expression type of $variable_name, $"($variable_name)"
-            // will be Expr::StringInterpolation, Expr::FullCellPath
-            Expr::StringInterpolation(_) | Expr::FullCellPath(_) => arg_keep_raw.push(true),
-            _ => arg_keep_raw.push(false),
-        }
-    }
+    let redirect_stdout = call.has_flag("redirect-stdout");
+    let redirect_stderr = call.has_flag("redirect-stderr");
+    let trim_end_newline = call.has_flag("trim-end-newline");
+
+    let external_command = create_external_command(
+        engine_state,
+        stack,
+        call,
+        redirect_stdout,
+        redirect_stderr,
+        trim_end_newline,
+    )?;
 
     let cwd = current_dir(engine_state, stack)?;
-    let env_vars = env_to_strings(engine_state, stack)?;
-    let current_dir = current_dir(engine_state, stack)?;
-
-    let external_command = ExternalCommand {
-        name,
-        args,
-        arg_keep_raw,
-        env_vars,
-        redirect_stdout: true,
-        redirect_stderr: false,
-    };
-
     let mut command = external_command.spawn_simple_command(&cwd.to_string_lossy())?;
-    command.current_dir(current_dir);
+    command.current_dir(cwd);
 
     let err = command.exec(); // this replaces our process, should not return
 
@@ -109,21 +88,6 @@ fn exec(
         "Error on exec".to_string(),
         err.to_string(),
         Some(name_span),
-        None,
-        Vec::new(),
-    ))
-}
-
-#[cfg(not(unix))]
-fn exec(
-    _engine_state: &EngineState,
-    _stack: &mut Stack,
-    call: &Call,
-) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-    Err(ShellError::GenericError(
-        "Error on exec".to_string(),
-        "exec is not supported on your platform".to_string(),
-        Some(call.head),
         None,
         Vec::new(),
     ))

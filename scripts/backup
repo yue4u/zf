@@ -6,11 +6,12 @@ cd(path.join(__dirname, ".."));
 const dry = process.argv.includes("-n") ? "-n" : "";
 const ignore = [
   `\.git`,
-  `devlog/node_modules`,
-  `devlog/dist`,
+  `docs/node_modules`,
+  `docs/dist`,
   `tmp`,
   `zf/\.import`,
-  `crates/target`,
+  `target`,
+  `build`,
 ].join("|");
 
 $`gsutil -m rsync -d -r ${dry} -x ${ignore} . gs://zf.yue.rocks 2> >(rg -v "Skipping symlink")`;

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{Expr, Operator};
+use super::Expr;
 use crate::ast::ImportPattern;
 use crate::DeclId;
 use crate::{engine::StateWorkingSet, BlockId, Signature, Span, Type, VarId, IN_VARIABLE_ID};
@@ -26,33 +26,37 @@ impl Expression {
     pub fn precedence(&self) -> usize {
         match &self.expr {
             Expr::Operator(operator) => {
+                use super::operator::*;
                 // Higher precedence binds tighter
 
                 match operator {
-                    Operator::Pow => 100,
-                    Operator::Multiply
-                    | Operator::Divide
-                    | Operator::Modulo
-                    | Operator::FloorDivision => 95,
-                    Operator::Plus | Operator::Minus => 90,
-                    Operator::ShiftLeft | Operator::ShiftRight => 85,
-                    Operator::NotRegexMatch
-                    | Operator::RegexMatch
-                    | Operator::StartsWith
-                    | Operator::EndsWith
-                    | Operator::LessThan
-                    | Operator::LessThanOrEqual
-                    | Operator::GreaterThan
-                    | Operator::GreaterThanOrEqual
-                    | Operator::Equal
-                    | Operator::NotEqual
-                    | Operator::In
-                    | Operator::NotIn => 80,
-                    Operator::BitAnd => 75,
-                    Operator::BitXor => 70,
-                    Operator::BitOr => 60,
-                    Operator::And => 50,
-                    Operator::Or => 40,
+                    Operator::Math(Math::Pow) => 100,
+                    Operator::Math(Math::Multiply)
+                    | Operator::Math(Math::Divide)
+                    | Operator::Math(Math::Modulo)
+                    | Operator::Math(Math::FloorDivision) => 95,
+                    Operator::Math(Math::Plus) | Operator::Math(Math::Minus) => 90,
+                    Operator::Bits(Bits::ShiftLeft) | Operator::Bits(Bits::ShiftRight) => 85,
+                    Operator::Comparison(Comparison::NotRegexMatch)
+                    | Operator::Comparison(Comparison::RegexMatch)
+                    | Operator::Comparison(Comparison::StartsWith)
+                    | Operator::Comparison(Comparison::EndsWith)
+                    | Operator::Comparison(Comparison::LessThan)
+                    | Operator::Comparison(Comparison::LessThanOrEqual)
+                    | Operator::Comparison(Comparison::GreaterThan)
+                    | Operator::Comparison(Comparison::GreaterThanOrEqual)
+                    | Operator::Comparison(Comparison::Equal)
+                    | Operator::Comparison(Comparison::NotEqual)
+                    | Operator::Comparison(Comparison::In)
+                    | Operator::Comparison(Comparison::NotIn)
+                    | Operator::Math(Math::Append) => 80,
+                    Operator::Bits(Bits::BitAnd) => 75,
+                    Operator::Bits(Bits::BitXor) => 70,
+                    Operator::Bits(Bits::BitOr) => 60,
+                    Operator::Boolean(Boolean::And) => 50,
+                    Operator::Boolean(Boolean::Xor) => 45,
+                    Operator::Boolean(Boolean::Or) => 40,
+                    Operator::Assignment(_) => 10,
                 }
             }
             _ => 0,
@@ -62,6 +66,7 @@ impl Expression {
     pub fn as_block(&self) -> Option<BlockId> {
         match self.expr {
             Expr::Block(block_id) => Some(block_id),
+            Expr::Closure(block_id) => Some(block_id),
             _ => None,
         }
     }
@@ -130,8 +135,24 @@ impl Expression {
                 }
 
                 if let Some(pipeline) = block.pipelines.get(0) {
-                    match pipeline.expressions.get(0) {
-                        Some(expr) => expr.has_in_variable(working_set),
+                    match pipeline.elements.get(0) {
+                        Some(element) => element.has_in_variable(working_set),
+                        None => false,
+                    }
+                } else {
+                    false
+                }
+            }
+            Expr::Closure(block_id) => {
+                let block = working_set.get_block(*block_id);
+
+                if block.captures.contains(&IN_VARIABLE_ID) {
+                    return true;
+                }
+
+                if let Some(pipeline) = block.pipelines.get(0) {
+                    match pipeline.elements.get(0) {
+                        Some(element) => element.has_in_variable(working_set),
                         None => false,
                     }
                 } else {
@@ -157,7 +178,7 @@ impl Expression {
             }
             Expr::CellPath(_) => false,
             Expr::DateTime(_) => false,
-            Expr::ExternalCall(head, args) => {
+            Expr::ExternalCall(head, args, _) => {
                 if head.has_in_variable(working_set) {
                     return true;
                 }
@@ -236,7 +257,7 @@ impl Expression {
                 let block = working_set.get_block(*block_id);
 
                 if let Some(pipeline) = block.pipelines.get(0) {
-                    if let Some(expr) = pipeline.expressions.get(0) {
+                    if let Some(expr) = pipeline.elements.get(0) {
                         expr.has_in_variable(working_set)
                     } else {
                         false
@@ -282,10 +303,10 @@ impl Expression {
                 let block = working_set.get_block(*block_id);
 
                 let new_expr = if let Some(pipeline) = block.pipelines.get(0) {
-                    if let Some(expr) = pipeline.expressions.get(0) {
-                        let mut new_expr = expr.clone();
-                        new_expr.replace_in_variable(working_set, new_var_id);
-                        Some(new_expr)
+                    if let Some(element) = pipeline.elements.get(0) {
+                        let mut new_element = element.clone();
+                        new_element.replace_in_variable(working_set, new_var_id);
+                        Some(new_element)
                     } else {
                         None
                     }
@@ -297,8 +318,39 @@ impl Expression {
 
                 if let Some(new_expr) = new_expr {
                     if let Some(pipeline) = block.pipelines.get_mut(0) {
-                        if let Some(expr) = pipeline.expressions.get_mut(0) {
+                        if let Some(expr) = pipeline.elements.get_mut(0) {
                             *expr = new_expr
+                        }
+                    }
+                }
+
+                block.captures = block
+                    .captures
+                    .iter()
+                    .map(|x| if *x != IN_VARIABLE_ID { *x } else { new_var_id })
+                    .collect();
+            }
+            Expr::Closure(block_id) => {
+                let block = working_set.get_block(*block_id);
+
+                let new_element = if let Some(pipeline) = block.pipelines.get(0) {
+                    if let Some(element) = pipeline.elements.get(0) {
+                        let mut new_element = element.clone();
+                        new_element.replace_in_variable(working_set, new_var_id);
+                        Some(new_element)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                let block = working_set.get_block_mut(*block_id);
+
+                if let Some(new_element) = new_element {
+                    if let Some(pipeline) = block.pipelines.get_mut(0) {
+                        if let Some(element) = pipeline.elements.get_mut(0) {
+                            *element = new_element
                         }
                     }
                 }
@@ -323,7 +375,7 @@ impl Expression {
             }
             Expr::CellPath(_) => {}
             Expr::DateTime(_) => {}
-            Expr::ExternalCall(head, args) => {
+            Expr::ExternalCall(head, args, _) => {
                 head.replace_in_variable(working_set, new_var_id);
                 for arg in args {
                     arg.replace_in_variable(working_set, new_var_id)
@@ -377,11 +429,11 @@ impl Expression {
             Expr::RowCondition(block_id) | Expr::Subexpression(block_id) => {
                 let block = working_set.get_block(*block_id);
 
-                let new_expr = if let Some(pipeline) = block.pipelines.get(0) {
-                    if let Some(expr) = pipeline.expressions.get(0) {
-                        let mut new_expr = expr.clone();
-                        new_expr.replace_in_variable(working_set, new_var_id);
-                        Some(new_expr)
+                let new_element = if let Some(pipeline) = block.pipelines.get(0) {
+                    if let Some(element) = pipeline.elements.get(0) {
+                        let mut new_element = element.clone();
+                        new_element.replace_in_variable(working_set, new_var_id);
+                        Some(new_element)
                     } else {
                         None
                     }
@@ -391,10 +443,10 @@ impl Expression {
 
                 let block = working_set.get_block_mut(*block_id);
 
-                if let Some(new_expr) = new_expr {
+                if let Some(new_element) = new_element {
                     if let Some(pipeline) = block.pipelines.get_mut(0) {
-                        if let Some(expr) = pipeline.expressions.get_mut(0) {
-                            *expr = new_expr
+                        if let Some(element) = pipeline.elements.get_mut(0) {
+                            *element = new_element
                         }
                     }
                 }
@@ -448,8 +500,19 @@ impl Expression {
                 let mut block = working_set.get_block(*block_id).clone();
 
                 for pipeline in block.pipelines.iter_mut() {
-                    for expr in pipeline.expressions.iter_mut() {
-                        expr.replace_span(working_set, replaced, new_span)
+                    for element in pipeline.elements.iter_mut() {
+                        element.replace_span(working_set, replaced, new_span)
+                    }
+                }
+
+                *block_id = working_set.add_block(block);
+            }
+            Expr::Closure(block_id) => {
+                let mut block = working_set.get_block(*block_id).clone();
+
+                for pipeline in block.pipelines.iter_mut() {
+                    for element in pipeline.elements.iter_mut() {
+                        element.replace_span(working_set, replaced, new_span)
                     }
                 }
 
@@ -472,7 +535,7 @@ impl Expression {
             }
             Expr::CellPath(_) => {}
             Expr::DateTime(_) => {}
-            Expr::ExternalCall(head, args) => {
+            Expr::ExternalCall(head, args, _) => {
                 head.replace_span(working_set, replaced, new_span);
                 for arg in args {
                     arg.replace_span(working_set, replaced, new_span)
@@ -527,8 +590,8 @@ impl Expression {
                 let mut block = working_set.get_block(*block_id).clone();
 
                 for pipeline in block.pipelines.iter_mut() {
-                    for expr in pipeline.expressions.iter_mut() {
-                        expr.replace_span(working_set, replaced, new_span)
+                    for element in pipeline.elements.iter_mut() {
+                        element.replace_span(working_set, replaced, new_span)
                     }
                 }
 

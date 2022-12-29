@@ -2,7 +2,7 @@ use nu_engine::CallExt;
 use nu_protocol::{
     ast::Call,
     engine::{Command, EngineState, Stack},
-    Category, Example, IntoPipelineData, PipelineData, Signature, Span, SyntaxShape, Value,
+    Category, Example, IntoPipelineData, PipelineData, Signature, Span, SyntaxShape, Type, Value,
 };
 
 #[derive(Clone)]
@@ -15,6 +15,10 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("split list")
+            .input_output_types(vec![(
+                Type::List(Box::new(Type::Any)),
+                Type::List(Box::new(Type::List(Box::new(Type::Any)))),
+            )])
             .required(
                 "separator",
                 SyntaxShape::Any,
@@ -91,6 +95,31 @@ impl Command for SubCommand {
                     span: Span::test_data(),
                 }),
             },
+            Example {
+                description: "Split a list of chars into two lists",
+                example: "[a, b, c, d, a, e, f, g] | split list a",
+                result: Some(Value::List {
+                    vals: vec![
+                        Value::List {
+                            vals: vec![
+                                Value::test_string("b"),
+                                Value::test_string("c"),
+                                Value::test_string("d"),
+                            ],
+                            span: Span::test_data(),
+                        },
+                        Value::List {
+                            vals: vec![
+                                Value::test_string("e"),
+                                Value::test_string("f"),
+                                Value::test_string("g"),
+                            ],
+                            span: Span::test_data(),
+                        },
+                    ],
+                    span: Span::test_data(),
+                }),
+            },
         ]
     }
 }
@@ -106,12 +135,14 @@ fn split_list(
     let mut returned_list = Vec::new();
     let iter = input.into_interruptible_iter(engine_state.ctrlc.clone());
     for val in iter {
-        if val == separator && !temp_list.is_empty() {
-            returned_list.push(Value::List {
-                vals: temp_list.clone(),
-                span: call.head,
-            });
-            temp_list = Vec::new();
+        if val == separator {
+            if !temp_list.is_empty() {
+                returned_list.push(Value::List {
+                    vals: temp_list.clone(),
+                    span: call.head,
+                });
+                temp_list = Vec::new();
+            }
         } else {
             temp_list.push(val);
         }
@@ -127,4 +158,16 @@ fn split_list(
         span: call.head,
     }
     .into_pipeline_data())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_examples() {
+        use crate::test_examples;
+
+        test_examples(SubCommand {})
+    }
 }

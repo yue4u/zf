@@ -1,13 +1,63 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://scripts/HomingMissile.gdns" type="Script" id=1]
+[ext_resource path="res://assets/3rd/missiles (1)/source/missiles.glb" type="PackedScene" id=2]
 
-[sub_resource type="CapsuleMesh" id=1]
-radius = 9.723
-mid_height = 0.001
+[sub_resource type="BoxShape" id=1]
+extents = Vector3( 5, 5, 20 )
+
+[sub_resource type="SpatialMaterial" id=4]
+flags_transparent = true
+flags_unshaded = true
+vertex_color_use_as_albedo = true
+params_cull_mode = 2
+params_billboard_mode = 1
+albedo_color = Color( 0.231373, 0.941176, 0.921569, 0.352941 )
+
+[sub_resource type="Gradient" id=7]
+colors = PoolColorArray( 1, 1, 1, 1, 0.324219, 0, 1, 0.301961 )
+
+[sub_resource type="GradientTexture" id=8]
+gradient = SubResource( 7 )
+
+[sub_resource type="Curve" id=5]
+max_value = 20.0
+_data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 1, 20 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CurveTexture" id=6]
+curve = SubResource( 5 )
+
+[sub_resource type="ParticlesMaterial" id=2]
+emission_shape = 2
+emission_box_extents = Vector3( 3, 3, 0 )
+gravity = Vector3( 0, 0, 5 )
+scale_curve = SubResource( 6 )
+color_ramp = SubResource( 8 )
+
+[sub_resource type="QuadMesh" id=3]
 
 [node name="HomingMissile" type="Spatial"]
+transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0 )
 script = ExtResource( 1 )
 
-[node name="MeshInstance" type="MeshInstance" parent="."]
-mesh = SubResource( 1 )
+[node name="Area" type="Area" parent="."]
+transform = Transform( -1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0 )
+collision_layer = 0
+collision_mask = 31
+
+[node name="missiles" parent="Area" instance=ExtResource( 2 )]
+
+[node name="CollisionShape" type="CollisionShape" parent="Area"]
+shape = SubResource( 1 )
+
+[node name="Particles" type="Particles" parent="Area"]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, -19.2804 )
+material_override = SubResource( 4 )
+cast_shadow = 0
+generate_lightmap = false
+amount = 12
+lifetime = 3.0
+speed_scale = 2.0
+local_coords = false
+process_material = SubResource( 2 )
+draw_pass_1 = SubResource( 3 )

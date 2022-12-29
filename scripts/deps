@@ -1,0 +1,2 @@
+git subtree pull --prefix crates/wezterm git@github.com:wez/wezterm.git main --squash
+git subtree pull --prefix crates/nushell git@github.com:nushell/nushell.git main --squash

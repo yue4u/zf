@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://scripts/PlayerStatus.gdns" type="Script" id=1]
+
+[node name="PlayerStatus" type="RichTextLabel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+bbcode_enabled = true
+bbcode_text = "[b][color=#4FFFCA]Status[/color][/b]
+speed: {:.2}
+position: {}
+rotation: {}
+
+[b][color=#4FFFCA]Engine[/color][/b]
+engine: {:?}"
+text = "Status
+speed: {:.2}
+position: {}
+rotation: {}
+
+Engine
+engine: {:?}"
+script = ExtResource( 1 )

@@ -5,8 +5,7 @@ use nu_protocol::{
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
 
-use crate::imports;
-use zf_bridge::{CommandBridge, UIAction, UICommand};
+use zf_ffi::{CommandArgs, UIAction, UICommand};
 
 use super::expect_flag;
 
@@ -42,7 +41,7 @@ impl Command for UI {
             }
         };
 
-        let args = CommandBridge::UI(UICommand {
+        let args = CommandArgs::UI(UICommand {
             action: match action_val.as_str() {
                 "show" => UIAction::Show,
                 "hide" => UIAction::Hide,
@@ -58,7 +57,7 @@ impl Command for UI {
             },
             label: expect_flag(engine_state, stack, call, "label")?,
         });
-        imports::zf_call(args);
+        zf_ffi::cmd_legacy(args);
         // TODO: we may want to return true/false from here
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }

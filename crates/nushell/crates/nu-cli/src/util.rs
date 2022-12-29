@@ -1,11 +1,11 @@
-use log::trace;
+use crate::repl::eval_hook;
 use nu_engine::eval_block;
 use nu_parser::{escape_quote_string, lex, parse, unescape_unquote_string, Token, TokenContents};
 use nu_protocol::engine::StateWorkingSet;
 use nu_protocol::CliError;
 use nu_protocol::{
     engine::{EngineState, Stack},
-    PipelineData, ShellError, Span, Value,
+    print_if_stream, PipelineData, ShellError, Span, Value,
 };
 #[cfg(windows)]
 use nu_utils::enable_vt_processing;
@@ -204,8 +204,6 @@ pub fn eval_source(
     fname: &str,
     input: PipelineData,
 ) -> bool {
-    trace!("eval_source");
-
     let (block, delta) = {
         let mut working_set = StateWorkingSet::new(engine_state);
         let (output, err) = parse(
@@ -231,23 +229,41 @@ pub fn eval_source(
     }
 
     match eval_block(engine_state, stack, &block, input, false, false) {
-        Ok(mut pipeline_data) => {
-            if let PipelineData::ExternalStream { exit_code, .. } = &mut pipeline_data {
-                if let Some(exit_code) = exit_code.take().and_then(|it| it.last()) {
-                    stack.add_env_var("LAST_EXIT_CODE".to_string(), exit_code);
-                } else {
-                    set_last_exit_code(stack, 0);
+        Ok(pipeline_data) => {
+            let config = engine_state.get_config();
+            let result;
+            if let PipelineData::ExternalStream {
+                stdout: stream,
+                stderr: stderr_stream,
+                exit_code,
+                ..
+            } = pipeline_data
+            {
+                result = print_if_stream(stream, stderr_stream, false, exit_code);
+            } else if let Some(hook) = config.hooks.display_output.clone() {
+                match eval_hook(engine_state, stack, Some(pipeline_data), vec![], &hook) {
+                    Err(err) => {
+                        result = Err(err);
+                    }
+                    Ok(val) => {
+                        result = val.print(engine_state, stack, false, false);
+                    }
                 }
             } else {
-                set_last_exit_code(stack, 0);
+                result = pipeline_data.print(engine_state, stack, true, false);
             }
 
-            if let Err(err) = pipeline_data.print(engine_state, stack, false, false) {
-                let working_set = StateWorkingSet::new(engine_state);
+            match result {
+                Err(err) => {
+                    let working_set = StateWorkingSet::new(engine_state);
 
-                report_error(&working_set, &err);
+                    report_error(&working_set, &err);
 
-                return false;
+                    return false;
+                }
+                Ok(exit_code) => {
+                    set_last_exit_code(stack, exit_code);
+                }
             }
 
             // reset vt processing, aka ansi because illbehaved externals can break it
@@ -273,10 +289,7 @@ pub fn eval_source(
 fn set_last_exit_code(stack: &mut Stack, exit_code: i64) {
     stack.add_env_var(
         "LAST_EXIT_CODE".to_string(),
-        Value::Int {
-            val: exit_code,
-            span: Span { start: 0, end: 0 },
-        },
+        Value::int(exit_code, Span::unknown()),
     );
 }
 

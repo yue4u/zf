@@ -1,7 +1,7 @@
 use nu_engine::get_full_help;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, IntoPipelineData, PipelineData, ShellError, Signature, Value};
+use nu_protocol::{Category, IntoPipelineData, PipelineData, ShellError, Signature, Type, Value};
 
 #[derive(Clone)]
 pub struct Roll;
@@ -11,8 +11,14 @@ impl Command for Roll {
         "roll"
     }
 
+    fn search_terms(&self) -> Vec<&str> {
+        vec!["rotate", "shift", "move"]
+    }
+
     fn signature(&self) -> Signature {
-        Signature::build(self.name()).category(Category::Filters)
+        Signature::build(self.name())
+            .category(Category::Filters)
+            .input_output_types(vec![(Type::Nothing, Type::String)])
     }
 
     fn usage(&self) -> &str {
@@ -27,7 +33,13 @@ impl Command for Roll {
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         Ok(Value::String {
-            val: get_full_help(&Roll.signature(), &Roll.examples(), engine_state, stack),
+            val: get_full_help(
+                &Roll.signature(),
+                &Roll.examples(),
+                engine_state,
+                stack,
+                self.is_parser_keyword(),
+            ),
             span: call.head,
         }
         .into_pipeline_data())

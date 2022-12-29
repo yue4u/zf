@@ -24,9 +24,6 @@ target
 tmp
 external
 logs
+build/
 
 zf/assets/3rd
-zf/addons/*
-!zf/addons/godot_xterm/
-zf/addons/godot_xterm/*
-!zf/addons/godot_xterm/.gitkeep

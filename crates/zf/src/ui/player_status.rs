@@ -1,20 +1,22 @@
 use gdnative::{api::RichTextLabel, prelude::*};
 
-use crate::{path::HasPath, units::Player};
+use crate::units::Player;
+
+// use crate::{refs::HasPath, units::Player};
 
 #[derive(NativeClass, Default)]
 #[inherit(RichTextLabel)]
-pub struct PlayerStatusDisplay;
+pub struct PlayerStatus;
 
 #[methods]
-impl PlayerStatusDisplay {
+impl PlayerStatus {
     fn new(_base: &RichTextLabel) -> Self {
-        PlayerStatusDisplay::default()
+        PlayerStatus::default()
     }
 
     #[method]
     fn _ready(&self) -> Option<()> {
-        godot_print!("player status ready");
+        tracing::info!("player status ready");
         Some(())
     }
 
@@ -24,10 +26,11 @@ impl PlayerStatusDisplay {
     }
 
     fn sync(&self, base: &RichTextLabel) -> Option<()> {
-        unsafe { base.get_node_as_instance::<Player>(Player::path())? }
+        unsafe { base.get_node_as_instance::<Player>(Player::path_from(base))? }
             .map(|p, _| {
                 base.set_bbcode(p.display());
             })
-            .ok()
+            .ok();
+        None
     }
 }

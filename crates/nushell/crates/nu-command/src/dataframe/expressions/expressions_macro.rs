@@ -69,6 +69,65 @@ macro_rules! expr_command {
             }
         }
     };
+
+    ($command: ident, $name: expr, $desc: expr, $examples: expr, $func: ident, $test: ident, $ddof: expr) => {
+        #[derive(Clone)]
+        pub struct $command;
+
+        impl Command for $command {
+            fn name(&self) -> &str {
+                $name
+            }
+
+            fn usage(&self) -> &str {
+                $desc
+            }
+
+            fn signature(&self) -> Signature {
+                Signature::build(self.name())
+                    .input_type(Type::Custom("expression".into()))
+                    .output_type(Type::Custom("expression".into()))
+                    .category(Category::Custom("expression".into()))
+            }
+
+            fn examples(&self) -> Vec<Example> {
+                $examples
+            }
+
+            fn run(
+                &self,
+                _engine_state: &EngineState,
+                _stack: &mut Stack,
+                call: &Call,
+                input: PipelineData,
+            ) -> Result<PipelineData, ShellError> {
+                let expr = NuExpression::try_from_pipeline(input, call.head)?;
+                let expr: NuExpression = expr.into_polars().$func($ddof).into();
+
+                Ok(PipelineData::Value(
+                    NuExpression::into_value(expr, call.head),
+                    None,
+                ))
+            }
+        }
+
+        #[cfg(test)]
+        mod $test {
+            use super::super::super::test_dataframe::test_dataframe;
+            use super::*;
+            use crate::dataframe::lazy::aggregate::LazyAggregate;
+            use crate::dataframe::lazy::groupby::ToLazyGroupBy;
+
+            #[test]
+            fn test_examples() {
+                test_dataframe(vec![
+                    Box::new($command {}),
+                    Box::new(LazyAggregate {}),
+                    Box::new(ToLazyGroupBy {}),
+                ])
+            }
+        }
+    };
 }
 
 // ExprList command
@@ -243,7 +302,7 @@ expr_command!(
     "max",
     "Creates a max expression",
     vec![Example {
-        description: "Max aggregation for a group by",
+        description: "Max aggregation for a group-by",
         example: r#"[[a b]; [one 2] [one 4] [two 1]]
     | into df
     | group-by a
@@ -274,7 +333,7 @@ expr_command!(
     "min",
     "Creates a min expression",
     vec![Example {
-        description: "Min aggregation for a group by",
+        description: "Min aggregation for a group-by",
         example: r#"[[a b]; [one 2] [one 4] [two 1]]
     | into df
     | group-by a
@@ -305,7 +364,7 @@ expr_command!(
     "sum",
     "Creates a sum expression for an aggregation",
     vec![Example {
-        description: "Sum aggregation for a group by",
+        description: "Sum aggregation for a group-by",
         example: r#"[[a b]; [one 2] [one 4] [two 1]]
     | into df
     | group-by a
@@ -336,7 +395,7 @@ expr_command!(
     "mean",
     "Creates a mean expression for an aggregation",
     vec![Example {
-        description: "Mean aggregation for a group by",
+        description: "Mean aggregation for a group-by",
         example: r#"[[a b]; [one 2] [one 4] [two 1]]
     | into df
     | group-by a
@@ -367,7 +426,7 @@ expr_command!(
     "median",
     "Creates a median expression for an aggregation",
     vec![Example {
-        description: "Median aggregation for a group by",
+        description: "Median aggregation for a group-by",
         example: r#"[[a b]; [one 2] [one 4] [two 1]]
     | into df
     | group-by a
@@ -398,7 +457,7 @@ expr_command!(
     "std",
     "Creates a std expression for an aggregation",
     vec![Example {
-        description: "Std aggregation for a group by",
+        description: "Std aggregation for a group-by",
         example: r#"[[a b]; [one 2] [one 2] [two 1] [two 1]]
     | into df
     | group-by a
@@ -419,7 +478,8 @@ expr_command!(
         ),
     },],
     std,
-    test_std
+    test_std,
+    0
 );
 
 // ExprVar command
@@ -429,7 +489,7 @@ expr_command!(
     "var",
     "Create a var expression for an aggregation",
     vec![Example {
-        description: "Var aggregation for a group by",
+        description: "Var aggregation for a group-by",
         example: r#"[[a b]; [one 2] [one 2] [two 1] [two 1]]
     | into df
     | group-by a
@@ -450,5 +510,6 @@ expr_command!(
         ),
     },],
     var,
-    test_var
+    test_var,
+    0
 );

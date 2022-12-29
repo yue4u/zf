@@ -2,7 +2,7 @@ use inflector::cases::kebabcase::to_kebab_case;
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 
 use crate::operate;
@@ -17,10 +17,12 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("str kebab-case")
+            .input_output_types(vec![(Type::String, Type::String)])
+            .vectorizes_over_list(true)
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "optionally convert text to kebab-case by column paths",
+                "For a data structure input, convert strings at the given cell paths",
             )
             .category(Category::Strings)
     }
@@ -48,26 +50,17 @@ impl Command for SubCommand {
             Example {
                 description: "convert a string to kebab-case",
                 example: "'NuShell' | str kebab-case",
-                result: Some(Value::String {
-                    val: "nu-shell".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("nu-shell", Span::test_data())),
             },
             Example {
                 description: "convert a string to kebab-case",
                 example: "'thisIsTheFirstCase' | str kebab-case",
-                result: Some(Value::String {
-                    val: "this-is-the-first-case".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("this-is-the-first-case", Span::test_data())),
             },
             Example {
                 description: "convert a string to kebab-case",
                 example: "'THIS_IS_THE_SECOND_CASE' | str kebab-case",
-                result: Some(Value::String {
-                    val: "this-is-the-second-case".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("this-is-the-second-case", Span::test_data())),
             },
             Example {
                 description: "convert a column from a table to kebab-case",
@@ -77,10 +70,7 @@ impl Command for SubCommand {
                         span: Span::test_data(),
                         cols: vec!["lang".to_string(), "gems".to_string()],
                         vals: vec![
-                            Value::String {
-                                val: "nu-test".to_string(),
-                                span: Span::test_data(),
-                            },
+                            Value::string("nu-test", Span::test_data()),
                             Value::test_int(100),
                         ],
                     }],

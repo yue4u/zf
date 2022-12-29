@@ -10,7 +10,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use nu_protocol::{
-    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value,
+    Category, Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value,
 };
 use std::collections::HashMap;
 use std::io::BufReader;
@@ -25,6 +25,7 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("post")
+            .input_output_types(vec![(Type::Nothing, Type::Any)])
             .required("path", SyntaxShape::String, "the URL to post to")
             .required("body", SyntaxShape::Any, "the contents of the post body")
             .named(
@@ -186,7 +187,7 @@ fn helper(
         Ok(u) => u,
         Err(_e) => {
             return Err(ShellError::UnsupportedInput(
-                "Incomplete or incorrect URL. Expected a full URL, e.g., https://www.example.com"
+                "Incomplete or incorrect url. Expected a full url, e.g., https://www.example.com"
                     .to_string(),
                 span,
             ));
@@ -304,7 +305,8 @@ fn helper(
         }
     }
 
-    match request.send() {
+    // Explicitly turn 4xx and 5xx statuses into errors.
+    match request.send().and_then(|r| r.error_for_status()) {
         Ok(resp) => match resp.headers().get("content-type") {
             Some(content_type) => {
                 let content_type = content_type.to_str().map_err(|e| {
@@ -430,6 +432,7 @@ fn response_to_buffer(
         exit_code: None,
         span,
         metadata: None,
+        trim_end_newline: false,
     }
 }
 // Only panics if the user agent is invalid but we define it statically so either

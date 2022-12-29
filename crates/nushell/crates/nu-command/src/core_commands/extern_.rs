@@ -1,6 +1,6 @@
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, Signature, SyntaxShape};
+use nu_protocol::{Category, Example, PipelineData, Signature, SyntaxShape, Type};
 
 #[derive(Clone)]
 pub struct Extern;
@@ -16,6 +16,7 @@ impl Command for Extern {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("extern")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .required("def_name", SyntaxShape::String, "definition name")
             .required("params", SyntaxShape::Signature, "parameters")
             .category(Category::Core)
@@ -34,10 +35,10 @@ impl Command for Extern {
         &self,
         _engine_state: &EngineState,
         _stack: &mut Stack,
-        call: &Call,
+        _call: &Call,
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {

@@ -1,0 +1,50 @@
+[gd_resource type="Theme" load_steps=8 format=2]
+
+[ext_resource path="res://assets/3rd/JetBrains_Mono/static/JetBrainsMono-Regular.ttf" type="DynamicFontData" id=1]
+
+[sub_resource type="DynamicFont" id=1]
+use_mipmaps = true
+use_filter = true
+font_data = ExtResource( 1 )
+
+[sub_resource type="StyleBoxFlat" id=8]
+content_margin_left = 10.0
+bg_color = Color( 0, 0, 0, 0.784314 )
+border_width_left = 3
+border_color = Color( 0, 1, 0.976471, 0.784314 )
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id=7]
+bg_color = Color( 1, 0.74902, 0, 0.388235 )
+
+[sub_resource type="DynamicFont" id=4]
+size = 24
+font_data = ExtResource( 1 )
+
+[sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 0.6, 0.6, 0.6, 0.117647 )
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id=2]
+
+[resource]
+default_font = SubResource( 1 )
+ItemList/colors/font_color = Color( 1, 1, 1, 1 )
+ItemList/colors/guide_color = Color( 0.176471, 0.176471, 0.176471, 1 )
+ItemList/fonts/font = SubResource( 1 )
+ItemList/styles/bg = SubResource( 8 )
+ItemList/styles/selected = SubResource( 7 )
+LineEdit/colors/cursor_color = Color( 0, 0.905882, 1, 1 )
+LineEdit/colors/selection_color = Color( 0, 0.905882, 1, 1 )
+LineEdit/constants/minimum_spaces = 12
+LineEdit/fonts/font = SubResource( 4 )
+LineEdit/icons/clear = null
+LineEdit/styles/focus = SubResource( 3 )
+LineEdit/styles/normal = SubResource( 2 )
+LineEdit/styles/read_only = null

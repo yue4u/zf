@@ -2,7 +2,7 @@ use nu_engine::get_full_help;
 use nu_protocol::{
     ast::Call,
     engine::{Command, EngineState, Stack},
-    Category, IntoPipelineData, PipelineData, Signature, Value,
+    Category, IntoPipelineData, PipelineData, Signature, Type, Value,
 };
 
 #[derive(Clone)]
@@ -14,7 +14,9 @@ impl Command for Bytes {
     }
 
     fn signature(&self) -> Signature {
-        Signature::build("bytes").category(Category::Bytes)
+        Signature::build("bytes")
+            .category(Category::Bytes)
+            .input_output_types(vec![(Type::Nothing, Type::String)])
     }
 
     fn usage(&self) -> &str {
@@ -29,21 +31,15 @@ impl Command for Bytes {
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
         Ok(Value::String {
-            val: get_full_help(&Bytes.signature(), &Bytes.examples(), engine_state, stack),
+            val: get_full_help(
+                &Bytes.signature(),
+                &Bytes.examples(),
+                engine_state,
+                stack,
+                self.is_parser_keyword(),
+            ),
             span: call.head,
         }
         .into_pipeline_data())
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::Bytes;
-
-    #[test]
-    fn test_examples() {
-        use crate::test_examples;
-
-        test_examples(Bytes {})
     }
 }

@@ -36,7 +36,7 @@ impl Command for Rm {
     }
 
     fn usage(&self) -> &str {
-        "Remove file(s)."
+        "Remove files and directories."
     }
 
     fn search_terms(&self) -> Vec<&str> {
@@ -44,7 +44,13 @@ impl Command for Rm {
     }
 
     fn signature(&self) -> Signature {
-        let sig = Signature::build("rm");
+        let sig = Signature::build("rm")
+            .input_output_types(vec![(Type::Nothing, Type::List(Box::new(Type::String)))])
+            .required(
+                "filename",
+                SyntaxShape::Filepath,
+                "the path of the file you want to remove",
+            );
         #[cfg(all(
             feature = "trash-support",
             not(target_os = "android"),
@@ -53,26 +59,27 @@ impl Command for Rm {
         let sig = sig
             .switch(
                 "trash",
-                "use the platform's recycle bin instead of permanently deleting",
+                "move to the platform's trash instead of permanently deleting",
                 Some('t'),
             )
             .switch(
                 "permanent",
-                "don't use recycle bin, delete permanently",
+                "delete permanently, ignoring the 'always_trash' config option",
                 Some('p'),
             );
         sig.switch("recursive", "delete subdirectories recursively", Some('r'))
             .switch("force", "suppress error when no file", Some('f'))
-            .switch(
-                "verbose",
-                "make rm to be verbose, showing files been deleted",
-                Some('v'),
-            )
+            .switch("verbose", "print names of deleted files", Some('v'))
             .switch("interactive", "ask user to confirm action", Some('i'))
+            .switch(
+                "interactive-once",
+                "ask user to confirm action only once",
+                Some('I'),
+            )
             .rest(
                 "rest",
                 SyntaxShape::GlobPattern,
-                "the file path(s) to remove",
+                "additional file path(s) to remove",
             )
             .category(Category::FileSystem)
     }
@@ -88,12 +95,12 @@ impl Command for Rm {
     }
 
     fn examples(&self) -> Vec<Example> {
-        let mut examples = vec![
-            Example {
-                description: "Delete or move a file to the system trash (depending on 'rm_always_trash' config option)",
-                example: "rm file.txt",
-                result: None,
-            }];
+        let mut examples = vec![Example {
+            description:
+                "Delete, or move a file to the trash (based on the 'always_trash' config option)",
+            example: "rm file.txt",
+            result: None,
+        }];
         #[cfg(all(
             feature = "trash-support",
             not(target_os = "android"),
@@ -101,19 +108,25 @@ impl Command for Rm {
         ))]
         examples.append(&mut vec![
             Example {
-                description: "Move a file to the system trash",
+                description: "Move a file to the trash",
                 example: "rm --trash file.txt",
                 result: None,
             },
             Example {
-                description: "Delete a file permanently",
+                description:
+                    "Delete a file permanently, even if the 'always_trash' config option is true",
                 example: "rm --permanent file.txt",
                 result: None,
             },
         ]);
         examples.push(Example {
-            description: "Delete a file, and suppress errors if no file is found",
+            description: "Delete a file, ignoring 'file not found' errors",
             example: "rm --force file.txt",
+            result: None,
+        });
+        examples.push(Example {
+            description: "Delete all 0KB files in the current directory",
+            example: "ls | where size == 0KB && type == file | each { rm $in.name } | null",
             result: None,
         });
         examples
@@ -136,6 +149,7 @@ fn rm(
     let force = call.has_flag("force");
     let verbose = call.has_flag("verbose");
     let interactive = call.has_flag("interactive");
+    let interactive_once = call.has_flag("interactive-once") && !interactive;
 
     let ctrlc = engine_state.ctrlc.clone();
 
@@ -143,10 +157,7 @@ fn rm(
 
     for (idx, path) in targets.clone().into_iter().enumerate() {
         let corrected_path = Spanned {
-            item: match strip_ansi_escapes::strip(&path.item) {
-                Ok(item) => String::from_utf8(item).unwrap_or(path.item),
-                Err(_) => path.item,
-            },
+            item: nu_utils::strip_ansi_string_unlikely(path.item),
             span: path.span,
         };
         let _ = std::mem::replace(&mut targets[idx], corrected_path);
@@ -167,7 +178,7 @@ fn rm(
         if rm_always_trash {
             return Err(ShellError::GenericError(
                 "Cannot execute `rm`; the current configuration specifies \
-                    `rm_always_trash = true`, but the current nu executable was not \
+                    `always_trash = true`, but the current nu executable was not \
                     built with feature `trash_support` or trash is not supported on \
                     your platform."
                     .into(),
@@ -200,9 +211,24 @@ fn rm(
         ));
     }
 
+    let targets_span = Span::new(
+        targets
+            .iter()
+            .map(|x| x.span.start)
+            .min()
+            .expect("targets were empty"),
+        targets
+            .iter()
+            .map(|x| x.span.end)
+            .max()
+            .expect("targets were empty"),
+    );
+
     let path = current_dir(engine_state, stack)?;
 
+    let (mut target_exists, mut empty_span) = (false, call.head);
     let mut all_targets: HashMap<PathBuf, Span> = HashMap::new();
+
     for target in targets {
         if path.to_string_lossy() == target.item
             || path.as_os_str().to_string_lossy().starts_with(&format!(
@@ -232,6 +258,10 @@ fn rm(
                 for file in files {
                     match file {
                         Ok(ref f) => {
+                            if !target_exists {
+                                target_exists = true;
+                            }
+
                             // It is not appropriate to try and remove the
                             // current directory or its parent when using
                             // glob patterns.
@@ -253,12 +283,17 @@ fn rm(
                         }
                     }
                 }
+
+                // Target doesn't exists
+                if !target_exists && empty_span.eq(&call.head) {
+                    empty_span = target.span;
+                }
             }
             Err(e) => {
                 return Err(ShellError::GenericError(
                     e.to_string(),
                     e.to_string(),
-                    Some(call.head),
+                    Some(target.span),
                     None,
                     Vec::new(),
                 ))
@@ -268,17 +303,35 @@ fn rm(
 
     if all_targets.is_empty() && !force {
         return Err(ShellError::GenericError(
-            "No valid paths".into(),
-            "no valid paths".into(),
-            Some(call.head),
+            "File(s) not found".into(),
+            "File(s) not found".into(),
+            Some(targets_span),
             None,
             Vec::new(),
         ));
     }
 
+    if interactive_once {
+        let (interaction, confirmed) = try_interaction(
+            interactive_once,
+            format!("rm: remove {} files? ", all_targets.len()),
+        );
+        if let Err(e) = interaction {
+            return Err(ShellError::GenericError(
+                format!("Error during interaction: {:}", e),
+                "could not move".into(),
+                None,
+                None,
+                Vec::new(),
+            ));
+        } else if !confirmed {
+            return Ok(PipelineData::Empty);
+        }
+    }
+
     Ok(all_targets
-        .into_iter()
-        .map(move |(f, _)| {
+        .into_keys()
+        .map(move |f| {
             let is_empty = || match f.read_dir() {
                 Ok(mut p) => p.next().is_none(),
                 Err(_) => false,
@@ -302,8 +355,10 @@ fn rm(
                     || is_fifo
                     || is_empty()
                 {
-                    let (interaction, confirmed) =
-                        try_interaction(interactive, "rm: remove", &f.to_string_lossy());
+                    let (interaction, confirmed) = try_interaction(
+                        interactive,
+                        format!("rm: remove '{}'? ", f.to_string_lossy()),
+                    );
 
                     let result;
                     #[cfg(all(

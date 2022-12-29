@@ -1,6 +1,6 @@
 use nu_protocol::ast::Call;
 use nu_protocol::engine::{Command, EngineState, Stack};
-use nu_protocol::{Category, Example, PipelineData, Signature, Span, SyntaxShape, Value};
+use nu_protocol::{Category, Example, PipelineData, Signature, Span, SyntaxShape, Type, Value};
 
 #[derive(Clone)]
 pub struct DefEnv;
@@ -16,13 +16,10 @@ impl Command for DefEnv {
 
     fn signature(&self) -> nu_protocol::Signature {
         Signature::build("def-env")
+            .input_output_types(vec![(Type::Nothing, Type::Nothing)])
             .required("def_name", SyntaxShape::String, "definition name")
             .required("params", SyntaxShape::Signature, "parameters")
-            .required(
-                "block",
-                SyntaxShape::Block(Some(vec![])),
-                "body of the definition",
-            )
+            .required("block", SyntaxShape::Block, "body of the definition")
             .category(Category::Core)
     }
 
@@ -65,20 +62,17 @@ def-env cd_with_fallback [arg = ""] {
         &self,
         _engine_state: &EngineState,
         _stack: &mut Stack,
-        call: &Call,
+        _call: &Call,
         _input: PipelineData,
     ) -> Result<nu_protocol::PipelineData, nu_protocol::ShellError> {
-        Ok(PipelineData::new(call.head))
+        Ok(PipelineData::empty())
     }
 
     fn examples(&self) -> Vec<Example> {
         vec![Example {
             description: "Set environment variable by call a custom command",
             example: r#"def-env foo [] { let-env BAR = "BAZ" }; foo; $env.BAR"#,
-            result: Some(Value::String {
-                val: "BAZ".to_string(),
-                span: Span::test_data(),
-            }),
+            result: Some(Value::string("BAZ", Span::test_data())),
         }]
     }
 }

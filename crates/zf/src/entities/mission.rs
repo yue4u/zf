@@ -1,10 +1,14 @@
 use std::collections::HashMap;
 
-use crate::common::{Id, Position};
+use crate::{
+    common::{Id, Position},
+    refs::path::LevelName,
+};
+use gdnative::prelude::{FromVariant, ToVariant};
 use nu_ansi_term::*;
 
 #[derive(Debug)]
-pub struct Mission {
+pub struct MissionLegacy {
     title: String,
     info: String,
     targets: TargetsMap,
@@ -18,7 +22,16 @@ pub struct MissionTarget {
     position: Position,
 }
 
-impl Mission {
+#[derive(Debug, ToVariant, FromVariant)]
+pub enum GameEvent {
+    HitTargetPoint,
+    EnemyDestroied,
+    MissionComplete(String),
+    MissionFailed,
+    LevelChange(LevelName),
+}
+
+impl MissionLegacy {
     pub fn summary(self) -> String {
         format!(
             "{}\n\n{}",

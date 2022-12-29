@@ -1,0 +1,10 @@
+[package]
+name = "zf-term"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wezterm-term = { path = "../wezterm/term" }
+wezterm-color-types = { path = "../wezterm/color-types" }
+termwiz = { path = "../wezterm/termwiz" }
+expect-test = { workspace = true }

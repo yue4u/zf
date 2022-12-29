@@ -1,26 +1,102 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://scenes/Base.tscn" type="PackedScene" id=1]
-[ext_resource path="res://addons/godot_xterm/terminal.gd" type="Script" id=2]
-[ext_resource path="res://assets/self-made/theme_transparent.tres" type="Theme" id=3]
-[ext_resource path="res://scripts/TerminalWrap.gdns" type="Script" id=4]
+[ext_resource path="res://scenes/PlayerStatus.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/PlayerHealthBar.tscn" type="PackedScene" id=3]
+[ext_resource path="res://assets/UITheme.tres" type="Theme" id=4]
+[ext_resource path="res://scenes/Mission.tscn" type="PackedScene" id=5]
+[ext_resource path="res://scenes/TitleLabel.tscn" type="PackedScene" id=6]
+[ext_resource path="res://scripts/LevelName.gdns" type="Script" id=7]
 
 [node name="Scene" instance=ExtResource( 1 )]
 
-[node name="Control" type="Control" parent="UI/MarginContainer" index="0"]
+[node name="Projectiles" type="Node" parent="Level" index="0"]
+
+[node name="LevelResult" parent="UI" index="0" instance=ExtResource( 6 )]
+visible = false
+anchor_top = 0.0
+anchor_bottom = 0.25
+margin_left = -682.5
+margin_right = 682.5
+
+[node name="UIExtra" parent="UI/MarginContainer" index="0"]
+layer = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/MarginContainer/UIExtra" index="0"]
+anchor_top = 0.4
+anchor_right = 1.0
+anchor_bottom = 0.55
+margin_left = 30.0
+margin_right = -30.0
+alignment = 1
+
+[node name="Mission" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="0" instance=ExtResource( 5 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 189.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Control2" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="1"]
+margin_left = 193.0
+margin_right = 383.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Control3" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="2"]
+margin_left = 387.0
+margin_right = 576.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Control" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="3"]
+margin_left = 580.0
+margin_right = 770.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PlayerStatus" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="4" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 774.0
 margin_right = 964.0
-margin_bottom = 540.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource( 4 )
+bbcode_text = "Status
+speed: {:.2}
+position: {}
+rotation: {}
 
-[node name="TerminalWrap" type="Control" parent="UI/MarginContainer/Control" index="0"]
-anchor_top = 0.6
-anchor_right = 1.0
-anchor_bottom = 1.0
-script = ExtResource( 4 )
+Engine
+engine: {:?}"
+scroll_active = false
 
-[node name="Terminal" type="Control" parent="UI/MarginContainer/Control/TerminalWrap" index="0"]
-modulate = Color( 1, 1, 1, 0.392157 )
+[node name="Control" type="HBoxContainer" parent="UI/MarginContainer/UIExtra" index="1"]
+anchor_top = 0.57
 anchor_right = 1.0
-anchor_bottom = 1.0
-focus_mode = 2
-theme = ExtResource( 3 )
-script = ExtResource( 2 )
+anchor_bottom = 0.57
+margin_left = 30.0
+margin_right = -30.0
+margin_bottom = 20.0
+theme = ExtResource( 4 )
+
+[node name="HBoxContainer" parent="UI/MarginContainer/UIExtra/Control" index="0" instance=ExtResource( 3 )]
+anchor_right = 0.0
+margin_right = 480.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LevelName" type="Label" parent="UI/MarginContainer/UIExtra/Control" index="1"]
+margin_left = 484.0
+margin_right = 964.0
+margin_bottom = 21.0
+size_flags_horizontal = 3
+size_flags_vertical = 6
+text = "Level 100"
+script = ExtResource( 7 )

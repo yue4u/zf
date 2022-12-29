@@ -3,7 +3,7 @@ use nu_protocol::ast::Call;
 use nu_protocol::ast::CellPath;
 use nu_protocol::engine::{Command, EngineState, Stack};
 use nu_protocol::Category;
-use nu_protocol::{Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Value};
+use nu_protocol::{Example, PipelineData, ShellError, Signature, Span, SyntaxShape, Type, Value};
 
 #[derive(Clone)]
 pub struct SubCommand;
@@ -15,10 +15,12 @@ impl Command for SubCommand {
 
     fn signature(&self) -> Signature {
         Signature::build("str downcase")
+            .input_output_types(vec![(Type::String, Type::String)])
+            .vectorizes_over_list(true)
             .rest(
                 "rest",
                 SyntaxShape::CellPath,
-                "optionally downcase text by column paths",
+                "For a data structure input, convert strings at the given cell paths",
             )
             .category(Category::Strings)
     }
@@ -46,18 +48,12 @@ impl Command for SubCommand {
             Example {
                 description: "Downcase contents",
                 example: "'NU' | str downcase",
-                result: Some(Value::String {
-                    val: "nu".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("nu", Span::test_data())),
             },
             Example {
                 description: "Downcase contents",
                 example: "'TESTa' | str downcase",
-                result: Some(Value::String {
-                    val: "testa".to_string(),
-                    span: Span::test_data(),
-                }),
+                result: Some(Value::string("testa", Span::test_data())),
             },
             Example {
                 description: "Downcase contents",
@@ -66,14 +62,8 @@ impl Command for SubCommand {
                     vals: vec![Value::Record {
                         cols: vec!["ColA".to_string(), "ColB".to_string()],
                         vals: vec![
-                            Value::String {
-                                val: "test".to_string(),
-                                span: Span::test_data(),
-                            },
-                            Value::String {
-                                val: "ABC".to_string(),
-                                span: Span::test_data(),
-                            },
+                            Value::string("test", Span::test_data()),
+                            Value::string("ABC", Span::test_data()),
                         ],
                         span: Span::test_data(),
                     }],
@@ -87,14 +77,8 @@ impl Command for SubCommand {
                     vals: vec![Value::Record {
                         cols: vec!["ColA".to_string(), "ColB".to_string()],
                         vals: vec![
-                            Value::String {
-                                val: "test".to_string(),
-                                span: Span::test_data(),
-                            },
-                            Value::String {
-                                val: "abc".to_string(),
-                                span: Span::test_data(),
-                            },
+                            Value::string("test", Span::test_data()),
+                            Value::string("abc", Span::test_data()),
                         ],
                         span: Span::test_data(),
                     }],

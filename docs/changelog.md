@@ -25,13 +25,24 @@ As features stabilize some brief notes about them will accumulate here.
 #### Fixed
 * X11: hanging or killing the IME could hang wezterm
   [#2819](https://github.com/wez/wezterm/issues/2819)
+* `wezterm ssh` now respects the `AddressFamily` option when connecting
+  [#2893](https://github.com/wez/wezterm/issues/2893)
 
 #### Changed
+* `CTRL-SHIFT-P` now activates the new command palette, instead of `PaneSelect`
+  [#1485](https://github.com/wez/wezterm/issues/1485)
 * Window title reporting escape sequences are now disabled by default.
   [See here for more details](https://marc.info/?l=bugtraq&m=104612710031920&w=2)
 * Withdraw DEC private SGR escapes that affect superscript and
   subscript due to xterm/vim conflict
   [mintty/#1189](https://github.com/mintty/mintty/issues/1189)
+* Removed deprecated `Copy`, `Paste` and `PastePrimarySelection` actions. Use
+  [CopyTo](config/lua/keyassignment/CopyTo.md) and
+  [PasteFrom](config/lua/keyassignment/PasteFrom.md) instead.
+* `wezterm -e` is now an alias for `wezterm start`. Thanks to
+  [@Abdiramen](https://github.com/Abdiramen)!
+  [#2889](https://github.com/wez/wezterm/pull/2889)
+  [#2782](https://github.com/wez/wezterm/issues/2782)
 
 #### Updated
 * Bundled harfbuzz updated to version 6.0.0

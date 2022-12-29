@@ -1,6 +1,0 @@
-#!/usr/bin/env sh
-ROOT=$(dirname $0)/..
-
-rm -rf $ROOT/build/*
-cd $ROOT/zf
-godot --no-window --export "Linux/X11" --path .

@@ -13,5 +13,9 @@ path = "src/refs.rs"
 name = "points"
 path = "src/points.rs"
 
+[[bin]]
+name = "export"
+path = "src/export.rs"
+
 [dependencies]
 convert_case = "0.6.0"

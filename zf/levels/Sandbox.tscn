@@ -85,8 +85,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 362.201, 262.592, -334.042 )
 [node name="t-dummy2" parent="Level/EnemyCluster" index="4" instance=ExtResource( 6 )]
 transform = Transform( 0.918571, 0, 0.395257, 0, 1, 0, -0.395257, 0, 0.918571, 9.73321, -53.8456, 259.526 )
 
-[node name="Terminal" parent="UI/MarginContainer/Control/TerminalWrap" index="0"]
-modulate = Color( 1, 1, 1, 0.501961 )
+[node name="UIExtra" type="CanvasLayer" parent="UI" index="1"]
 
 [node name="Radar" parent="UI/MarginContainer/UIExtra" index="0" instance=ExtResource( 7 )]
 anchor_right = 0.0
@@ -95,5 +94,3 @@ margin_left = 30.0
 margin_top = 30.0
 margin_right = 994.0
 margin_bottom = 570.0
-
-[node name="UIExtra" type="CanvasLayer" parent="UI" index="1"]

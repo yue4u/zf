@@ -1,6 +1,8 @@
 use crate::{
     eval::{eval_constant, value_as_string},
-    lex, parse_mut,
+    lex,
+    lite_parser::{lite_parse, LiteCommand, LiteElement},
+    parse_mut,
     type_check::{math_result_type, type_compatible},
     ParseError, Token, TokenContents,
 };
@@ -9,7 +11,7 @@ use nu_protocol::{
     ast::{
         Argument, Assignment, Bits, Block, Boolean, Call, CellPath, Comparison, Expr, Expression,
         FullCellPath, ImportPattern, ImportPatternHead, ImportPatternMember, Math, Operator,
-        PathMember, Pipeline, PipelineElement, RangeInclusion, RangeOperator, Redirection,
+        PathMember, Pipeline, PipelineElement, RangeInclusion, RangeOperator,
     },
     engine::StateWorkingSet,
     span, BlockId, Flag, PositionalArg, Signature, Span, Spanned, SyntaxShape, Type, Unit, VarId,
@@ -31,9 +33,6 @@ use std::{
 
 #[cfg(feature = "plugin")]
 use crate::parse_keywords::parse_register;
-
-#[derive(Debug, Clone)]
-pub enum Import {}
 
 pub fn garbage(span: Span) -> Expression {
     Expression::garbage(span)
@@ -691,16 +690,6 @@ pub fn parse_multispan_value(
                 expand_aliases_denylist,
                 false,
             );
-            error = error.or(err);
-            *spans_idx = spans.len() - 1;
-
-            (arg, error)
-        }
-        SyntaxShape::ImportPattern => {
-            trace!("parsing: import pattern");
-
-            let (arg, err) =
-                parse_import_pattern(working_set, &spans[*spans_idx..], expand_aliases_denylist);
             error = error.or(err);
             *spans_idx = spans.len() - 1;
 
@@ -3276,6 +3265,7 @@ pub fn parse_signature_helper(
                 let span = *span;
                 let contents = working_set.get_span_contents(span);
 
+                // The : symbol separates types
                 if contents == b":" {
                     match parse_mode {
                         ParseMode::ArgMode => {
@@ -3287,7 +3277,9 @@ pub fn parse_signature_helper(
                                 error.or_else(|| Some(ParseError::Expected("type".into(), span)));
                         }
                     }
-                } else if contents == b"=" {
+                }
+                // The = symbol separates a variable from its default value
+                else if contents == b"=" {
                     match parse_mode {
                         ParseMode::ArgMode | ParseMode::TypeMode => {
                             parse_mode = ParseMode::DefaultValueMode;
@@ -3302,8 +3294,10 @@ pub fn parse_signature_helper(
                 } else {
                     match parse_mode {
                         ParseMode::ArgMode => {
+                            // Long flag with optional short form, e.g. --output, --age (-a)
                             if contents.starts_with(b"--") && contents.len() > 2 {
-                                // Long flag
+                                // Split the long flag from the short flag with the ( character as delimiter.
+                                // The trailing ) is removed further down.
                                 let flags: Vec<_> =
                                     contents.split(|x| x == &b'(').map(|x| x.to_vec()).collect();
 
@@ -3328,6 +3322,7 @@ pub fn parse_signature_helper(
                                 let var_id =
                                     working_set.add_variable(variable_name, span, Type::Any, false);
 
+                                // If there's no short flag, exit now. Otherwise, parse it.
                                 if flags.len() == 1 {
                                     args.push(Arg::Flag(Flag {
                                         arg: None,
@@ -3340,7 +3335,10 @@ pub fn parse_signature_helper(
                                     }));
                                 } else if flags.len() >= 3 {
                                     error = error.or_else(|| {
-                                        Some(ParseError::Expected("one short flag".into(), span))
+                                        Some(ParseError::Expected(
+                                            "only one short flag alternative".into(),
+                                            span,
+                                        ))
                                     });
                                 } else {
                                     let short_flag = &flags[1];
@@ -3348,12 +3346,18 @@ pub fn parse_signature_helper(
                                         || !short_flag.ends_with(b")")
                                     {
                                         error = error.or_else(|| {
-                                            Some(ParseError::Expected("short flag".into(), span))
+                                            Some(ParseError::Expected(
+                                                "short flag alternative for the long flag".into(),
+                                                span,
+                                            ))
                                         });
                                         short_flag
                                     } else {
+                                        // Obtain the flag's name by removing the starting - and trailing )
                                         &short_flag[1..(short_flag.len() - 1)]
                                     };
+                                    // Note that it is currently possible to make a short flag with non-alphanumeric characters,
+                                    // like -).
 
                                     let short_flag =
                                         String::from_utf8_lossy(short_flag).to_string();
@@ -3399,9 +3403,9 @@ pub fn parse_signature_helper(
                                         });
                                     }
                                 }
-                            } else if contents.starts_with(b"-") && contents.len() > 1 {
-                                // Short flag
-
+                            }
+                            // Mandatory short flag, e.g. -e (must be one character)
+                            else if contents.starts_with(b"-") && contents.len() > 1 {
                                 let short_flag = &contents[1..];
                                 let short_flag = String::from_utf8_lossy(short_flag).to_string();
                                 let chars: Vec<char> = short_flag.chars().collect();
@@ -3415,6 +3419,7 @@ pub fn parse_signature_helper(
                                 let mut encoded_var_name = vec![0u8; 4];
                                 let len = chars[0].encode_utf8(&mut encoded_var_name).len();
                                 let variable_name = encoded_var_name[0..len].to_vec();
+
                                 if !is_variable(&variable_name) {
                                     error = error.or_else(|| {
                                         Some(ParseError::Expected(
@@ -3436,7 +3441,10 @@ pub fn parse_signature_helper(
                                     var_id: Some(var_id),
                                     default_value: None,
                                 }));
-                            } else if contents.starts_with(b"(-") {
+                            }
+                            // Short flag alias for long flag, e.g. --b, (-a)
+                            // This is the same as --b (-a)
+                            else if contents.starts_with(b"(-") {
                                 let short_flag = &contents[2..];
 
                                 let short_flag = if !short_flag.ends_with(b")") {
@@ -3479,7 +3487,9 @@ pub fn parse_signature_helper(
                                         Some(ParseError::Expected("short flag".into(), span))
                                     });
                                 }
-                            } else if contents.ends_with(b"?") {
+                            }
+                            // Positional arg, optional
+                            else if contents.ends_with(b"?") {
                                 let contents: Vec<_> = contents[..(contents.len() - 1)].into();
                                 let name = String::from_utf8_lossy(&contents).to_string();
 
@@ -3495,7 +3505,6 @@ pub fn parse_signature_helper(
                                 let var_id =
                                     working_set.add_variable(contents, span, Type::Any, false);
 
-                                // Positional arg, optional
                                 args.push(Arg::Positional(
                                     PositionalArg {
                                         desc: String::new(),
@@ -3506,9 +3515,12 @@ pub fn parse_signature_helper(
                                     },
                                     false,
                                 ))
-                            } else if let Some(contents) = contents.strip_prefix(b"...") {
+                            }
+                            // Rest param
+                            else if let Some(contents) = contents.strip_prefix(b"...") {
                                 let name = String::from_utf8_lossy(contents).to_string();
                                 let contents_vec: Vec<u8> = contents.to_vec();
+
                                 if !is_variable(&contents_vec) {
                                     error = error.or_else(|| {
                                         Some(ParseError::Expected(
@@ -3528,7 +3540,9 @@ pub fn parse_signature_helper(
                                     var_id: Some(var_id),
                                     default_value: None,
                                 }));
-                            } else {
+                            }
+                            // Normal param
+                            else {
                                 let name = String::from_utf8_lossy(contents).to_string();
                                 let contents_vec = contents.to_vec();
 
@@ -5172,6 +5186,7 @@ pub fn parse_expression(
                 arguments,
                 redirect_stdout: true,
                 redirect_stderr: false,
+                parser_info: vec![],
             }));
 
             (
@@ -5905,6 +5920,7 @@ fn wrap_expr_with_collect(working_set: &mut StateWorkingSet, expr: &Expression) 
                 decl_id,
                 redirect_stdout: true,
                 redirect_stderr: false,
+                parser_info: vec![],
             })),
             span,
             ty: Type::String,
@@ -5912,366 +5928,6 @@ fn wrap_expr_with_collect(working_set: &mut StateWorkingSet, expr: &Expression) 
         }
     } else {
         Expression::garbage(span)
-    }
-}
-
-#[derive(Debug)]
-pub struct LiteCommand {
-    pub comments: Vec<Span>,
-    pub parts: Vec<Span>,
-}
-
-impl Default for LiteCommand {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl LiteCommand {
-    pub fn new() -> Self {
-        Self {
-            comments: vec![],
-            parts: vec![],
-        }
-    }
-
-    pub fn push(&mut self, span: Span) {
-        self.parts.push(span);
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.parts.is_empty()
-    }
-}
-
-// Note: the Span is the span of the connector not the whole element
-#[derive(Debug)]
-pub enum LiteElement {
-    Command(Option<Span>, LiteCommand),
-    Redirection(Span, Redirection, LiteCommand),
-}
-
-#[derive(Debug)]
-pub struct LitePipeline {
-    pub commands: Vec<LiteElement>,
-}
-
-impl Default for LitePipeline {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl LitePipeline {
-    pub fn new() -> Self {
-        Self { commands: vec![] }
-    }
-
-    pub fn push(&mut self, element: LiteElement) {
-        self.commands.push(element);
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.commands.is_empty()
-    }
-}
-
-#[derive(Debug)]
-pub struct LiteBlock {
-    pub block: Vec<LitePipeline>,
-}
-
-impl Default for LiteBlock {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl LiteBlock {
-    pub fn new() -> Self {
-        Self { block: vec![] }
-    }
-
-    pub fn push(&mut self, pipeline: LitePipeline) {
-        self.block.push(pipeline);
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.block.is_empty()
-    }
-}
-
-pub fn lite_parse(tokens: &[Token]) -> (LiteBlock, Option<ParseError>) {
-    let mut block = LiteBlock::new();
-    let mut curr_pipeline = LitePipeline::new();
-    let mut curr_command = LiteCommand::new();
-
-    let mut last_token = TokenContents::Eol;
-
-    let mut last_connector = TokenContents::Pipe;
-    let mut last_connector_span: Option<Span> = None;
-
-    if tokens.is_empty() {
-        return (LiteBlock::new(), None);
-    }
-
-    let mut curr_comment: Option<Vec<Span>> = None;
-
-    let mut error = None;
-
-    for token in tokens.iter() {
-        match &token.contents {
-            TokenContents::PipePipe => {
-                error = error.or(Some(ParseError::ShellOrOr(token.span)));
-                curr_command.push(token.span);
-                last_token = TokenContents::Item;
-            }
-            TokenContents::Item => {
-                // If we have a comment, go ahead and attach it
-                if let Some(curr_comment) = curr_comment.take() {
-                    curr_command.comments = curr_comment;
-                }
-                curr_command.push(token.span);
-                last_token = TokenContents::Item;
-            }
-            TokenContents::OutGreaterThan
-            | TokenContents::ErrGreaterThan
-            | TokenContents::OutErrGreaterThan => {
-                if !curr_command.is_empty() {
-                    match last_connector {
-                        TokenContents::OutGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                token.span,
-                                Redirection::Stdout,
-                                curr_command,
-                            ));
-                        }
-                        TokenContents::ErrGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                token.span,
-                                Redirection::Stderr,
-                                curr_command,
-                            ));
-                        }
-                        TokenContents::OutErrGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                token.span,
-                                Redirection::StdoutAndStderr,
-                                curr_command,
-                            ));
-                        }
-                        _ => {
-                            curr_pipeline
-                                .push(LiteElement::Command(last_connector_span, curr_command));
-                        }
-                    }
-                    curr_command = LiteCommand::new();
-                }
-                last_token = token.contents;
-                last_connector = token.contents;
-                last_connector_span = Some(token.span);
-            }
-            TokenContents::Pipe => {
-                if !curr_command.is_empty() {
-                    match last_connector {
-                        TokenContents::OutGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                token.span,
-                                Redirection::Stdout,
-                                curr_command,
-                            ));
-                        }
-                        TokenContents::ErrGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                token.span,
-                                Redirection::Stderr,
-                                curr_command,
-                            ));
-                        }
-                        TokenContents::OutErrGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                token.span,
-                                Redirection::StdoutAndStderr,
-                                curr_command,
-                            ));
-                        }
-                        _ => {
-                            curr_pipeline
-                                .push(LiteElement::Command(last_connector_span, curr_command));
-                        }
-                    }
-                    curr_command = LiteCommand::new();
-                }
-                last_token = TokenContents::Pipe;
-                last_connector = TokenContents::Pipe;
-                last_connector_span = Some(token.span);
-            }
-            TokenContents::Eol => {
-                if last_token != TokenContents::Pipe && last_token != TokenContents::OutGreaterThan
-                {
-                    if !curr_command.is_empty() {
-                        match last_connector {
-                            TokenContents::OutGreaterThan => {
-                                curr_pipeline.push(LiteElement::Redirection(
-                                    last_connector_span.expect(
-                                        "internal error: redirection missing span information",
-                                    ),
-                                    Redirection::Stdout,
-                                    curr_command,
-                                ));
-                            }
-                            TokenContents::ErrGreaterThan => {
-                                curr_pipeline.push(LiteElement::Redirection(
-                                    last_connector_span.expect(
-                                        "internal error: redirection missing span information",
-                                    ),
-                                    Redirection::Stderr,
-                                    curr_command,
-                                ));
-                            }
-                            TokenContents::OutErrGreaterThan => {
-                                curr_pipeline.push(LiteElement::Redirection(
-                                    last_connector_span.expect(
-                                        "internal error: redirection missing span information",
-                                    ),
-                                    Redirection::StdoutAndStderr,
-                                    curr_command,
-                                ));
-                            }
-                            _ => {
-                                curr_pipeline
-                                    .push(LiteElement::Command(last_connector_span, curr_command));
-                            }
-                        }
-
-                        curr_command = LiteCommand::new();
-                    }
-
-                    if !curr_pipeline.is_empty() {
-                        block.push(curr_pipeline);
-
-                        curr_pipeline = LitePipeline::new();
-                    }
-                }
-
-                if last_token == TokenContents::Eol {
-                    // Clear out the comment as we're entering a new comment
-                    curr_comment = None;
-                }
-
-                last_token = TokenContents::Eol;
-            }
-            TokenContents::Semicolon => {
-                if !curr_command.is_empty() {
-                    match last_connector {
-                        TokenContents::OutGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                last_connector_span
-                                    .expect("internal error: redirection missing span information"),
-                                Redirection::Stdout,
-                                curr_command,
-                            ));
-                        }
-                        TokenContents::ErrGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                last_connector_span
-                                    .expect("internal error: redirection missing span information"),
-                                Redirection::Stderr,
-                                curr_command,
-                            ));
-                        }
-                        TokenContents::OutErrGreaterThan => {
-                            curr_pipeline.push(LiteElement::Redirection(
-                                last_connector_span
-                                    .expect("internal error: redirection missing span information"),
-                                Redirection::StdoutAndStderr,
-                                curr_command,
-                            ));
-                        }
-                        _ => {
-                            curr_pipeline
-                                .push(LiteElement::Command(last_connector_span, curr_command));
-                        }
-                    }
-
-                    curr_command = LiteCommand::new();
-                }
-
-                if !curr_pipeline.is_empty() {
-                    block.push(curr_pipeline);
-
-                    curr_pipeline = LitePipeline::new();
-                    last_connector = TokenContents::Pipe;
-                    last_connector_span = None;
-                }
-
-                last_token = TokenContents::Semicolon;
-            }
-            TokenContents::Comment => {
-                // Comment is beside something
-                if last_token != TokenContents::Eol {
-                    curr_command.comments.push(token.span);
-                    curr_comment = None;
-                } else {
-                    // Comment precedes something
-                    if let Some(curr_comment) = &mut curr_comment {
-                        curr_comment.push(token.span);
-                    } else {
-                        curr_comment = Some(vec![token.span]);
-                    }
-                }
-
-                last_token = TokenContents::Comment;
-            }
-        }
-    }
-
-    if !curr_command.is_empty() {
-        match last_connector {
-            TokenContents::OutGreaterThan => {
-                curr_pipeline.push(LiteElement::Redirection(
-                    last_connector_span
-                        .expect("internal error: redirection missing span information"),
-                    Redirection::Stdout,
-                    curr_command,
-                ));
-            }
-            TokenContents::ErrGreaterThan => {
-                curr_pipeline.push(LiteElement::Redirection(
-                    last_connector_span
-                        .expect("internal error: redirection missing span information"),
-                    Redirection::Stderr,
-                    curr_command,
-                ));
-            }
-            TokenContents::OutErrGreaterThan => {
-                curr_pipeline.push(LiteElement::Redirection(
-                    last_connector_span
-                        .expect("internal error: redirection missing span information"),
-                    Redirection::StdoutAndStderr,
-                    curr_command,
-                ));
-            }
-            _ => {
-                curr_pipeline.push(LiteElement::Command(last_connector_span, curr_command));
-            }
-        }
-    }
-
-    if !curr_pipeline.is_empty() {
-        block.push(curr_pipeline);
-    }
-
-    if last_token == TokenContents::Pipe {
-        (
-            block,
-            Some(ParseError::UnexpectedEof(
-                "pipeline missing end".into(),
-                tokens[tokens.len() - 1].span,
-            )),
-        )
-    } else {
-        (block, error)
     }
 }
 

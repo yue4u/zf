@@ -17,7 +17,7 @@ exclude = [
 [workspace.dependencies]
 anyhow = "1.0.66"
 expect-test = "1.4.0"
-gdnative = { git = "https://github.com/Bromeon/godot-rust.git", rev = "f9200001" }
+gdnative = { git = "https://github.com/godot-rust/gdnative.git", rev = "f9200001" }
 tracing = "0.1"
 
 [profile.release]

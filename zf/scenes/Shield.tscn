@@ -1,12 +1,53 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://assets/Shield.shader" type="Shader" id=1]
 
 [sub_resource type="ShaderMaterial" id=2]
 shader = ExtResource( 1 )
+shader_param/hit = 1.0
 
-[node name="Spatial" type="Spatial"]
+[sub_resource type="Animation" id=3]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:rotation_degrees")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector3( 0, 0, 0 ) ]
+}
+
+[sub_resource type="Animation" id=4]
+resource_name = "rotate"
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:rotation_degrees")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Vector3( 0, 0, 0 ), Vector3( 360, 0, 360 ) ]
+}
+
+[node name="Shield" type="Spatial"]
 
 [node name="CSGSphere" type="CSGSphere" parent="."]
-rings = 12
+transform = Transform( 0.891571, -0.452881, 0, 0.403776, 0.794898, -0.452881, 0.205102, 0.403776, 0.891571, 0, 0, 0 )
+radial_segments = 4
+rings = 4
 material = SubResource( 2 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CSGSphere"]
+autoplay = "rotate"
+reset_on_save = false
+playback_speed = 0.1
+anims/RESET = SubResource( 3 )
+anims/rotate = SubResource( 4 )

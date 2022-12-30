@@ -1,9 +1,7 @@
 shader_type spatial;
 render_mode unshaded, cull_disabled;
 
-// void vertex() {
-// 	VERTEX.y += sin(TIME + (VERTEX.x + VERTEX.y) * 2.) * 0.1;
-// }
+uniform float hit: hint_range(0, 1) = 0.;
 
 const float PI = 3.1415926;
 const uint UINT_MAX = uint(0xffffffff);
@@ -80,7 +78,7 @@ float warp213(vec2 p, float g) {
 
 vec4 tex(vec2 pos) {
     return vec4(
-        vec3(warp213(pos, sin(TIME))),
+        vec3(warp213(pos, .1)),
         1.0
     );
 }
@@ -103,16 +101,34 @@ void fragment() {
 	ALBEDO = vec3(.0);
 	ALPHA = 0.;
 	EMISSION = vec3(1.);
-	// if (fract(TIME * 0.05 + (NORMAL.x + NORMAL.y) * 2.) < .2){
-	// 	ALBEDO += vec3(NORMAL.x, 2., NORMAL.z);
-	// 	ALPHA += max(.1, .5 + .5 * sin(TIME));
-	// }
-	vec4 c = tex(VERTEX.xy);
-	ALBEDO = hsv2rgb(c.rgb);
-	ALPHA = min(max(0.,fract(c.x * 2.) - .2), .3);
-	// if (VERTEX.x > .5){
-	// 	color
-	// 	ALBEDO = vec3(1.);
-	// 	ALPHA = .5;
-	// }
+	vec4 c = tex(VERTEX.xy + TIME);
+	ALBEDO = hsv2rgb(c.xyz + 0.01 * VERTEX);
+	ALPHA = min(max(0.,fract(c.x * 2.) - (.98 - hit)) * 2., .05);
+
+    float distance_from_edge = min(
+        min(
+            min(UV.x, 1. - UV.x),
+            min(UV.y, 1. - UV.y)
+        ),
+        min(
+            min(
+                abs(.75 - UV.x),
+                abs(.75 - UV.y)
+            ),
+            min(
+                min(
+                    abs(.5 - UV.x),
+                    abs(.5 - UV.y)
+                ),
+                min(
+                    abs(.25 - UV.x),
+                    abs(.25 - UV.y)
+                )
+            )
+        )
+    );
+
+    if(distance_from_edge < 0.001) {
+        ALPHA = 1.;
+    }
 }

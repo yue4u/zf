@@ -36,5 +36,5 @@ collision_mask = 0
 [node name="CollisionShape" type="CollisionShape" parent="Area" index="0"]
 shape = SubResource( 2 )
 
-[node name="Spatial" parent="." index="5" instance=ExtResource( 3 )]
+[node name="Shield" parent="." index="5" instance=ExtResource( 3 )]
 transform = Transform( 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0 )

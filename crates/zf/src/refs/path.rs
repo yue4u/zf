@@ -30,6 +30,7 @@ pub mod scenes {
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
     pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
+    pub const SHIELD: &str = "res://scenes/Shield.tscn";
     pub const PLANET: &str = "res://scenes/Planet.tscn";
 }
 
@@ -213,12 +214,13 @@ pub mod sandbox_2_d {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod player_mjolnir {
-    pub const CAMERA: &str = "/root/Scene/Camera";
-    pub const RADAR_AREA: &str = "/root/Scene/RadarArea";
-    pub const COLLISION_SHAPE: &str = "/root/Scene/RadarArea/CollisionShape";
-    pub const PROJECTILES: &str = "/root/Scene/Projectiles";
-    pub const AREA: &str = "/root/Scene/Area";
-    pub const COLLISION_SHAPE_1: &str = "/root/Scene/Area/CollisionShape";
+    pub const CAMERA: &str = "./Camera";
+    pub const RADAR_AREA: &str = "./RadarArea";
+    pub const COLLISION_SHAPE: &str = "./RadarArea/CollisionShape";
+    pub const PROJECTILES: &str = "./Projectiles";
+    pub const AREA: &str = "./Area";
+    pub const COLLISION_SHAPE_1: &str = "./Area/CollisionShape";
+    pub const SHIELD: &str = "./Shield";
 }
 
 #[rustfmt::skip]
@@ -387,6 +389,12 @@ pub mod homing_missile {
     pub const MISSILES: &str = "/root/Scene/Area/missiles";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
     pub const PARTICLES: &str = "/root/Scene/Area/Particles";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod shield {
+    pub const CSG_SPHERE: &str = "./CSGSphere";
 }
 
 #[rustfmt::skip]
@@ -568,8 +576,10 @@ pub mod assets {
     pub const PLAYER_HEALTH_BAR_SHADER: &str = "res://assets/PlayerHealthBar.shader";
     pub const BAR_PROGRESS_PNG: &str = "res://assets/bar_progress.png";
     pub const RADAR_TINT_SHADER: &str = "res://assets/radar_tint.shader";
+    pub const SANDBOX_TSCN: &str = "res://assets/sandbox.tscn";
     pub const RADAR_BG_SHADER: &str = "res://assets/radar_bg.shader";
     pub const THEME_TRANSPARENT_TRES: &str = "res://assets/theme_transparent.tres";
+    pub const SHIELD_SHADER: &str = "res://assets/Shield.shader";
     pub const PLAYER_HEALTH_BAR_SHADER_TRES: &str = "res://assets/PlayerHealthBarShader.tres";
     pub const PIXELATE_TRES: &str = "res://assets/pixelate.tres";
     pub const BAR_UNDER_PNG: &str = "res://assets/bar_under.png";

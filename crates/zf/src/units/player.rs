@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use gdnative::{
-    api::{Area, PathFollow},
+    api::{Area, CSGSphere, PathFollow, ShaderMaterial},
     prelude::*,
 };
 use zf_ffi::{CommandArgs, EngineCommand};
@@ -9,6 +9,7 @@ use zf_ffi::{CommandArgs, EngineCommand};
 use crate::{
     common::{self, Position, Rotation, Vector3DisplayShort},
     refs::{
+        self,
         groups::{self, Layer},
         path::scenes,
     },
@@ -23,6 +24,7 @@ pub struct Player {
     #[allow(unused)]
     base: Ref<Spatial>,
     speed: RefCell<f64>,
+    shield_hit: f64,
     position: RefCell<Position>,
     rotation: RefCell<Rotation>,
     engine: EngineState,
@@ -33,6 +35,7 @@ impl From<Ref<Spatial>> for Player {
         Player {
             base: value,
             speed: RefCell::<f64>::default(),
+            shield_hit: 0.,
             position: RefCell::<Position>::default(),
             rotation: RefCell::<Rotation>::default(),
             engine: EngineState::default(),
@@ -92,7 +95,7 @@ impl Player {
     }
 
     #[method]
-    fn _ready(&self, #[base] base: TRef<Spatial>) -> Option<()> {
+    fn _ready(&mut self, #[base] base: TRef<Spatial>) -> Option<()> {
         base.add_to_group(groups::PLAYER, false);
         // FIXME: this is a hack to get it to work.
         let node = unsafe { base.get_node_as::<Node>(".")? };
@@ -155,8 +158,37 @@ impl Player {
         Some(())
     }
 
+    fn shield(&self) -> Option<Ref<ShaderMaterial>> {
+        Some(unsafe {
+            self.base
+                .assume_safe()
+                .get_node(refs::path::player_mjolnir::SHIELD)?
+                .assume_safe()
+                .get_node(refs::path::shield::CSG_SPHERE)?
+                .assume_safe()
+                .cast::<CSGSphere>()?
+                .material()?
+                .assume_safe()
+                .cast::<ShaderMaterial>()?
+                .assume_shared()
+        })
+    }
+
+    fn set_shield_hit(&mut self, value: f64) {
+        self.shield_hit = value;
+        if let Some(shield) = self.shield() {
+            unsafe {
+                shield
+                    .assume_safe()
+                    .set_shader_param("hit", self.shield_hit);
+            }
+        }
+    }
+
     #[method]
     fn _process(&mut self, #[base] base: &Spatial, delta: f64) -> Option<()> {
+        self.set_shield_hit((self.shield_hit - delta).max(0.));
+
         let global_transform = base.cast::<Spatial>()?.global_transform();
         self.position.replace(global_transform.origin);
         self.rotation.replace(global_transform.basis.to_euler());
@@ -178,7 +210,9 @@ impl Player {
     }
 
     #[method]
-    pub fn damage(&self, ammount: u32) {
+    pub fn damage(&mut self, ammount: u32) {
+        self.set_shield_hit(1.);
+
         unsafe { self.base.assume_safe() }.emit_signal(PLAYER_HIT, &[ammount.to_variant()]);
     }
 

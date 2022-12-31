@@ -103,31 +103,14 @@ void fragment() {
 	EMISSION = vec3(1.);
 	vec4 c = tex(VERTEX.xy + TIME);
 	ALBEDO = hsv2rgb(c.xyz + 0.01 * VERTEX);
-	ALPHA = min(max(0.,fract(c.x * 2.) - (.98 - hit)) * 2., .05);
+	ALPHA = min(max(0.,fract(c.x * 2.) - (.95 - hit)) * 2., .05);
 
+    float gap = 0.25;
+    vec2 distance = gap / 2. - abs(gap / 2. - mod(UV.xy, gap));
     float distance_from_edge = min(
-        min(
-            min(UV.x, 1. - UV.x),
-            min(UV.y, 1. - UV.y)
-        ),
-        min(
-            min(
-                abs(.75 - UV.x),
-                abs(.75 - UV.y)
-            ),
-            min(
-                min(
-                    abs(.5 - UV.x),
-                    abs(.5 - UV.y)
-                ),
-                min(
-                    abs(.25 - UV.x),
-                    abs(.25 - UV.y)
-                )
-            )
-        )
+        distance.x,
+        distance.y
     );
-
     if(distance_from_edge < 0.001) {
         ALPHA = 1.;
     }

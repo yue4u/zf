@@ -40,7 +40,7 @@ tracks/0/keys = {
 [node name="Shield" type="Spatial"]
 
 [node name="CSGSphere" type="CSGSphere" parent="."]
-transform = Transform( 0.891571, -0.452881, 0, 0.403776, 0.794898, -0.452881, 0.205102, 0.403776, 0.891571, 0, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 0.999999, 0, 0, 0, 1, 0, 0, 0 )
 radial_segments = 4
 rings = 4
 material = SubResource( 2 )

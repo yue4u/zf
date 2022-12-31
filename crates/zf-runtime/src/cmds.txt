@@ -124,6 +124,7 @@ random chars
 random decimal
 random dice
 random integer
+random pos
 random uuid
 range
 reduce
@@ -137,6 +138,7 @@ roll right
 roll up
 rotate
 select
+shield on
 shuffle
 size
 skip

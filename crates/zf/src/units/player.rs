@@ -4,10 +4,10 @@ use gdnative::{
     api::{Area, CSGSphere, PathFollow, ShaderMaterial},
     prelude::*,
 };
-use zf_ffi::{CommandArgs, EngineCommand};
+use zf_ffi::{CommandArgs, EngineCommand, ShieldCommand};
 
 use crate::{
-    common::{self, Position, Rotation, Vector3DisplayShort},
+    common::{Position, Rotation, SceneLoader, Vector3DisplayShort},
     refs::{
         self,
         groups::{self, Layer},
@@ -24,10 +24,17 @@ pub struct Player {
     #[allow(unused)]
     base: Ref<Spatial>,
     speed: RefCell<f64>,
-    shield_hit: f64,
+    shield: PlayerShield,
     position: RefCell<Position>,
     rotation: RefCell<Rotation>,
     engine: EngineState,
+}
+
+#[derive(Debug)]
+pub struct PlayerShield {
+    count: usize,
+    hit: f64,
+    timeout: f64,
 }
 
 impl From<Ref<Spatial>> for Player {
@@ -35,7 +42,11 @@ impl From<Ref<Spatial>> for Player {
         Player {
             base: value,
             speed: RefCell::<f64>::default(),
-            shield_hit: 0.,
+            shield: PlayerShield {
+                count: 3,
+                hit: 0.,
+                timeout: 5000.,
+            },
             position: RefCell::<Position>::default(),
             rotation: RefCell::<Rotation>::default(),
             engine: EngineState::default(),
@@ -85,7 +96,6 @@ pub const PLAYER_HIT: &'static str = "player_hit";
 #[methods]
 impl Player {
     fn new(base: TRef<Spatial>) -> Self {
-        // tracing::info!("prepare Player");
         Player::from(base.claim())
     }
 
@@ -100,6 +110,8 @@ impl Player {
         // FIXME: this is a hack to get it to work.
         let node = unsafe { base.get_node_as::<Node>(".")? };
         node.connect_vm_signal(VMSignal::OnCmdParsed.into());
+
+        self.set_shield(-1.);
         Some(())
     }
 
@@ -126,8 +138,7 @@ impl Player {
             CommandArgs::Fire(fire) => {
                 // tracing::info!("fire: {:?}", fire);
                 let weapon =
-                    common::SceneLoader::load_and_instance_as::<Spatial>(scenes::HOMING_MISSILE)
-                        .unwrap();
+                    SceneLoader::load_and_instance_as::<Spatial>(scenes::HOMING_MISSILE).unwrap();
                 let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
                 Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
                 let missile = weapon.cast_instance::<HomingMissile>().unwrap();
@@ -140,10 +151,15 @@ impl Player {
                     .add_child(missile, true);
                 None
             }
+            CommandArgs::Shield(ShieldCommand::On) => {
+                if self.shield.count > 0 {
+                    self.shield.count -= 1;
+                    self.set_shield(5000.);
+                }
+                None
+            }
             _ => None,
         }?;
-
-        // tracing::debug!("{:?}",&next_status);
 
         let speed = match next_status {
             EngineStatus::On(percent) => MAX_SPEED * (percent as f64) / 100.,
@@ -158,11 +174,27 @@ impl Player {
         Some(())
     }
 
-    fn shield(&self) -> Option<Ref<ShaderMaterial>> {
+    fn shield(&self) -> Option<Ref<Spatial>> {
         Some(unsafe {
             self.base
                 .assume_safe()
                 .get_node(refs::path::player_mjolnir::SHIELD)?
+                .assume_safe()
+                .cast::<Spatial>()?
+                .assume_shared()
+        })
+    }
+
+    fn set_shield(&mut self, val: f64) {
+        self.shield.timeout = val;
+        if let Some(shield) = self.shield() {
+            unsafe { shield.assume_safe() }.set_visible(val > 0.)
+        };
+    }
+
+    fn shield_shader(&self) -> Option<Ref<ShaderMaterial>> {
+        Some(unsafe {
+            self.shield()?
                 .assume_safe()
                 .get_node(refs::path::shield::CSG_SPHERE)?
                 .assume_safe()
@@ -175,19 +207,24 @@ impl Player {
     }
 
     fn set_shield_hit(&mut self, value: f64) {
-        self.shield_hit = value;
-        if let Some(shield) = self.shield() {
+        self.shield.hit = value;
+        if let Some(shield) = self.shield_shader() {
             unsafe {
                 shield
                     .assume_safe()
-                    .set_shader_param("hit", self.shield_hit);
+                    .set_shader_param("hit", self.shield.hit);
             }
         }
     }
 
     #[method]
     fn _process(&mut self, #[base] base: &Spatial, delta: f64) -> Option<()> {
-        self.set_shield_hit((self.shield_hit - delta).max(0.));
+        self.set_shield_hit((self.shield.hit - delta).max(0.));
+
+        if self.shield.timeout > 0. {
+            self.shield.timeout -= delta * 1000.;
+            self.set_shield(self.shield.timeout - delta)
+        }
 
         let global_transform = base.cast::<Spatial>()?.global_transform();
         self.position.replace(global_transform.origin);
@@ -211,7 +248,10 @@ impl Player {
 
     #[method]
     pub fn damage(&mut self, ammount: u32) {
-        self.set_shield_hit(1.);
+        if self.shield.timeout > 0. {
+            self.set_shield_hit(1.);
+            return;
+        }
 
         unsafe { self.base.assume_safe() }.emit_signal(PLAYER_HIT, &[ammount.to_variant()]);
     }
@@ -222,7 +262,8 @@ impl Player {
 speed: {:.2}
 position: {}
 rotation: {}
-
+shield left: {}
+shield timeout: {:.2}
 [b][color=#4FFFCA]Engine[/color][/b]
 status: {:?}
 rel: {:?}
@@ -230,6 +271,8 @@ rel: {:?}
             self.speed.borrow(),
             self.position.borrow().display(),
             self.rotation.borrow().display(),
+            self.shield.count,
+            self.shield.timeout.max(0.),
             self.engine.status,
             self.engine.rel
         )

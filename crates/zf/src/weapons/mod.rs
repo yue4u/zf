@@ -55,10 +55,10 @@ impl DamageAble for Ref<Area> {
     fn try_damage(&self, ammount: u32) -> anyhow::Result<()> {
         let area = unsafe { self.assume_safe() };
         if area.collision_layer() == 0 {
-            // tracing::debug!("{:?}","does not have collision layer");
             return Err(anyhow::Error::msg("does not have collision layer"));
         }
-
+        // FIXME: this only works for player's direct child
+        // find a way to avoid this
         let spatial = unsafe {
             area.get_parent()
                 .expect("expect parent exist")

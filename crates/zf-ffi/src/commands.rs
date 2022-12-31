@@ -13,8 +13,8 @@ pub enum CommandArgs {
     Hint,
     Mission(MissionCommand),
     Engine(EngineCommand),
+    Shield(ShieldCommand),
     Task(TaskCommand),
-    // Autopilot(AutopilotCommand),
     Fire(FireCommand),
     Radar(RadarCommand),
     UI(UICommand),
@@ -60,6 +60,11 @@ pub enum EngineCommand {
         y: Option<f32>,
         z: Option<f32>,
     },
+}
+#[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
+pub enum ShieldCommand {
+    On,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

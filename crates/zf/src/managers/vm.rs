@@ -1,16 +1,6 @@
 use gdnative::{api::Engine, prelude::*};
 use serde::{Deserialize, Serialize};
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    fmt::Display,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    thread::JoinHandle,
-    time::Duration,
-};
+use std::{cell::RefCell, collections::HashMap, fmt::Display};
 use zf_ffi::{
     memory::Tag, CommandArgs, CommandResults, GameCommand, LevelCommand, MissionCommand,
     TaskCommand,
@@ -35,38 +25,22 @@ use zf_runtime::{decode_from_caller, Caller, ExtendedStore, HostWrite, Runtime};
 #[register_with(Self::register_signals)]
 pub struct VMManager {
     result_buffer: RefCell<ResultBuffer>,
-    // TODO: more pts
     runtime: Option<Runtime<VMData>>,
+    timer: Option<Ref<Timer>>,
 }
 
 type ResultBuffer = HashMap<u32, CommandResult>;
 
-struct TaskRunner {
-    id: usize,
-    cmd: String,
-    stop: Arc<AtomicBool>,
-    handle: JoinHandle<()>,
-}
-
-impl TaskRunner {
-    fn info(&self) -> TaskRunnerInfo {
-        TaskRunnerInfo {
-            id: self.id,
-            cmd: self.cmd.clone(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-struct TaskRunnerInfo {
+#[derive(Serialize, Deserialize, Clone)]
+struct Task {
     id: usize,
     cmd: String,
 }
 
 #[derive(Serialize, Deserialize)]
-struct TaskRunnerInfoVec(Vec<TaskRunnerInfo>);
+struct TaskList(Vec<Task>);
 
-impl Display for TaskRunner {
+impl Display for Task {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("task: `{}` ({})", self.id, self.cmd))
     }
@@ -74,7 +48,7 @@ impl Display for TaskRunner {
 
 struct VMData {
     cmd_id: u32,
-    thead_handles: HashMap<usize, TaskRunner>,
+    background_tasks: HashMap<usize, Task>,
     base: Ref<Node>,
 }
 
@@ -82,7 +56,7 @@ impl VMData {
     fn from_base(base: Ref<Node>) -> Self {
         Self {
             cmd_id: 0,
-            thead_handles: HashMap::new(),
+            background_tasks: HashMap::new(),
             base,
         }
     }
@@ -91,17 +65,13 @@ impl VMData {
         unsafe { self.base.assume_safe().get_tree().unwrap().assume_safe() }
     }
 
-    fn clean_theads(&mut self) {
-        tracing::debug!("vm: clean_theads");
-
-        self.thead_handles.drain().for_each(|(id, handle)| {
-            tracing::trace!("vm: stop {} on level change", id);
-            handle.stop.store(true, Ordering::Relaxed)
-        });
+    fn clean_background_tasks(&mut self) {
+        tracing::debug!("vm: clean background_tasks");
+        self.background_tasks.clear();
     }
 
     fn change_scene(&mut self, scene: LevelName) {
-        self.clean_theads();
+        self.clean_background_tasks();
 
         unsafe {
             self.base
@@ -128,6 +98,7 @@ impl VMManager {
         VMManager {
             result_buffer: RefCell::new(HashMap::new()),
             runtime: None,
+            timer: None,
         }
     }
 
@@ -155,6 +126,42 @@ impl VMManager {
         let mut runtime: Runtime<VMData> = VMData::from_base(base.claim()).into();
         runtime.eval(zf_runtime::SHELL_PRELOAD).unwrap();
         self.runtime = Some(runtime);
+
+        let timer = unsafe { Timer::new().into_shared().assume_safe() };
+        base.add_child(timer, false);
+
+        timer.set_one_shot(false);
+        timer.start(-1.);
+        timer
+            .connect(
+                "timeout",
+                base,
+                "trigger_background_tasks",
+                VariantArray::new_shared(),
+                0,
+            )
+            .unwrap();
+        self.timer = Some(timer.claim());
+    }
+
+    #[method]
+    fn trigger_background_tasks(&mut self, #[base] _base: TRef<Node>) -> Option<()> {
+        tracing::debug!("trigger_background_tasks");
+        let runtime = self.runtime.as_mut()?;
+        let cmds = runtime
+            .store
+            .data()
+            .ext
+            .background_tasks
+            .values()
+            .into_iter()
+            .map(|t| t.cmd.clone())
+            .collect::<Vec<String>>();
+
+        for cmd in cmds {
+            _ = runtime.eval(cmd);
+        }
+        Some(())
     }
 
     #[method]
@@ -191,7 +198,7 @@ impl VMManager {
         let event = match event {
             GameEvent::MissionComplete(msg) => {
                 let runtime = self.runtime.as_mut()?;
-                runtime.store.data_mut().ext.clean_theads();
+                runtime.store.data_mut().ext.clean_background_tasks();
 
                 let result = runtime
                     .eval(format!("fsays 'Mission completed: {}'", msg))
@@ -206,7 +213,7 @@ impl VMManager {
             }
             GameEvent::MissionFailed => {
                 let runtime = self.runtime.as_mut()?;
-                runtime.store.data_mut().ext.clean_theads();
+                runtime.store.data_mut().ext.clean_background_tasks();
                 // let result = runtime
                 //     .eval(format!("fsays 'Mission completed: {}'", "Mission failed"))
                 //     .expect("fsays should work");
@@ -271,63 +278,29 @@ impl RuntimeFunc {
         match cmd {
             CommandArgs::Task(task) => {
                 let ret = match task {
-                    TaskCommand::Run { cmd: input, every } => {
-                        let store = caller.data_mut();
-                        let base = store.ext.base;
-                        let stop = Arc::new(AtomicBool::new(false));
-                        let stop_clone = stop.clone();
-                        let name = input.clone();
-                        let handle = std::thread::spawn(move || {
-                            let mut runtime: Runtime<VMData> = VMData::from_base(base).into();
-                            let ret = runtime.eval(&input);
-                            _ = tracing::debug!("{:?}", ret);
-
-                            if let Some(dur) = every {
-                                loop {
-                                    if stop_clone.load(Ordering::Relaxed) {
-                                        tracing::debug!("{:?}", format!("stop `{}` done!", &input));
-                                        break;
-                                    }
-                                    std::thread::sleep(Duration::from_nanos(dur));
-                                    let ret = runtime.eval(&input);
-                                    _ = tracing::debug!("{:?}", ret);
-                                }
-                            }
-                        });
-                        let task_id = caller.data_mut().ext.thead_handles.len() + 1;
-                        let task = TaskRunner {
-                            id: task_id,
-                            stop,
-                            cmd: name,
-                            handle,
-                        };
+                    TaskCommand::Run { cmd } => {
+                        let task_id = caller.data_mut().ext.background_tasks.len() + 1;
+                        let task = Task { id: task_id, cmd };
                         let start_info = format!("start {}", &task);
-                        caller.data_mut().ext.thead_handles.insert(task_id, task);
+                        caller.data_mut().ext.background_tasks.insert(task_id, task);
 
                         start_info
                     }
                     TaskCommand::Stop(id) => (|| {
                         if let Ok(id) = id.parse() {
                             if let Some(task_runner) =
-                                caller.data_mut().ext.thead_handles.remove(&id)
+                                caller.data_mut().ext.background_tasks.remove(&id)
                             {
-                                task_runner.stop.store(true, Ordering::Relaxed);
                                 return format!("stop {}", task_runner);
                             };
                         }
                         format!("no task`{}` found", id)
                     })(),
                     TaskCommand::Status => {
-                        let handles = &mut caller.data_mut().ext.thead_handles;
+                        let handles = &mut caller.data_mut().ext.background_tasks;
 
-                        // clear finished task
-                        handles.retain(|_, task_runner| !task_runner.handle.is_finished());
-
-                        let info = handles
-                            .values()
-                            .map(|h| h.info())
-                            .collect::<Vec<TaskRunnerInfo>>();
-                        serde_json::to_string(&TaskRunnerInfoVec(info))
+                        let info = handles.values().map(|t| t.clone()).collect::<Vec<Task>>();
+                        serde_json::to_string(&TaskList(info))
                             .expect("fail to serialize task runner info")
                     }
                 };

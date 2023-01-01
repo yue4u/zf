@@ -44,7 +44,7 @@ pub enum LevelCommand {
 #[derive(Decode, Encode, Debug, PartialEq)]
 #[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum TaskCommand {
-    Run { cmd: String, every: Option<u64> },
+    Run { cmd: String },
     Stop(String),
     Status,
 }

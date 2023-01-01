@@ -24,18 +24,11 @@ impl Command for TaskRun {
     }
 
     fn signature(&self) -> nu_protocol::Signature {
-        Signature::build(self.name())
-            .required(
-                "cmd", //
-                SyntaxShape::String,
-                "cmd to run",
-            )
-            .named(
-                "every",
-                SyntaxShape::Duration,
-                "repeat every for given duration",
-                Some('e'),
-            )
+        Signature::build(self.name()).required(
+            "cmd", //
+            SyntaxShape::String,
+            "cmd to run",
+        )
     }
 
     fn usage(&self) -> &str {
@@ -50,19 +43,7 @@ impl Command for TaskRun {
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         let cmd: String = call.req(engine_state, stack, 0)?;
-        let every = match call.get_flag(engine_state, stack, "every")? {
-            Some(Value::Duration { val, span }) => {
-                if val < 0 {
-                    return Err(ShellError::IncompatibleParametersSingle(
-                        format!("invaid duration  `{}` for task every", val),
-                        span,
-                    ));
-                }
-                Some(val as u64)
-            }
-            _ => None,
-        };
-        let args = CommandArgs::Task(TaskCommand::Run { every, cmd });
+        let args = CommandArgs::Task(TaskCommand::Run { cmd });
         let val = zf_ffi::cmd_legacy(args);
         Ok(Value::String {
             val,

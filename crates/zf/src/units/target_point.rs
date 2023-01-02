@@ -2,7 +2,6 @@ use gdnative::{
     api::{object::ConnectFlags, Area, Label3D, Spatial},
     prelude::*,
 };
-use serde::{Deserialize, Serialize};
 
 use crate::{
     common::find_ref,
@@ -11,12 +10,6 @@ use crate::{
     refs::{self, groups},
     vm::VMSignal,
 };
-
-#[derive(Serialize, Deserialize)]
-pub struct TargetPointInfo {
-    pub name: String,
-    pub pos: [f32; 3],
-}
 
 #[derive(NativeClass)]
 #[inherit(Spatial)]

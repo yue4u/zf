@@ -15,7 +15,6 @@ _data = {
 
 [node name="Orbit" parent="Level" index="1" instance=ExtResource( 1 )]
 path_node = NodePath("../Path")
-path_interval = 1.0
 
 [node name="Path" type="Path" parent="Level" index="2"]
 curve = SubResource( 1 )

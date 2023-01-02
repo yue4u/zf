@@ -266,7 +266,7 @@ shield left: {}
 shield timeout: {:.2}
 [b][color=#4FFFCA]Engine[/color][/b]
 status: {:?}
-rel: {:?}
+rel: {}
 "#,
             self.speed.borrow(),
             self.position.borrow().display(),

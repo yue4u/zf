@@ -8,13 +8,12 @@ use zf_ffi::{
 
 use crate::{
     common::{current_level, find_ref, get_tree},
-    entities::{GameEvent, LevelHelper, MissionLegacy, LEVELS},
+    entities::{GameEvent, LevelHelper, MissionLegacy, TargetPointInfo, LEVELS},
     refs::{
         groups, next_level,
         path::{auto_load, base_level, LevelName},
     },
     ui::{ScreenTransition, Terminal},
-    units::TargetPointInfo,
     vm::{CommandInput, CommandResult, VMSignal},
 };
 
@@ -89,6 +88,21 @@ impl VMData {
 
     fn reload_scene(&mut self) {
         self.change_scene(self.current_level());
+    }
+
+    fn target_point_info_in_group(&self, group: impl Into<GodotString>) -> Vec<TargetPointInfo> {
+        self.scene_tree()
+            .get_nodes_in_group(group)
+            .iter()
+            .filter_map(|point| point.to_object::<Spatial>())
+            .map(|s| {
+                let Vector3 { x, y, z } = unsafe { s.assume_safe() }.transform().origin;
+                TargetPointInfo {
+                    name: unsafe { s.assume_safe() }.name().to_string(),
+                    pos: [x, y, z],
+                }
+            })
+            .collect::<Vec<TargetPointInfo>>()
     }
 }
 
@@ -315,18 +329,7 @@ impl RuntimeFunc {
                     let targets = caller
                         .data()
                         .ext
-                        .scene_tree()
-                        .get_nodes_in_group(groups::TARGET_POINT)
-                        .iter()
-                        .filter_map(|point| point.to_object::<Spatial>())
-                        .map(|s| {
-                            let Vector3 { x, y, z } = unsafe { s.assume_safe() }.transform().origin;
-                            TargetPointInfo {
-                                name: unsafe { s.assume_safe() }.name().to_string(),
-                                pos: [x, y, z],
-                            }
-                        })
-                        .collect::<Vec<TargetPointInfo>>();
+                        .target_point_info_in_group(groups::TARGET_POINT);
                     let json = serde_json::to_string(&targets).unwrap();
                     caller.write_string_from_host(json)
                 }
@@ -391,21 +394,9 @@ impl RuntimeFunc {
                 caller.write_string_from_host(hint)
             }
             CommandArgs::Radar(_) => {
-                let radars = caller
-                    .data()
-                    .ext
-                    .scene_tree()
-                    .get_nodes_in_group(groups::RADAR);
-                // TODO: maybe more radars
-                let result = unsafe {
-                    radars
-                        .get(0)
-                        .call("detected", &[])
-                        .unwrap()
-                        .to::<String>()
-                        .unwrap()
-                };
-                caller.write_string_from_host(result)
+                let targets = caller.data().ext.target_point_info_in_group(groups::ENEMY);
+                let json = serde_json::to_string(&targets).unwrap();
+                caller.write_string_from_host(json)
             }
             cmd => {
                 fire_and_forget(&mut caller.data_mut().ext, cmd);

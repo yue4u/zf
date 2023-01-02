@@ -66,6 +66,7 @@ pub enum LevelName {
     Unknown,
 }
 
+
 impl LevelName {
     pub fn from_path(value: &str) -> Self {
         match value {
@@ -215,12 +216,11 @@ pub mod sandbox_2_d {
 #[allow(dead_code)]
 pub mod player_mjolnir {
     pub const CAMERA: &str = "./Camera";
-    pub const RADAR_AREA: &str = "./RadarArea";
-    pub const COLLISION_SHAPE: &str = "./RadarArea/CollisionShape";
     pub const PROJECTILES: &str = "./Projectiles";
     pub const AREA: &str = "./Area";
-    pub const COLLISION_SHAPE_1: &str = "./Area/CollisionShape";
+    pub const COLLISION_SHAPE: &str = "./Area/CollisionShape";
     pub const SHIELD: &str = "./Shield";
+    pub const ANIMATION_PLAYER: &str = "./AnimationPlayer";
 }
 
 #[rustfmt::skip]
@@ -340,13 +340,7 @@ pub mod sandbox {
     pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
-    pub const T_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir";
-    pub const CAMERA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Camera";
-    pub const RADAR_AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea";
-    pub const COLLISION_SHAPE: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea/CollisionShape";
-    pub const PROJECTILES: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Projectiles";
-    pub const AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area";
-    pub const COLLISION_SHAPE_1: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area/CollisionShape";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
     pub const ORBIT: &str = "/root/Scene/Level/Path/Orbit";
     pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
     pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
@@ -355,7 +349,6 @@ pub mod sandbox {
     pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
-    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
 }
 
 #[rustfmt::skip]
@@ -395,6 +388,7 @@ pub mod homing_missile {
 #[allow(dead_code)]
 pub mod shield {
     pub const CSG_SPHERE: &str = "./CSGSphere";
+    pub const ANIMATION_PLAYER: &str = "./CSGSphere/AnimationPlayer";
 }
 
 #[rustfmt::skip]
@@ -421,13 +415,7 @@ pub mod challenge_infinite {
     pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
-    pub const T_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir";
-    pub const CAMERA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Camera";
-    pub const RADAR_AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea";
-    pub const COLLISION_SHAPE: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/RadarArea/CollisionShape";
-    pub const PROJECTILES: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Projectiles";
-    pub const AREA: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area";
-    pub const COLLISION_SHAPE_1: &str = "/root/Scene/Level/Path/PathFollow/t-mjolnir/Area/CollisionShape";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
     pub const ORBIT: &str = "/root/Scene/Level/Path/Orbit";
     pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
     pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
@@ -436,7 +424,6 @@ pub mod challenge_infinite {
     pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
-    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
 }
 
 #[rustfmt::skip]
@@ -510,7 +497,6 @@ pub mod tutorial_fire {
     pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/t-dummy2";
     pub const T_DUMMY_3: &str = "/root/Scene/Level/t-dummy3";
-    pub const RADAR: &str = "/root/Scene/UI/MarginContainer/UIExtra/Radar";
 }
 
 #[rustfmt::skip]
@@ -576,7 +562,6 @@ pub mod assets {
     pub const PLAYER_HEALTH_BAR_SHADER: &str = "res://assets/PlayerHealthBar.shader";
     pub const BAR_PROGRESS_PNG: &str = "res://assets/bar_progress.png";
     pub const RADAR_TINT_SHADER: &str = "res://assets/radar_tint.shader";
-    pub const SANDBOX_TSCN: &str = "res://assets/sandbox.tscn";
     pub const RADAR_BG_SHADER: &str = "res://assets/radar_bg.shader";
     pub const THEME_TRANSPARENT_TRES: &str = "res://assets/theme_transparent.tres";
     pub const SHIELD_SHADER: &str = "res://assets/Shield.shader";
@@ -590,4 +575,6 @@ pub mod assets {
     pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
     pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
+    pub const PATH_FOLLOW_RANBOW_SHADER: &str = "res://assets/PathFollowRanbow.shader";
 }
+

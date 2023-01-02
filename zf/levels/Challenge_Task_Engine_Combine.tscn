@@ -28,8 +28,7 @@ transform = Transform( 13.4134, 0, 14.8351, 0, 20, 0, -14.8351, 0, 13.4134, -68.
 curve = SubResource( 1 )
 
 [node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
-transform = Transform( -0.571383, -0.646641, -0.505345, -0.817977, 0.498662, 0.286785, 0.0665496, 0.577229, -0.813863, -67.3474, -11.245, 88.6878 )
-offset = 237.05
+transform = Transform( 0.973402, -0.0654863, 0.219531, -3.72528e-09, 0.958274, 0.285851, -0.22909, -0.278251, 0.932783, 0, 0, 0 )
 rotation_mode = 4
 
 [node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="0" instance=ExtResource( 3 )]
@@ -55,7 +54,7 @@ transform = Transform( 1, -1.16415e-08, -9.31323e-09, 1.52271e-07, 1, 8.9407e-08
 transform = Transform( 0.731203, 0.47555, -0.489074, -0.651828, 0.275663, -0.706492, -0.201153, 0.835381, 0.511542, 23.5184, -3.18877, 106.396 )
 
 [node name="Target_4" parent="Level/Point_4" index="0" instance=ExtResource( 2 )]
-transform = Transform( 1, -8.9407e-08, 2.23517e-08, -5.96046e-08, 1, -1.49012e-07, -3.12924e-07, -1.49012e-07, 1, 2.17011, 10.8504, 9.18125 )
+transform = Transform( 1, -8.9407e-08, 2.23517e-08, -5.96046e-08, 1, -1.49012e-07, -3.12924e-07, -1.49012e-07, 1, 2.17, 4.844, 9.181 )
 
 [node name="Point_5" type="Spatial" parent="Level" index="9"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -21.8347, -12.4193, 112.97 )
@@ -77,4 +76,4 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -60.4052, -23.2089, 40.7655 )
 transform = Transform( 0.206334, -0.878486, 0.430917, -0.861408, 0.0458047, 0.505844, -0.464114, -0.475568, -0.747284, -26.2061, -22.0296, -15.5312 )
 
 [node name="Target_8" parent="Level/Point_8" index="0" instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 8.9407e-08, -1.49012e-08, 1, -1.49012e-07, 3.27826e-07, -2.98023e-08, 1, -2.85023, -11.9007, -3.77607 )
+transform = Transform( 1, 0, 8.9407e-08, -1.49012e-08, 1, -1.49012e-07, 3.27826e-07, -2.98023e-08, 1, -2.85, 5, -3.776 )

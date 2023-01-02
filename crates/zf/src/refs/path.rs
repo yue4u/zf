@@ -25,6 +25,7 @@ pub mod scenes {
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
     pub const TITLE_LABEL: &str = "res://scenes/TitleLabel.tscn";
     pub const TARGET_DUMMY: &str = "res://scenes/TargetDummy.tscn";
+    pub const TIME_TRIAL_TIMER: &str = "res://scenes/TimeTrialTimer.tscn";
     pub const MISSION: &str = "res://scenes/Mission.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
     pub const SANDBOX: &str = "res://scenes/Sandbox.tscn";
@@ -49,6 +50,7 @@ pub mod levels {
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const CHALLENGE_TASK_ENGINE_COMBINE: &str = "res://levels/Challenge_Task_Engine_Combine.tscn";
     pub const TUTORIAL_ENGINE: &str = "res://levels/Tutorial_Engine.tscn";
+    pub const CHALLENGE_SHIELD: &str = "res://levels/Challenge_Shield.tscn";
 }
 
 #[rustfmt::skip]
@@ -66,6 +68,7 @@ pub enum LevelName {
     StartMenu,
     ChallengeTaskEngineCombine,
     TutorialEngine,
+    ChallengeShield,
     Unknown,
 }
 
@@ -84,6 +87,7 @@ impl LevelName {
             levels::START_MENU => LevelName::StartMenu,
             levels::CHALLENGE_TASK_ENGINE_COMBINE => LevelName::ChallengeTaskEngineCombine,
             levels::TUTORIAL_ENGINE => LevelName::TutorialEngine,
+            levels::CHALLENGE_SHIELD => LevelName::ChallengeShield,
             _ => LevelName::Unknown,
         }
     }
@@ -103,6 +107,7 @@ impl LevelName {
             LevelName::StartMenu => levels::START_MENU,
             LevelName::ChallengeTaskEngineCombine => levels::CHALLENGE_TASK_ENGINE_COMBINE,
             LevelName::TutorialEngine => levels::TUTORIAL_ENGINE,
+            LevelName::ChallengeShield => levels::CHALLENGE_SHIELD,
             LevelName::Unknown => unreachable!(),
         }
     }
@@ -122,6 +127,7 @@ impl LevelName {
             "Start-Menu" => LevelName::StartMenu,
             "Challenge-Task-Engine-Combine" => LevelName::ChallengeTaskEngineCombine,
             "Tutorial-Engine" => LevelName::TutorialEngine,
+            "Challenge-Shield" => LevelName::ChallengeShield,
             _ => LevelName::Unknown,
         }
     }
@@ -139,6 +145,7 @@ impl LevelName {
             LevelName::StartMenu => "Start-Menu",
             LevelName::ChallengeTaskEngineCombine => "Challenge-Task-Engine-Combine",
             LevelName::TutorialEngine => "Tutorial-Engine",
+            LevelName::ChallengeShield => "Challenge-Shield",
             _ => "Unknown",
         }
     }
@@ -338,6 +345,12 @@ pub mod target_dummy {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod time_trial_timer {
+
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod mission {
 
 }
@@ -511,6 +524,7 @@ pub mod tutorial_shield {
     pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/t-dummy2";
     pub const T_DUMMY_3: &str = "/root/Scene/Level/t-dummy3";
+    pub const TIME_TRIAL_TIMER: &str = "/root/Scene/Level/TimeTrialTimer";
 }
 
 #[rustfmt::skip]
@@ -572,6 +586,16 @@ pub mod tutorial_engine {
     pub const PATH: &str = "/root/Scene/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod challenge_shield {
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
+    pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/t-dummy2";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/t-dummy3";
+    pub const TIME_TRIAL_TIMER: &str = "/root/Scene/Level/TimeTrialTimer";
 }
 
 #[rustfmt::skip]

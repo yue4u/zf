@@ -6,7 +6,6 @@ use gdnative::prelude::{FromVariant, ToVariant};
 #[derive(Decode, Encode, Debug, PartialEq)]
 #[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum CommandArgs {
-    // Help,
     Game(GameCommand),
     Level(LevelCommand),
     Tutorial,
@@ -66,6 +65,7 @@ pub enum EngineCommand {
 pub enum ShieldCommand {
     Show,
     On,
+    Off,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

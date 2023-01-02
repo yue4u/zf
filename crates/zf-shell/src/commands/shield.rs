@@ -13,6 +13,13 @@ cmd::proxy!(
 cmd::proxy!(
     ShieldOn,
     name: "shield on",
-    usage: "Turn on the shield",
+    usage: "Turn on shield",
     arg: CommandArgs::Shield(ShieldCommand::On)
+);
+
+cmd::proxy!(
+    ShieldOff,
+    name: "shield off",
+    usage: "Turn off shield",
+    arg: CommandArgs::Shield(ShieldCommand::Off)
 );

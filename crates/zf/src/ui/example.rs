@@ -2,12 +2,12 @@ use gdnative::prelude::*;
 
 #[derive(NativeClass)]
 #[inherit(Node)]
-pub struct Hello;
+pub struct Example;
 
 #[methods]
-impl Hello {
+impl Example {
     fn new(_base: &Node) -> Self {
-        Hello
+        Example
     }
 
     #[method]

@@ -33,10 +33,10 @@ pub struct Player {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PlayerShield {
-    count: usize,
     #[serde(skip_serializing)]
     hit: f64,
-    timeout: f64,
+    on: bool,
+    time_left: f64,
 }
 
 impl From<Ref<Spatial>> for Player {
@@ -45,9 +45,9 @@ impl From<Ref<Spatial>> for Player {
             base: value,
             speed: RefCell::<f64>::default(),
             shield: PlayerShield {
-                count: 3,
                 hit: 0.,
-                timeout: 5000.,
+                on: false,
+                time_left: 20.,
             },
             position: RefCell::<Position>::default(),
             rotation: RefCell::<Rotation>::default(),
@@ -112,8 +112,6 @@ impl Player {
         // FIXME: this is a hack to get it to work.
         let node = unsafe { base.get_node_as::<Node>(".")? };
         node.connect_vm_signal(VMSignal::OnCmdParsed.into());
-
-        self.set_shield(-1.);
         Some(())
     }
 
@@ -153,10 +151,18 @@ impl Player {
                     .add_child(missile, true);
                 None
             }
-            CommandArgs::Shield(ShieldCommand::On) => {
-                if self.shield.count > 0 {
-                    self.shield.count -= 1;
-                    self.set_shield(5000.);
+            CommandArgs::Shield(shield @ (ShieldCommand::On | ShieldCommand::Off)) => {
+                let shield_ref = unsafe { self.shield_ref().unwrap().assume_safe() };
+                match shield {
+                    ShieldCommand::On if self.shield.time_left > 0. => {
+                        self.shield.on = true;
+                        shield_ref.set_visible(true);
+                    }
+                    ShieldCommand::Off => {
+                        self.shield.on = false;
+                        shield_ref.set_visible(false);
+                    }
+                    _ => {}
                 }
                 None
             }
@@ -176,7 +182,7 @@ impl Player {
         Some(())
     }
 
-    fn shield(&self) -> Option<Ref<Spatial>> {
+    fn shield_ref(&self) -> Option<Ref<Spatial>> {
         Some(unsafe {
             self.base
                 .assume_safe()
@@ -187,16 +193,9 @@ impl Player {
         })
     }
 
-    fn set_shield(&mut self, val: f64) {
-        self.shield.timeout = val;
-        if let Some(shield) = self.shield() {
-            unsafe { shield.assume_safe() }.set_visible(val > 0.)
-        };
-    }
-
     fn shield_shader(&self) -> Option<Ref<ShaderMaterial>> {
         Some(unsafe {
-            self.shield()?
+            self.shield_ref()?
                 .assume_safe()
                 .get_node(refs::path::shield::CSG_SPHERE)?
                 .assume_safe()
@@ -206,6 +205,14 @@ impl Player {
                 .cast::<ShaderMaterial>()?
                 .assume_shared()
         })
+    }
+
+    fn set_shield_time_left(&mut self, val: f64) {
+        self.shield.time_left = val;
+        self.shield.on = val > 0.;
+        if let Some(shield) = self.shield_ref() {
+            unsafe { shield.assume_safe() }.set_visible(self.shield.on)
+        };
     }
 
     fn set_shield_hit(&mut self, value: f64) {
@@ -219,13 +226,15 @@ impl Player {
         }
     }
 
+    fn is_shield_on(&self) -> bool {
+        self.shield.on && self.shield.time_left > 0.
+    }
+
     #[method]
     fn _process(&mut self, #[base] base: &Spatial, delta: f64) -> Option<()> {
-        self.set_shield_hit((self.shield.hit - delta).max(0.));
-
-        if self.shield.timeout > 0. {
-            self.shield.timeout -= delta * 1000.;
-            self.set_shield(self.shield.timeout - delta)
+        if self.is_shield_on() {
+            self.set_shield_time_left(self.shield.time_left - delta);
+            self.set_shield_hit((self.shield.hit - delta).max(0.));
         }
 
         let global_transform = base.cast::<Spatial>()?.global_transform();
@@ -250,7 +259,7 @@ impl Player {
 
     #[method]
     pub fn damage(&mut self, ammount: u32) {
-        if self.shield.timeout > 0. {
+        if self.is_shield_on() {
             self.set_shield_hit(1.);
             return;
         }
@@ -264,7 +273,6 @@ impl Player {
 speed: {:.2}
 position: {}
 rotation: {}
-shield left: {}
 shield timeout: {:.2}
 [b][color=#4FFFCA]Engine[/color][/b]
 status: {:?}
@@ -273,8 +281,7 @@ rel: {}
             self.speed.borrow(),
             self.position.borrow().display(),
             self.rotation.borrow().display(),
-            self.shield.count,
-            self.shield.timeout.max(0.),
+            self.shield.time_left.max(0.),
             self.engine.status,
             fmt_rel(self.engine.rel)
         )

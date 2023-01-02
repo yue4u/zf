@@ -11,7 +11,6 @@ use gdnative::prelude::*;
 fn init(handle: InitHandle) {
     common::logging::init();
 
-    handle.add_class::<ui::Hello>();
     handle.add_class::<ui::Env>();
     handle.add_class::<ui::CommandPalette>();
     handle.add_class::<ui::CommandHistory>();
@@ -35,6 +34,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<weapons::Beam>();
     handle.add_class::<managers::VMManager>();
     handle.add_class::<managers::AnimationManager>();
+    handle.add_class::<managers::TimeTrialTimer>();
 }
 
 godot_init!(init);

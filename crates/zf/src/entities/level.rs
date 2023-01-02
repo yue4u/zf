@@ -161,11 +161,18 @@ Combining this two commands to destroy enemies!
     guide: r#"
 Enemy is attacking us!
 try `shield on` to avoid taking damage.
-Note: shields can be enabled a few times and have a time limit,
 Check status on the right side or use the `shield` command.
 "#,
     hint: [
-        "task run 'radar | get 0 | fire hm'"
+        "shield on"
+    ],
+// Note: shield have a total time limit, use `shield off`
+    @ChallengeShield where
+    guide: r#"
+try survive for 15 seconds!
+"#,
+    hint: [
+        "shield on"
     ],
 
     @ChallengeInfinite where

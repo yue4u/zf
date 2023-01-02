@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=3]
+[ext_resource path="res://scenes/TargetDummy.tscn" type="PackedScene" id=4]
+
+[node name="Scene" instance=ExtResource( 3 )]
+
+[node name="PlayerMjolnir" parent="Level" index="1" instance=ExtResource( 2 )]
+
+[node name="t-dummy" parent="Level" index="2" instance=ExtResource( 4 )]
+transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 35.6171 )
+
+[node name="t-dummy2" parent="Level" index="3" instance=ExtResource( 4 )]
+transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, -13.1856, 0, 30.3103 )
+
+[node name="t-dummy3" parent="Level" index="4" instance=ExtResource( 4 )]
+transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 12.6779, 2.90473, 33.1352 )

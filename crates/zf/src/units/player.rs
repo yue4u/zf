@@ -4,6 +4,7 @@ use gdnative::{
     api::{Area, CSGSphere, PathFollow, ShaderMaterial},
     prelude::*,
 };
+use serde::{Deserialize, Serialize};
 use zf_ffi::{CommandArgs, EngineCommand, ShieldCommand};
 
 use crate::{
@@ -24,15 +25,16 @@ pub struct Player {
     #[allow(unused)]
     base: Ref<Spatial>,
     speed: RefCell<f64>,
-    shield: PlayerShield,
+    pub shield: PlayerShield,
     position: RefCell<Position>,
     rotation: RefCell<Rotation>,
     engine: EngineState,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PlayerShield {
     count: usize,
+    #[serde(skip_serializing)]
     hit: f64,
     timeout: f64,
 }

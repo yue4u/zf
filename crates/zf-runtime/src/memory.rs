@@ -1,15 +1,28 @@
 use bincode::encode_to_vec;
+use serde::Serialize;
 use wasmtime::{AsContextMut, Caller, Instance, Memory, Store, StoreContext};
 use zf_ffi::{config, decode_from_slice, memory::Tag};
 
 use crate::runtime::ExtendedStore;
 
 pub trait HostWrite<T> {
+    fn write_json<S>(&mut self, string: &S) -> i64
+    where
+        S: ?Sized + Serialize;
     fn write_string_from_host(&mut self, string: String) -> i64;
     fn write_result<S: bincode::enc::Encode>(&mut self, val: S) -> i64;
 }
 
 impl<T> HostWrite<T> for Caller<'_, T> {
+    fn write_json<S>(&mut self, value: &S) -> i64
+    where
+        S: ?Sized + Serialize,
+    {
+        // FIXME: handle this unwrap
+        let json = serde_json::to_string(&value).unwrap();
+        write_string_with_caller(self, json)
+    }
+
     fn write_string_from_host(&mut self, string: String) -> i64 {
         write_string_with_caller(self, string)
     }

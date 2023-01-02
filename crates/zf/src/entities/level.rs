@@ -149,9 +149,20 @@ Try combining task command and engine command togetter!
     @TutorialFire where
     guide: r#"
 let's use our weapon system!
-`fire fm` allow use to fire a homing missile,
+`fire hm` allow use to fire a homing missile,
 while enemy positions can be retrieved from `radar` command.
 Combining this two commands to destroy enemies!
+"#,
+    hint: [
+        "task run 'radar | get 0 | fire hm'"
+    ],
+
+    @TutorialShield where
+    guide: r#"
+Enemy is attacking us!
+try `shield on` to avoid taking damage.
+Note: shields can be enabled a few times and have a time limit,
+Check status on the right side or use the `shield` command.
 "#,
     hint: [
         "task run 'radar | get 0 | fire hm'"

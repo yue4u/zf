@@ -14,6 +14,7 @@ pub mod scenes {
     pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
     pub const SANDBOX_2_D: &str = "res://scenes/Sandbox2D.tscn";
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
+    pub const LEVEL_TIME: &str = "res://scenes/LevelTime.tscn";
     pub const SANDBOX_3_D: &str = "res://scenes/Sandbox3D.tscn";
     pub const TUTORIAL_COMPLETE: &str = "res://scenes/Tutorial_Complete.tscn";
     pub const PLAYER_STATUS: &str = "res://scenes/PlayerStatus.tscn";
@@ -43,6 +44,7 @@ pub mod levels {
     pub const TUTORIAL_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_TASK_ENGINE_COMBINE: &str = "res://levels/Tutorial_Task_Engine_Combine.tscn";
     pub const CHALLENGE_ENGINE_REL: &str = "res://levels/Challenge_Engine_Rel.tscn";
+    pub const TUTORIAL_SHIELD: &str = "res://levels/Tutorial_Shield.tscn";
     pub const TUTORIAL_FIRE: &str = "res://levels/Tutorial_Fire.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const CHALLENGE_TASK_ENGINE_COMBINE: &str = "res://levels/Challenge_Task_Engine_Combine.tscn";
@@ -59,6 +61,7 @@ pub enum LevelName {
     TutorialMissionEngineRel,
     TutorialTaskEngineCombine,
     ChallengeEngineRel,
+    TutorialShield,
     TutorialFire,
     StartMenu,
     ChallengeTaskEngineCombine,
@@ -76,6 +79,7 @@ impl LevelName {
             levels::TUTORIAL_MISSION_ENGINE_REL => LevelName::TutorialMissionEngineRel,
             levels::TUTORIAL_TASK_ENGINE_COMBINE => LevelName::TutorialTaskEngineCombine,
             levels::CHALLENGE_ENGINE_REL => LevelName::ChallengeEngineRel,
+            levels::TUTORIAL_SHIELD => LevelName::TutorialShield,
             levels::TUTORIAL_FIRE => LevelName::TutorialFire,
             levels::START_MENU => LevelName::StartMenu,
             levels::CHALLENGE_TASK_ENGINE_COMBINE => LevelName::ChallengeTaskEngineCombine,
@@ -94,6 +98,7 @@ impl LevelName {
             LevelName::TutorialMissionEngineRel => levels::TUTORIAL_MISSION_ENGINE_REL,
             LevelName::TutorialTaskEngineCombine => levels::TUTORIAL_TASK_ENGINE_COMBINE,
             LevelName::ChallengeEngineRel => levels::CHALLENGE_ENGINE_REL,
+            LevelName::TutorialShield => levels::TUTORIAL_SHIELD,
             LevelName::TutorialFire => levels::TUTORIAL_FIRE,
             LevelName::StartMenu => levels::START_MENU,
             LevelName::ChallengeTaskEngineCombine => levels::CHALLENGE_TASK_ENGINE_COMBINE,
@@ -112,6 +117,7 @@ impl LevelName {
             "Tutorial-Mission-Engine-Rel" => LevelName::TutorialMissionEngineRel,
             "Tutorial-Task-Engine-Combine" => LevelName::TutorialTaskEngineCombine,
             "Challenge-Engine-Rel" => LevelName::ChallengeEngineRel,
+            "Tutorial-Shield" => LevelName::TutorialShield,
             "Tutorial-Fire" => LevelName::TutorialFire,
             "Start-Menu" => LevelName::StartMenu,
             "Challenge-Task-Engine-Combine" => LevelName::ChallengeTaskEngineCombine,
@@ -128,6 +134,7 @@ impl LevelName {
             LevelName::TutorialMissionEngineRel => "Tutorial-Mission-Engine-Rel",
             LevelName::TutorialTaskEngineCombine => "Tutorial-Task-Engine-Combine",
             LevelName::ChallengeEngineRel => "Challenge-Engine-Rel",
+            LevelName::TutorialShield => "Tutorial-Shield",
             LevelName::TutorialFire => "Tutorial-Fire",
             LevelName::StartMenu => "Start-Menu",
             LevelName::ChallengeTaskEngineCombine => "Challenge-Task-Engine-Combine",
@@ -225,6 +232,12 @@ pub mod player_mjolnir {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod level_time {
+
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod sandbox_3_d {
     pub const ORBIT: &str = "/root/Scene/Orbit";
     pub const IMMEDIATE_GEOMETRY: &str = "/root/Scene/Orbit/ImmediateGeometry";
@@ -305,6 +318,7 @@ pub mod base_level {
     pub const CONTROL_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
     pub const H_BOX_CONTAINER_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/HBoxContainer";
     pub const LEVEL_NAME: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/LevelName";
+    pub const LABEL: &str = "/root/Scene/UI/Label";
 }
 
 #[rustfmt::skip]
@@ -488,6 +502,15 @@ pub mod challenge_engine_rel {
     pub const POINT_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3";
     pub const TARGET_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3/Target_3";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_shield {
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
+    pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/t-dummy2";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/t-dummy3";
 }
 
 #[rustfmt::skip]

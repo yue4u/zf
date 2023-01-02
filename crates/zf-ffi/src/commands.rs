@@ -64,6 +64,7 @@ pub enum EngineCommand {
 #[derive(Decode, Encode, Debug, PartialEq)]
 #[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum ShieldCommand {
+    Show,
     On,
 }
 

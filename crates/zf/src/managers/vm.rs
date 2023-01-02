@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, fmt::Display};
 use zf_ffi::{
     memory::Tag, CommandArgs, CommandResults, GameCommand, LevelCommand, MissionCommand,
-    TaskCommand,
+    ShieldCommand, TaskCommand,
 };
 
 use crate::{
@@ -14,6 +14,7 @@ use crate::{
         path::{auto_load, base_level, LevelName},
     },
     ui::{ScreenTransition, Terminal},
+    units::Player,
     vm::{CommandInput, CommandResult, VMSignal},
 };
 
@@ -313,7 +314,7 @@ impl RuntimeFunc {
                         let handles = &mut caller.data_mut().ext.background_tasks;
 
                         let info = handles.values().map(|t| t.clone()).collect::<Vec<Task>>();
-                        serde_json::to_string(&TaskList(info))
+                        serde_json::to_string(&info)
                             .expect("fail to serialize task runner info")
                     }
                 };
@@ -330,8 +331,7 @@ impl RuntimeFunc {
                         .data()
                         .ext
                         .target_point_info_in_group(groups::TARGET_POINT);
-                    let json = serde_json::to_string(&targets).unwrap();
-                    caller.write_string_from_host(json)
+                    caller.write_json(&targets)
                 }
             },
             CommandArgs::Game(g) => {
@@ -395,8 +395,18 @@ impl RuntimeFunc {
             }
             CommandArgs::Radar(_) => {
                 let targets = caller.data().ext.target_point_info_in_group(groups::ENEMY);
-                let json = serde_json::to_string(&targets).unwrap();
-                caller.write_string_from_host(json)
+                caller.write_json(&targets)
+            }
+            CommandArgs::Shield(ShieldCommand::Show) => {
+                let base = unsafe { caller.data().ext.base.assume_safe() };
+
+                unsafe { base.get_node_as_instance::<Player>(Player::path_from(base.as_ref())) }
+                    .and_then(|instance| {
+                        instance
+                            .map(|player, _| caller.write_json(&player.shield))
+                            .ok()
+                    })
+                    .unwrap_or(0)
             }
             cmd => {
                 fire_and_forget(&mut caller.data_mut().ext, cmd);

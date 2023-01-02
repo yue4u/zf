@@ -111,11 +111,12 @@ Note: you can use `alias` to create shortcut like `alias r = engine rel`
         r#"
 We can use `|` to pipe data from one command to another!
 For example, to show target points of current mission:
-`mission targets | table`
+`mission targets`
 Since mission targets returns a list, we can use get 0 to get the first one,
-`mission targets | get 0 | table`
+`mission targets | get 0.pos.0`
 or using 0.pos as a index to get detailed info
-`mission targets | get 0.pos | table`
+`mission targets | get 0.pos`.
+Try combine with `engine rel` to clear this level.
 "#,
     hint: [
         "alias m = (mission targets | get 0 | engine rel)",
@@ -128,22 +129,22 @@ or using 0.pos as a index to get detailed info
     guide: r#"
 `task` command is special, we can use `task` to create tasks that runs in the background!
 For example, to run the task we created in the before mission:
-`task run --every 1sec 'random pos | engine rel'`
+`task run 'random pos | engine rel'`
 Type `help task` and `help task run` to explore more
 "#,
-    hint: ["task run --every 1sec 'mission targets | get 0 | engine rel'"],
+    hint: ["task run 'mission targets | get 0 | engine rel'"],
 
     @TutorialTaskEngineCombine where
     guide: r#"
 We can issue two commands togetter in one line seperated by `;`.
-For example: `engine on; 1 + 1`.
+For example: `engine t 50; engine rel -x 5`.
 Try combining task command and engine command togetter!
 "#,
-    hint: ["e t 100; task run -e 1sec 'mission targets | get 0 | engine rel'"],
+    hint: ["e t 100; task run 'mission targets | get 0 | engine rel'"],
 
     @ChallengeTaskEngineCombine where
     guide: "Reach all target points!",
-    hint: ["e t 100; task run -e 1sec 'mission targets | get 0 | engine rel'"],
+    hint: ["e t 100; task run 'mission targets | get 0 | engine rel'"],
 
     @TutorialFire where
     guide: r#"
@@ -153,7 +154,7 @@ while enemy positions can be retrieved from `radar` command.
 Combining this two commands to destroy enemies!
 "#,
     hint: [
-        "task run -e 1sec 'radar | get 0 | fire hm'"
+        "task run 'radar | get 0 | fire hm'"
     ],
 
     @ChallengeInfinite where

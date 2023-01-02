@@ -99,8 +99,6 @@ impl Launcher {
         )
         .unwrap();
 
-        // tracing::info!("trigger launcher with {:?}", weapon.name());
-
         let area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
         self.layer.prepare_collision_for(area);
 
@@ -128,6 +126,5 @@ impl Launcher {
                 .assume_safe()
         }
         .add_child(weapon, false);
-        // tracing::debug!("{:?}","add_child done");
     }
 }

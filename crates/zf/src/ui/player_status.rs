@@ -1,8 +1,5 @@
 use gdnative::{api::RichTextLabel, prelude::*};
-
 use crate::units::Player;
-
-// use crate::{refs::HasPath, units::Player};
 
 #[derive(NativeClass, Default)]
 #[inherit(RichTextLabel)]

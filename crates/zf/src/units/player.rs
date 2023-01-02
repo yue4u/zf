@@ -274,7 +274,11 @@ rel: {:?}
             self.shield.count,
             self.shield.timeout.max(0.),
             self.engine.status,
-            self.engine.rel
+            fmt_rel(self.engine.rel)
         )
     }
+}
+
+fn fmt_rel(Vector3 { x, y, z }: Vector3) -> String {
+    format!("x: {x:.1}, y: {y:.1}, z: {z:.1}")
 }

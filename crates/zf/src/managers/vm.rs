@@ -146,7 +146,6 @@ impl VMManager {
 
     #[method]
     fn trigger_background_tasks(&mut self, #[base] _base: TRef<Node>) -> Option<()> {
-        tracing::debug!("trigger_background_tasks");
         let runtime = self.runtime.as_mut()?;
         let cmds = runtime
             .store

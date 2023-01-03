@@ -21,7 +21,7 @@ transform = Transform( 1.00549, 0, 0, 0, 1.00549, 0, 0, 0, 1.00549, 0, 0, 0 )
 curve = SubResource( 1 )
 
 [node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
-transform = Transform( 0.994379, -0.0391384, -0.0983761, 0, 0.929166, -0.369664, 0.105876, 0.367586, 0.923943, 0, 0, 0 )
+transform = Transform( 0.994379, -0.0391384, -0.098376, 0, 0.929166, -0.369664, 0.105876, 0.367586, 0.923943, 0, 0, 0 )
 rotation_mode = 4
 
 [node name="Point_1" type="Spatial" parent="Level/Path/PathFollow" index="0"]
@@ -34,12 +34,17 @@ transform = Transform( 1, 3.72529e-09, -4.47035e-08, 0, 1, 0, 0, 1.49012e-07, 1,
 transform = Transform( 0.99454, 0, -1.49012e-08, -3.72529e-09, 0.99454, 2.98023e-08, -1.49012e-08, 0, 0.994539, 0, 0, 0 )
 
 [node name="Target_2" parent="Level/Path/PathFollow/Point_2" index="0" instance=ExtResource( 1 )]
-transform = Transform( 1, -7.45058e-09, -7.45058e-09, -1.86265e-08, 1, 0, 3.72529e-08, 2.98023e-08, 1, 7.02226, 8.5486, 13.4696 )
+transform = Transform( 1, -7.45058e-09, -7.45058e-09, -1.86265e-08, 1, 0, 3.72529e-08, 2.98023e-08, 1, -8.422, 5.608, 15 )
 
 [node name="Point_3" type="Spatial" parent="Level/Path/PathFollow" index="2"]
 
 [node name="Target_3" parent="Level/Path/PathFollow/Point_3" index="0" instance=ExtResource( 1 )]
-transform = Transform( 1, 0, -2.98023e-08, -3.72529e-09, 1, 0, -2.23517e-08, 0, 1, 17.9988, -3.42209, 28.2069 )
+transform = Transform( 1, 0, -2.98023e-08, -3.72529e-09, 1, 0, -2.23517e-08, 0, 1, 0, 5.608, 15 )
 
-[node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="3" instance=ExtResource( 2 )]
+[node name="Point_4" type="Spatial" parent="Level/Path/PathFollow" index="3"]
+
+[node name="Target_4" parent="Level/Path/PathFollow/Point_4" index="0" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, -2.98023e-08, -3.72529e-09, 1, 0, -2.23517e-08, 0, 1, 0, -3, 20 )
+
+[node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="4" instance=ExtResource( 2 )]
 transform = Transform( -1, 0, 1.50996e-07, 0, 1, 0, -1.50996e-07, 0, -1, 0, 0, 0 )

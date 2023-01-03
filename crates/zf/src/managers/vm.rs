@@ -314,8 +314,7 @@ impl RuntimeFunc {
                         let handles = &mut caller.data_mut().ext.background_tasks;
 
                         let info = handles.values().map(|t| t.clone()).collect::<Vec<Task>>();
-                        serde_json::to_string(&info)
-                            .expect("fail to serialize task runner info")
+                        serde_json::to_string(&info).expect("fail to serialize task runner info")
                     }
                 };
                 tracing::debug!("{:?}", &ret);
@@ -386,7 +385,7 @@ impl RuntimeFunc {
                 caller
                     .data_mut()
                     .ext
-                    .change_scene(LevelName::TutorialEngine);
+                    .change_scene(LevelName::TutorialHelloWorld);
                 0
             }
             CommandArgs::Hint => {

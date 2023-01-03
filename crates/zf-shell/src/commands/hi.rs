@@ -28,7 +28,7 @@ impl Command for Hi {
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         Ok(Value::String {
-            val: "hi!".into(),
+            val: "Hello, world!".into(),
             span: call.head,
         }
         .into_pipeline_data())

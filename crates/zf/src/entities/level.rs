@@ -78,9 +78,20 @@ Type `tutorial` to continue or `help` for help.
         "tutorial"
     ],
 
+    @TutorialHelloWorld where
+    guide: r#"
+Welcome to ZF! In this game we type commands to complete tasks!
+Try type `hi` and hit enter to continue!
+"#,
+    hint: [
+        "hi"
+    ],
+
     @TutorialEngine where
     guide: r#"
-Type `help engine` to explore the engine command
+Let's control user spaceship.
+Type `help engine` to explore the engine command,
+setting the engine thruster and reach all target points!
 "#,
     hint: [
         "engine thruster 100"
@@ -102,8 +113,9 @@ Note: you can use `alias` to create shortcut like `alias r = engine rel`
     hint: [
         "alias r = engine rel",
         "r -x -8 -y 5 -z 5",
-        "r -x 7 -y 8 -z 13",
-        "r -x 18 -y -3 -z 28"
+        "r -z 13",
+        "r -x 0",
+        "r -y -3 -z 20"
     ],
 
     @TutorialMissionEngineRel where
@@ -113,7 +125,7 @@ We can use `|` to pipe data from one command to another!
 For example, to show target points of current mission:
 `mission targets`
 Since mission targets returns a list, we can use get 0 to get the first one,
-`mission targets | get 0.pos.0`
+`mission targets | get 0`
 or using 0.pos as a index to get detailed info
 `mission targets | get 0.pos`.
 Try combine with `engine rel` to clear this level.
@@ -140,11 +152,12 @@ We can issue two commands togetter in one line seperated by `;`.
 For example: `engine t 50; engine rel -x 5`.
 Try combining task command and engine command togetter!
 "#,
-    hint: ["e t 100; task run 'mission targets | get 0 | engine rel'"],
+    hint: ["e t 100; task run 'mission targets | get 0 | e rel'"],
 
     @ChallengeTaskEngineCombine where
-    guide: "Reach all target points!",
-    hint: ["e t 100; task run 'mission targets | get 0 | engine rel'"],
+    guide: r#"Reach all target points!
+You can use the `time scale` command to control the game speed"#,
+    hint: ["time scale 1.5; e t 100; task run 'mission targets | get 0 | e rel'"],
 
     @TutorialFire where
     guide: r#"
@@ -159,17 +172,18 @@ Combining this two commands to destroy enemies!
 
     @TutorialShield where
     guide: r#"
-Enemy is attacking us!
-try `shield on` to avoid taking damage.
+Enemy appears!
+Try `shield on` to avoid taking damage.
+Note: shield have a total time limit, use `shield off` to turn off if not necessary
 Check status on the right side or use the `shield` command.
 "#,
     hint: [
         "shield on"
     ],
-// Note: shield have a total time limit, use `shield off`
+
     @ChallengeShield where
     guide: r#"
-try survive for 15 seconds!
+Survive for 15 seconds!
 "#,
     hint: [
         "shield on"

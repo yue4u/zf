@@ -35,6 +35,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<managers::VMManager>();
     handle.add_class::<managers::AnimationManager>();
     handle.add_class::<managers::TimeTrialTimer>();
+    handle.add_class::<managers::CommandInputWatcher>();
 }
 
 godot_init!(init);

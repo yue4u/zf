@@ -12,6 +12,6 @@ impl Example {
 
     #[method]
     fn _ready(&self) {
-        tracing::info!("hello, zf outside")
+        tracing::info!("hello world")
     }
 }

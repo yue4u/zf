@@ -65,3 +65,8 @@ autoplay = "Shake"
 playback_speed = 0.1
 anims/RESET = SubResource( 4 )
 anims/Shake = SubResource( 5 )
+
+[node name="SpotLight" type="SpotLight" parent="." index="6"]
+transform = Transform( 1, 0, -4.44089e-16, 0, 0.045764, 0.998952, 0, -0.998952, 0.045764, 0, 8, 0 )
+light_energy = 10.0
+spot_range = 10.0

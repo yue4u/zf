@@ -26,7 +26,6 @@ fn sanity() {
     let result = shell::eval_stateless(
         "[1 2 3] | math sum".to_string(), //
     );
-    dbg!(&result);
     assert_eq!(result.ok(), Some("6".to_string()));
 }
 
@@ -41,5 +40,5 @@ fn state() {
         "the_freedom_to_run_the_program_as_you_wish_for_any_purpose".to_string(), //
     );
 
-    assert_eq!(result.ok(), Some("hi!".to_string()));
+    assert_eq!(result.ok(), Some("Hello, world!".to_string()));
 }

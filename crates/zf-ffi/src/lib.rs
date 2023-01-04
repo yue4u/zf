@@ -6,6 +6,7 @@ pub use bincode::*;
 pub use commands::*;
 pub use results::*;
 
+#[cfg(target_family = "wasm")]
 #[link(wasm_import_module = "zf")]
 extern "C" {
     /// args: tag of ZFCommandArgs
@@ -13,6 +14,21 @@ extern "C" {
     fn zf_cmd(args: i64) -> i64;
     /// return: combined width & height
     fn zf_terminal_size() -> i64;
+}
+
+/// args: tag of ZFCommandArgs
+/// return: tag of String
+/// this is a placeolder for test
+#[cfg(not(target_family = "wasm"))]
+unsafe fn zf_cmd(_args: i64) -> i64 {
+    0
+}
+
+/// return: combined width & height
+/// this is a placeolder for test
+#[cfg(not(target_family = "wasm"))]
+unsafe fn zf_terminal_size() -> i64 {
+    0
 }
 
 // from https://github.com/eminence/terminal-size/blob/271d23e96d247245e0a152e147010129a2c8ca37/src/lib.rs

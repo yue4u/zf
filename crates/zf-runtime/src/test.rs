@@ -1,23 +1,9 @@
-use anyhow::{Ok, Result};
-mod memory;
-mod runtime;
+use crate::runtime::{test_runtime, SHELL_PRELOAD};
 
-use memory::*;
-use runtime::{test_runtime, SHELL_PRELOAD};
-
-fn main() -> Result<()> {
-    let mut runtime = test_runtime()?;
-    runtime.eval(SHELL_PRELOAD).unwrap();
-
-    let result = runtime.eval(std::env::args().nth(1).unwrap())?;
-    println!("{result}");
-    Ok(())
-}
-
+#[cfg(test)]
+use crate::strip_ansi;
 #[cfg(test)]
 use expect_test::{expect, Expect};
-#[cfg(test)]
-use zf_runtime::{cmds, strip_ansi};
 
 #[cfg(test)]
 fn check(actual: impl ToString, expect: Expect) {
@@ -216,5 +202,211 @@ fn fsays() -> anyhow::Result<()> {
 
 #[test]
 fn cmds_len() {
-    check(cmds().len(), expect!["201"])
+    let mut runtime = test_runtime().unwrap();
+    check(runtime.cmds_available().unwrap().join("\n"), expect![[r#"
+        alias
+        all
+        any
+        append
+        ast
+        char
+        clear
+        collect
+        columns
+        commandline
+        compact
+        date
+        date format
+        date humanize
+        date list-timezone
+        date now
+        date to-record
+        date to-table
+        date to-timezone
+        debug
+        decode
+        decode base64
+        def
+        def-env
+        default
+        describe
+        detect columns
+        do
+        drop
+        drop column
+        drop nth
+        each
+        each while
+        echo
+        encode
+        encode base64
+        engine
+        engine off
+        engine on
+        engine rel
+        engine t
+        engine thruster
+        error make
+        every
+        export
+        export alias
+        export def
+        export def-env
+        export extern
+        export use
+        extern
+        find
+        fire
+        first
+        flatten
+        for
+        format
+        format filesize
+        from
+        from json
+        msg
+        game
+        game end
+        game menu
+        game start
+        get
+        grid
+        group
+        group-by
+        headers
+        help
+        hi
+        hide
+        hide-env
+        hint
+        if
+        ignore
+        insert
+        is-empty
+        last
+        length
+        let
+        level
+        level ls
+        level next
+        level restart
+        level start
+        lines
+        math
+        math abs
+        math avg
+        math ceil
+        math eval
+        math floor
+        math max
+        math median
+        math min
+        math mode
+        math product
+        math round
+        math sqrt
+        math stddev
+        math sum
+        math variance
+        merge
+        metadata
+        mission
+        mission targets
+        module
+        move
+        mystery
+        overlay
+        overlay hide
+        overlay list
+        overlay new
+        overlay use
+        par-each
+        parse
+        prepend
+        radar
+        random
+        random bool
+        random chars
+        random decimal
+        random dice
+        random integer
+        random pos
+        random uuid
+        range
+        reduce
+        reject
+        rename
+        reverse
+        roll
+        roll down
+        roll left
+        roll right
+        roll up
+        rotate
+        select
+        shield
+        shield off
+        shield on
+        shuffle
+        size
+        skip
+        skip until
+        skip while
+        sleep
+        sort
+        sort-by
+        split
+        split chars
+        split column
+        split list
+        split row
+        split words
+        split-by
+        str
+        str camel-case
+        str capitalize
+        str collect
+        str contains
+        str distance
+        str downcase
+        str ends-with
+        str index-of
+        str join
+        str kebab-case
+        str length
+        str lpad
+        str pascal-case
+        str replace
+        str reverse
+        str rpad
+        str screaming-snake-case
+        str snake-case
+        str starts-with
+        str substring
+        str title-case
+        str trim
+        str upcase
+        table
+        take
+        take until
+        take while
+        task
+        task run
+        task stop
+        term opacity
+        term size
+        time
+        time
+        transpose
+        tutorial
+        ui
+        uniq
+        update
+        update cells
+        upsert
+        use
+        where
+        window
+        wrap
+        zip"#]])
 }

@@ -15,7 +15,6 @@ use gdnative::{
     prelude::*,
 };
 use zf_ffi::{CommandArgs, TermCommand};
-use zf_runtime::cmds;
 use zf_term::{TerminalSize, ZFTerm, ZF};
 
 use crate::{
@@ -46,6 +45,7 @@ impl Default for ProcessState {
 pub struct Terminal {
     // seqno: usize,
     base: Ref<Control>,
+    vm: Option<Instance<VMManager>>,
     term: ZFTerm,
     // HACK: This is very wrong and we should not doing this
     // term_scroll_offset: isize,
@@ -55,7 +55,6 @@ pub struct Terminal {
     font: Ref<DynamicFont>,
     // font: Ref<Font>,
     cell_size: Vector2,
-    cmds: Vec<&'static str>,
     completion_item_list: Ref<ItemList>,
     typing_particles: PackedSceneRef,
     bg_opacity: f32,
@@ -135,12 +134,12 @@ impl Terminal {
         Terminal {
             // seqno: 0,
             base: base.claim(),
+            vm: None,
             font,
             process_state: ProcessState::Idle,
             buffer: String::new(),
             history: VecDeque::new(),
             cell_size,
-            cmds: cmds(),
             term: ZFTerm::new(writer, TerminalSize::default()),
             // term_scroll_offset: 0,
             completion_item_list,
@@ -185,6 +184,8 @@ impl Terminal {
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
         let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+
+        self.vm = vm_manager.cast_instance::<VMManager>().map(|vm| vm.claim());
 
         base.connect(
             ENTER_SIGNAL,
@@ -404,12 +405,15 @@ impl Terminal {
         }
 
         if !self.buffer.is_empty() {
-            let matched: Vec<&&str> = self
-                .cmds
-                .iter()
-                .filter(|cmd| cmd.starts_with(&self.buffer) && cmd.len() != self.buffer.len())
-                .take(5)
-                .collect();
+            let matched: Vec<String> = self
+                .vm
+                .as_ref()
+                .and_then(|instance| {
+                    unsafe { instance.assume_safe() }
+                        .map(|vm, _| vm.complete(&self.buffer))
+                        .ok()
+                })
+                .unwrap_or_default();
             let matched_len = matched.len();
             if !matched.is_empty() {
                 cl_visible = true;

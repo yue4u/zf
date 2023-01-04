@@ -7,7 +7,7 @@ edition = "2021"
 
 [[bin]]
 name = "zf-runtime-bin"
-path = "src/main.rs"
+path = "src/cli.rs"
 
 [dependencies]
 anyhow = { workspace = true }

@@ -1,6 +1,4 @@
 use std::io::Cursor;
-
-use anyhow::Ok;
 use wasi_common::{pipe::WritePipe, WasiCtx};
 use wasmtime::*;
 use wasmtime_wasi::WasiCtxBuilder;
@@ -27,18 +25,6 @@ alias e = engine;
 alias f = fire;
 "#;
 
-// generated via `help commands` for naive completions.
-// this only cmd name contains for now
-// it's better to do this in the shell but just much easier outside
-#[allow(dead_code)]
-const SHELL_CMDS: &'static str = include_str!("./cmds.txt");
-
-#[allow(dead_code)]
-pub fn cmds() -> Vec<&'static str> {
-    SHELL_CMDS.lines().collect()
-}
-
-#[allow(dead_code)]
 pub fn strip_ansi(input: impl std::fmt::Display) -> String {
     String::from_utf8_lossy(&strip_ansi_escapes::strip(input.to_string()).unwrap()).to_string()
 }
@@ -86,6 +72,11 @@ impl<S> Runtime<S> {
             _stdout: stdout,
             _stderr: stderr,
         })
+    }
+
+    pub fn cmds_available(&mut self) -> anyhow::Result<Vec<String>> {
+        let cmds = self.eval("help commands | get name | str join $'(char nl)'")?;
+        Ok(cmds.lines().map(|s| s.to_owned()).collect())
     }
 
     pub fn eval(&mut self, input: impl Into<String>) -> anyhow::Result<String> {

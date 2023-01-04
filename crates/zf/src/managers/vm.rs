@@ -24,6 +24,7 @@ use zf_runtime::{decode_from_caller, Caller, ExtendedStore, HostWrite, Runtime};
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
 pub struct VMManager {
+    cmds_available: Vec<String>,
     result_buffer: RefCell<ResultBuffer>,
     runtime: Option<Runtime<VMData>>,
     timer: Option<Ref<Timer>>,
@@ -111,6 +112,7 @@ impl VMData {
 impl VMManager {
     pub(crate) fn new(_base: &Node) -> Self {
         VMManager {
+            cmds_available: vec![],
             result_buffer: RefCell::new(HashMap::new()),
             runtime: None,
             timer: None,
@@ -140,6 +142,15 @@ impl VMManager {
 
         let mut runtime: Runtime<VMData> = VMData::from_base(base.claim()).into();
         runtime.eval(zf_runtime::SHELL_PRELOAD).unwrap();
+
+        // List all cmds available. we should not doing this here but
+        // 1. it's too slow to eval this every time when recompiling
+        // 2. it's too tedious to manually eval this every time when modify commands
+        // 3. both term and vm must be ready if passing this info via signal
+        if let Ok(cmds) = runtime.cmds_available() {
+            self.cmds_available = cmds
+        }
+
         self.runtime = Some(runtime);
 
         let timer = unsafe { Timer::new().into_shared().assume_safe() };
@@ -258,6 +269,15 @@ impl VMManager {
             VMSignal::OnGameState,
             &[GameEvent::LevelChange(scene).to_variant()],
         );
+    }
+
+    pub fn complete(&self, buffer: &str) -> Vec<String> {
+        self.cmds_available
+            .iter()
+            .filter(|cmd| cmd.starts_with(buffer) && cmd.len() != buffer.len())
+            .take(5)
+            .map(|cmd| cmd.to_owned())
+            .collect::<Vec<String>>()
     }
 }
 

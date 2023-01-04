@@ -1,18 +1,18 @@
-use std::{path::PathBuf, process::Command};
+use std::{fs, io, path::PathBuf, process::Command};
 
-fn main() {
+fn main() -> io::Result<()> {
     let root = PathBuf::from(env!("CARGO_WORKSPACE_DIR"));
     let build_dir = root.join("build");
     let gd_dir = root.join("zf");
 
-    std::fs::remove_dir_all(&build_dir).unwrap();
-    std::fs::create_dir_all(&build_dir).unwrap();
+    fs::remove_dir_all(&build_dir)?;
+    fs::create_dir_all(&build_dir)?;
 
     Command::new("godot")
         .current_dir(gd_dir)
         .args(["--no-window", "--export", "Linux/X11", "--path", "."])
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap();
+        .spawn()?
+        .wait()?;
+
+    Ok(())
 }

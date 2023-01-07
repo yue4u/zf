@@ -29,6 +29,7 @@ pub mod scenes {
     pub const TIME_TRIAL_TIMER: &str = "res://scenes/TimeTrialTimer.tscn";
     pub const MISSION: &str = "res://scenes/Mission.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
+    pub const RADIATION_AREA: &str = "res://scenes/RadiationArea.tscn";
     pub const SANDBOX: &str = "res://scenes/Sandbox.tscn";
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
     pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
@@ -40,6 +41,7 @@ pub mod scenes {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod levels {
+    pub const CHALLENGE_SHIELD_RADIATION_AREA: &str = "res://levels/Challenge_Shield_RadiationArea.tscn";
     pub const TUTORIAL_ENGINE_REL: &str = "res://levels/Tutorial_Engine_Rel.tscn";
     pub const CHALLENGE_INFINITE: &str = "res://levels/Challenge_Infinite.tscn";
     pub const TUTORIAL_TASK_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Task_Mission_Engine_Rel.tscn";
@@ -59,6 +61,7 @@ pub mod levels {
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, ToVariant, FromVariant)]
 pub enum LevelName {
+    ChallengeShieldRadiationArea,
     TutorialEngineRel,
     ChallengeInfinite,
     TutorialTaskMissionEngineRel,
@@ -79,6 +82,7 @@ pub enum LevelName {
 impl LevelName {
     pub fn from_path(value: &str) -> Self {
         match value {
+            levels::CHALLENGE_SHIELD_RADIATION_AREA => LevelName::ChallengeShieldRadiationArea,
             levels::TUTORIAL_ENGINE_REL => LevelName::TutorialEngineRel,
             levels::CHALLENGE_INFINITE => LevelName::ChallengeInfinite,
             levels::TUTORIAL_TASK_MISSION_ENGINE_REL => LevelName::TutorialTaskMissionEngineRel,
@@ -100,6 +104,7 @@ impl LevelName {
 impl LevelName {
     pub fn path(&self) -> &'static str {
         match self {
+            LevelName::ChallengeShieldRadiationArea => levels::CHALLENGE_SHIELD_RADIATION_AREA,
             LevelName::TutorialEngineRel => levels::TUTORIAL_ENGINE_REL,
             LevelName::ChallengeInfinite => levels::CHALLENGE_INFINITE,
             LevelName::TutorialTaskMissionEngineRel => levels::TUTORIAL_TASK_MISSION_ENGINE_REL,
@@ -121,6 +126,7 @@ impl LevelName {
 impl LevelName {
     pub fn from(name: &str) -> LevelName {
         match name {
+            "Challenge-Shield-Radiation-Area" => LevelName::ChallengeShieldRadiationArea,
             "Tutorial-Engine-Rel" => LevelName::TutorialEngineRel,
             "Challenge-Infinite" => LevelName::ChallengeInfinite,
             "Tutorial-Task-Mission-Engine-Rel" => LevelName::TutorialTaskMissionEngineRel,
@@ -140,6 +146,7 @@ impl LevelName {
 
     pub fn as_str(&self) -> &str {
         match &self {
+            LevelName::ChallengeShieldRadiationArea => "Challenge-Shield-Radiation-Area",
             LevelName::TutorialEngineRel => "Tutorial-Engine-Rel",
             LevelName::ChallengeInfinite => "Challenge-Infinite",
             LevelName::TutorialTaskMissionEngineRel => "Tutorial-Task-Mission-Engine-Rel",
@@ -242,6 +249,7 @@ pub mod player_mjolnir {
     pub const COLLISION_SHAPE: &str = "./Area/CollisionShape";
     pub const SHIELD: &str = "./Shield";
     pub const ANIMATION_PLAYER: &str = "./AnimationPlayer";
+    pub const SPOT_LIGHT: &str = "./SpotLight";
 }
 
 #[rustfmt::skip]
@@ -376,6 +384,13 @@ pub mod terminal_sandbox {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod radiation_area {
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod sandbox {
     pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
     pub const PATH: &str = "/root/Scene/Level/Path";
@@ -436,6 +451,17 @@ pub mod shield {
 pub mod planet {
     pub const SCENE: &str = "/root/Scene/scene";
     pub const ANIMATION_PLAYER: &str = "/root/Scene/scene/AnimationPlayer";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod challenge_shield_radiation_area {
+    pub const ORBIT: &str = "/root/Scene/Orbit";
+    pub const SPATIAL: &str = "/root/Scene/Spatial";
+    pub const SPATIAL_2: &str = "/root/Scene/Spatial2";
+    pub const PATH: &str = "/root/Scene/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Path/PathFollow/PlayerMjolnir";
 }
 
 #[rustfmt::skip]
@@ -527,6 +553,8 @@ pub mod challenge_engine_rel {
     pub const TARGET_2: &str = "/root/Scene/Level/Path/PathFollow/Point_2/Target_2";
     pub const POINT_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3";
     pub const TARGET_3: &str = "/root/Scene/Level/Path/PathFollow/Point_3/Target_3";
+    pub const POINT_4: &str = "/root/Scene/Level/Path/PathFollow/Point_4";
+    pub const TARGET_4: &str = "/root/Scene/Level/Path/PathFollow/Point_4/Target_4";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
 }
 
@@ -537,7 +565,7 @@ pub mod tutorial_shield {
     pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/t-dummy2";
     pub const T_DUMMY_3: &str = "/root/Scene/Level/t-dummy3";
-    pub const TIME_TRIAL_TIMER: &str = "/root/Scene/Level/TimeTrialTimer";
+    pub const COMMAND_INPUT_WATCHER: &str = "/root/Scene/Level/CommandInputWatcher";
 }
 
 #[rustfmt::skip]
@@ -604,7 +632,7 @@ pub mod tutorial_engine {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod tutorial_hello_world {
-    pub const CAMERA: &str = "/root/Scene/Level/Camera";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
     pub const COMMAND_INPUT_WATCHER: &str = "/root/Scene/Level/CommandInputWatcher";
 }
 
@@ -633,6 +661,7 @@ pub mod assets {
     pub const RADAR_TINT_SHADER: &str = "res://assets/radar_tint.shader";
     pub const RADAR_BG_SHADER: &str = "res://assets/radar_bg.shader";
     pub const THEME_TRANSPARENT_TRES: &str = "res://assets/theme_transparent.tres";
+    pub const RADIATION_AREA_SHADER: &str = "res://assets/RadiationArea.shader";
     pub const SHIELD_SHADER: &str = "res://assets/Shield.shader";
     pub const PLAYER_HEALTH_BAR_SHADER_TRES: &str = "res://assets/PlayerHealthBarShader.tres";
     pub const PIXELATE_TRES: &str = "res://assets/pixelate.tres";

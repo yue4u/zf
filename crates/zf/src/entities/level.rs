@@ -189,6 +189,16 @@ Survive for 15 seconds!
         "shield on"
     ],
 
+    @ChallengeShieldRadiationArea where
+    guide: r#"
+Radiation areas are dangerous to travel without shield,
+try turn on/off the shield at the right timing!
+"#,
+    hint: [
+        "shield on",
+        "shield off"
+    ],
+
     @ChallengeInfinite where
     guide: "Keep alive as long as possible",
     hint: [],

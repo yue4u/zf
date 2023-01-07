@@ -1,17 +1,58 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/RadiationArea.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scenes/Orbit.tscn" type="PackedScene" id=3]
 [ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=4]
+[ext_resource path="res://scenes/TargetPoint.tscn" type="PackedScene" id=5]
 
 [sub_resource type="Curve3D" id=1]
 _data = {
-"points": PoolVector3Array( 11.8046, 2.25325, -17.6864, -11.8046, -2.25325, 17.6864, 0, 0, 0, 0.346233, -6.013, -17.1899, -0.346233, 6.013, 17.1899, -21.6773, -13.7976, 42.0609, -5.98564, -2.18608, -10.4059, 5.98564, 2.18608, 10.4059, 6.94584, -4.50275, 68.1278, -11.7376, -1.04491, -2.01732, 11.7376, 1.04491, 2.01732, 23.0864, 3.60651, 92.5596, -8.2907, -2.34468, 15.4222, 8.2907, 2.34468, -15.4222, 55.0038, 16.6469, 88.1781, 12.0925, 1.52798, 17.077, -12.0925, -1.52798, -17.077, 47.7319, 3.80702, 53.6424, 0.668762, 5.63538, 10.9159, -0.668762, -5.63538, -10.9159, 44.0749, -5.25262, 19.2319, 6.2694, 9.55008, 3.45774, -6.2694, -9.55008, -3.45774, 25.8217, 0.277002, -20.8228, 3.63877, 4.17363, -8.30707, -3.63877, -4.17363, 8.30707, 0, 0, 0 ),
-"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0 )
+"points": PoolVector3Array( 5.19375, 2.80251, -8.94989, -5.19375, -2.80251, 8.94989, 0, 0, 0, 5.75151, 3.78744, -4.97201, -5.75151, -3.78744, 4.97201, -11.4695, -12.5377, 20.2121, -1.72818, -2.81484, -10.0993, 1.72818, 2.81484, 10.0993, -21.6773, -13.7976, 42.0609, -5.98564, -2.18608, -10.4059, 5.98564, 2.18608, 10.4059, 6.94584, -4.50275, 68.1278, -11.7376, -1.04491, -2.01732, 11.7376, 1.04491, 2.01732, 23.0864, 3.60651, 92.5596, -8.2907, -2.34468, 15.4222, 8.2907, 2.34468, -15.4222, 87.6728, 16.7978, 89.0612, -2.58834, -1.37593, 16.9664, 2.58834, 1.37593, -16.9664, 45.7045, 16.2665, 43.4351, -8.85492, 7.23771, 13.114, 8.85492, -7.23771, -13.114, 71.6093, -6.31284, 25.6073, -7.20703, 3.95526, 15.2698, 7.20703, -3.95526, -15.2698, 70.7232, 5.68904, -18.2188, -0.785791, 12.7884, -18.9321, 0.785791, -12.7884, 18.9321, 25.0351, -5.78859, -32.7485, 4.37082, -1.8847, -2.59156, -4.37082, 1.8847, 2.59156, 22.0311, -3.81976, -14.9839, 10.99, 3.75708, -12.0484, -10.99, -3.75708, 12.0484, 0, 0, 0 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 )
 }
 
 [node name="Scene" instance=ExtResource( 4 )]
+
+[node name="Point_1" type="Spatial" parent="Level" index="1"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -21.6773, -13.7976, 42.0609 )
+
+[node name="Target_1" parent="Level/Point_1" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_2" type="Spatial" parent="Level" index="2"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 6.94584, -4.50275, 68.1278 )
+
+[node name="Target_2" parent="Level/Point_2" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_3" type="Spatial" parent="Level" index="3"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 23.0864, 3.60651, 92.5596 )
+
+[node name="Target_3" parent="Level/Point_3" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_4" type="Spatial" parent="Level" index="4"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 87.6728, 16.7978, 89.0612 )
+
+[node name="Target_4" parent="Level/Point_4" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_5" type="Spatial" parent="Level" index="5"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 45.7045, 16.2665, 43.4351 )
+
+[node name="Target_5" parent="Level/Point_5" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_6" type="Spatial" parent="Level" index="6"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 71.6093, -6.31284, 25.6073 )
+
+[node name="Target_6" parent="Level/Point_6" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_7" type="Spatial" parent="Level" index="7"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 70.7232, 5.68904, -18.2188 )
+
+[node name="Target_7" parent="Level/Point_7" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_8" type="Spatial" parent="Level" index="8"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 25.0351, -5.78859, -32.7485 )
+
+[node name="Target_8" parent="Level/Point_8" index="0" instance=ExtResource( 5 )]
 
 [node name="Orbit" parent="." index="1" instance=ExtResource( 3 )]
 path_node = NodePath("../Path")
@@ -20,15 +61,18 @@ path_node = NodePath("../Path")
 transform = Transform( 20, 0, 0, 0, 20, 0, 0, 0, 20, -4.01324, -7.15847, 60.4624 )
 radius = 0.91869
 
-[node name="Spatial2" parent="." index="3" instance=ExtResource( 2 )]
-transform = Transform( 20, 0, 0, 0, 20, 0, 0, 0, 20, 48.9245, 7.35774, 40.7593 )
+[node name="Spatial3" parent="." index="3" instance=ExtResource( 2 )]
+transform = Transform( 20, 0, 0, 0, 20, 0, 0, 0, 20, 80.1006, 14.8086, 86.3979 )
 radius = 0.91869
 
-[node name="Path" type="Path" parent="." index="4"]
+[node name="Spatial4" parent="." index="4" instance=ExtResource( 2 )]
+transform = Transform( 20, 0, 0, 0, 20, 0, 0, 0, 20, 60.3949, -1.6891, -18.3524 )
+radius = 0.91869
+
+[node name="Path" type="Path" parent="." index="5"]
 curve = SubResource( 1 )
 
 [node name="PathFollow" type="PathFollow" parent="Path" index="0"]
-transform = Transform( 0.831443, -0.0598188, -0.552381, -3.72529e-09, 0.994188, -0.107663, 0.555609, 0.089516, 0.826611, 0, 0, 0 )
 rotation_mode = 4
 
 [node name="PlayerMjolnir" parent="Path/PathFollow" index="0" instance=ExtResource( 1 )]

@@ -45,7 +45,7 @@ impl From<Ref<Spatial>> for Player {
             shield: PlayerShield {
                 hit: 0.,
                 on: false,
-                time_left: 20.,
+                time_left: 15.,
             },
             position: Position::default(),
             rotation: Rotation::default(),

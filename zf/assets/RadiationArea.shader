@@ -153,7 +153,6 @@ vec3 voronoi(vec2 p){
         }
     }
     vec3 col = mix(vec3(1.,0.,0.), hash33(vec3(id, 1.0)), .2);
-    // col = mix( vec3(.0), col, smoothstep( 0.01, 0.05, md ) );
     return col;
 }
 
@@ -161,7 +160,7 @@ void fragment() {
 	ALBEDO = vec3(.0);
 	ALPHA = 0.;
 	EMISSION = vec3(1.);
-	vec3 c = voronoi(VERTEX.xy / 5. + TIME);
+	vec3 c = voronoi(VERTEX.xy / .5 + TIME);
 	ALBEDO = c;
 	ALPHA = .1;
 }

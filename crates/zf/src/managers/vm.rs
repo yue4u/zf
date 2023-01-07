@@ -422,7 +422,7 @@ impl RuntimeFunc {
                 unsafe { base.get_node_as_instance::<Player>(Player::path_from(base.as_ref())) }
                     .and_then(|instance| {
                         instance
-                            .map(|player, _| caller.write_json(&player.shield))
+                            .map(|player, _| caller.write_json(player.shield()))
                             .ok()
                     })
                     .unwrap_or(0)

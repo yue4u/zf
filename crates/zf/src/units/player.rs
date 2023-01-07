@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use gdnative::{
     api::{Area, CSGSphere, PathFollow, ShaderMaterial},
     prelude::*,
@@ -24,10 +22,10 @@ use crate::{
 pub struct Player {
     #[allow(unused)]
     base: Ref<Spatial>,
-    speed: RefCell<f64>,
-    pub shield: PlayerShield,
-    position: RefCell<Position>,
-    rotation: RefCell<Rotation>,
+    speed: f64,
+    shield: PlayerShield,
+    position: Position,
+    rotation: Rotation,
     engine: EngineState,
 }
 
@@ -43,14 +41,14 @@ impl From<Ref<Spatial>> for Player {
     fn from(value: Ref<Spatial>) -> Self {
         Player {
             base: value,
-            speed: RefCell::<f64>::default(),
+            speed: f64::default(),
             shield: PlayerShield {
                 hit: 0.,
                 on: false,
                 time_left: 20.,
             },
-            position: RefCell::<Position>::default(),
-            rotation: RefCell::<Rotation>::default(),
+            position: Position::default(),
+            rotation: Rotation::default(),
             engine: EngineState::default(),
         }
     }
@@ -104,6 +102,10 @@ impl Player {
     pub fn register_signal<T: NativeClass>(builder: &ClassBuilder<T>) {
         builder.signal(VMSignal::OnCmdResult.as_str()).done();
         builder.signal(PLAYER_HIT).done();
+    }
+
+    pub fn shield(&self) -> &PlayerShield {
+        &self.shield
     }
 
     #[method]
@@ -175,7 +177,7 @@ impl Player {
         };
 
         self.engine.status = next_status;
-        self.speed.replace(speed);
+        self.speed = speed;
 
         let res = input.into_result(Ok("ok".to_string()));
         base.emit_signal(VMSignal::OnCmdResult, &res.as_var());
@@ -238,8 +240,8 @@ impl Player {
         }
 
         let global_transform = base.cast::<Spatial>()?.global_transform();
-        self.position.replace(global_transform.origin);
-        self.rotation.replace(global_transform.basis.to_euler());
+        self.position = global_transform.origin;
+        self.rotation = global_transform.basis.to_euler();
 
         let local_transform = base.transform();
 
@@ -250,10 +252,8 @@ impl Player {
                 .linear_interpolate(self.engine.rel, delta as f32),
         });
 
-        let speed = *self.speed.borrow();
-
         let follow = unsafe { base.get_parent()?.assume_safe() }.cast::<PathFollow>()?;
-        follow.set_offset(follow.offset() + speed * 500. * delta);
+        follow.set_offset(follow.offset() + self.speed * 500. * delta);
         Some(())
     }
 
@@ -278,16 +278,12 @@ shield timeout: {:.2}
 status: {:?}
 rel: {}
 "#,
-            self.speed.borrow(),
-            self.position.borrow().display(),
-            self.rotation.borrow().display(),
+            self.speed,
+            self.position.display(),
+            self.rotation.display(),
             self.shield.time_left.max(0.),
             self.engine.status,
-            fmt_rel(self.engine.rel)
+            self.engine.rel.display()
         )
     }
-}
-
-fn fmt_rel(Vector3 { x, y, z }: Vector3) -> String {
-    format!("x: {x:.1}, y: {y:.1}, z: {z:.1}")
 }

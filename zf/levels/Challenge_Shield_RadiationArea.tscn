@@ -28,7 +28,7 @@ radius = 0.91869
 curve = SubResource( 1 )
 
 [node name="PathFollow" type="PathFollow" parent="Path" index="0"]
-transform = Transform( 0.831443, -0.0598189, -0.552381, 3.72529e-09, 0.994188, -0.107664, 0.55561, 0.0895161, 0.826611, 0, 0, 0 )
+transform = Transform( 0.831443, -0.0598188, -0.552381, -3.72529e-09, 0.994188, -0.107663, 0.555609, 0.089516, 0.826611, 0, 0, 0 )
 rotation_mode = 4
 
 [node name="PlayerMjolnir" parent="Path/PathFollow" index="0" instance=ExtResource( 1 )]

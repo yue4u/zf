@@ -2,7 +2,7 @@ use std::io::Cursor;
 use wasi_common::{pipe::WritePipe, WasiCtx};
 use wasmtime::*;
 use wasmtime_wasi::WasiCtxBuilder;
-use zf_ffi::CommandArgs;
+use zf_ffi::{CommandArgs, TaskListenableEvent};
 
 pub use wasmtime::{Caller, Func, Store};
 
@@ -75,8 +75,20 @@ impl<S> Runtime<S> {
     }
 
     pub fn cmds_available(&mut self) -> anyhow::Result<Vec<String>> {
-        let cmds = self.eval("help commands | get name | str join $'(char nl)'")?;
-        Ok(cmds.lines().map(|s| s.to_owned()).collect())
+        let cmds_raw = self.eval("help commands | get name | str join $'(char nl)'")?;
+        let mut cmds = cmds_raw
+            .lines()
+            .map(|s| s.to_owned())
+            .collect::<Vec<String>>();
+
+        // provide extra task on
+        cmds.append(
+            &mut TaskListenableEvent::all()
+                .iter()
+                .map(|ev| format!("task on {ev}"))
+                .collect::<Vec<String>>(),
+        );
+        Ok(cmds)
     }
 
     pub fn eval(&mut self, input: impl Into<String>) -> anyhow::Result<String> {

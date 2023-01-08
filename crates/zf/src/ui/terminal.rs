@@ -421,25 +421,28 @@ impl Terminal {
                 if has_delta {
                     cl.set_focus_mode(FocusMode::NONE.into());
 
+                    cl.clear();
+                    let mut matched_max: usize = 0;
+                    for item in matched.into_iter() {
+                        matched_max = matched_max.max(item.len());
+                        cl.add_item(item, GodotObject::null(), true);
+                    }
+
                     cl.set_size(
                         Vector2 {
-                            x: 200.,
+                            x: matched_max as f32 * self.cell_size.x,
                             y: matched_len as f32 * self.cell_size.y,
                         },
                         false,
                     );
 
-                    cl.clear();
-                    for item in matched.into_iter() {
-                        cl.add_item(item, GodotObject::null(), true);
-                    }
-
                     let cursor_pos = self.term.cursor_pos();
+                    let cursor_pos_adjust = 0.5;
                     cl.set_position(
                         self.draw_pos(
-                            (cursor_pos.x) as f32 + 0.5, // with extra adjust
+                            (cursor_pos.x) as f32 + cursor_pos_adjust,
                             // subtract display len + 1
-                            (cursor_pos.y - matched_len as i64) as f32 - 0.5, // with extra adjust
+                            (cursor_pos.y - matched_len as i64) as f32 - cursor_pos_adjust,
                         ),
                         false,
                     );

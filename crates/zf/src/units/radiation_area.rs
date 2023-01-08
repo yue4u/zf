@@ -1,11 +1,16 @@
-use gdnative::{api::Area, prelude::*};
+use gdnative::{
+    api::{object::ConnectFlags, Area},
+    prelude::*,
+};
+use zf_ffi::TaskListenableEvent;
 
-use crate::refs::groups;
+use crate::{common::find_ref, managers::VMManager, refs::groups, vm::VMSignal};
 
 use super::Player;
 
 #[derive(NativeClass)]
 #[inherit(Node)]
+#[register_with(Self::register_signals)]
 pub struct RadiationArea {
     active: bool,
 }
@@ -14,6 +19,10 @@ pub struct RadiationArea {
 impl RadiationArea {
     fn new(_base: &Node) -> Self {
         RadiationArea { active: false }
+    }
+
+    fn register_signals(builder: &ClassBuilder<Self>) {
+        builder.signal(VMSignal::OnListenableEvent.as_str()).done();
     }
 
     #[method]
@@ -38,6 +47,17 @@ impl RadiationArea {
         )
         .expect("failed to connect area_exited");
 
+        let vm_manager = find_ref::<VMManager, Node>(base).unwrap();
+
+        base.connect(
+            VMSignal::OnListenableEvent.as_str(),
+            vm_manager,
+            VMSignal::OnListenableEvent.as_str(),
+            VariantArray::new_shared(),
+            ConnectFlags::DEFERRED.into(),
+        )
+        .expect("failed to connect hit_by_player");
+
         let timer = unsafe { Timer::new().into_shared().assume_safe() };
         base.add_child(timer, false);
     }
@@ -52,23 +72,29 @@ impl RadiationArea {
     }
 
     #[method]
-    fn on_detected(&mut self, #[base] _base: &Node, area: Ref<Area>) -> Option<()> {
-        tracing::debug!("on_detected");
+    fn on_detected(&mut self, #[base] base: &Node, area: Ref<Area>) -> Option<()> {
         let maybe_player = unsafe { area.assume_safe().get_parent()?.assume_safe() };
         if !maybe_player.is_in_group(groups::PLAYER) {
             return None;
         }
+        base.emit_signal(
+            VMSignal::OnListenableEvent,
+            &[TaskListenableEvent::RadiationAreaEntered.to_variant()],
+        );
         self.active = true;
         Some(())
     }
 
     #[method]
-    fn on_lost(&mut self, #[base] _base: &Node, area: Ref<Area>) -> Option<()> {
-        tracing::debug!("on_lost");
+    fn on_lost(&mut self, #[base] base: &Node, area: Ref<Area>) -> Option<()> {
         let maybe_player = unsafe { area.assume_safe().get_parent()?.assume_safe() };
         if !maybe_player.is_in_group(groups::PLAYER) {
             return None;
         }
+        base.emit_signal(
+            VMSignal::OnListenableEvent,
+            &[TaskListenableEvent::RadiationAreaExited.to_variant()],
+        );
 
         self.active = false;
         Some(())

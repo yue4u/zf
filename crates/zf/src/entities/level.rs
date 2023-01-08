@@ -199,6 +199,19 @@ try turn on/off the shield at the right timing!
         "shield off"
     ],
 
+    @ChallengeShieldRadiationAreaTaskOn where
+    guide: r#"
+`task on` command allows our spaceship to run a command when specific event occurs,
+try combine this command with `shield` like
+`task on radiation_area_entered 'shield ???'` and
+`task on radiation_area_exited 'shield ???'` to clear this level!
+"#,
+    hint: [
+        "task on radiation_area_entered 'shield on'",
+        "task on radiation_area_exited 'shield off'",
+        "time scale 2; e t 100"
+    ],
+
     @ChallengeInfinite where
     guide: "Keep alive as long as possible",
     hint: [],

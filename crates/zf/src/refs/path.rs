@@ -47,6 +47,7 @@ pub mod levels {
     pub const TUTORIAL_TASK_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Task_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_TASK_ENGINE_COMBINE: &str = "res://levels/Tutorial_Task_Engine_Combine.tscn";
+    pub const CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON: &str = "res://levels/Challenge_Shield_RadiationArea_Task_On.tscn";
     pub const CHALLENGE_ENGINE_REL: &str = "res://levels/Challenge_Engine_Rel.tscn";
     pub const TUTORIAL_SHIELD: &str = "res://levels/Tutorial_Shield.tscn";
     pub const TUTORIAL_FIRE: &str = "res://levels/Tutorial_Fire.tscn";
@@ -67,6 +68,7 @@ pub enum LevelName {
     TutorialTaskMissionEngineRel,
     TutorialMissionEngineRel,
     TutorialTaskEngineCombine,
+    ChallengeShieldRadiationAreaTaskOn,
     ChallengeEngineRel,
     TutorialShield,
     TutorialFire,
@@ -88,6 +90,7 @@ impl LevelName {
             levels::TUTORIAL_TASK_MISSION_ENGINE_REL => LevelName::TutorialTaskMissionEngineRel,
             levels::TUTORIAL_MISSION_ENGINE_REL => LevelName::TutorialMissionEngineRel,
             levels::TUTORIAL_TASK_ENGINE_COMBINE => LevelName::TutorialTaskEngineCombine,
+            levels::CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON => LevelName::ChallengeShieldRadiationAreaTaskOn,
             levels::CHALLENGE_ENGINE_REL => LevelName::ChallengeEngineRel,
             levels::TUTORIAL_SHIELD => LevelName::TutorialShield,
             levels::TUTORIAL_FIRE => LevelName::TutorialFire,
@@ -110,6 +113,7 @@ impl LevelName {
             LevelName::TutorialTaskMissionEngineRel => levels::TUTORIAL_TASK_MISSION_ENGINE_REL,
             LevelName::TutorialMissionEngineRel => levels::TUTORIAL_MISSION_ENGINE_REL,
             LevelName::TutorialTaskEngineCombine => levels::TUTORIAL_TASK_ENGINE_COMBINE,
+            LevelName::ChallengeShieldRadiationAreaTaskOn => levels::CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON,
             LevelName::ChallengeEngineRel => levels::CHALLENGE_ENGINE_REL,
             LevelName::TutorialShield => levels::TUTORIAL_SHIELD,
             LevelName::TutorialFire => levels::TUTORIAL_FIRE,
@@ -132,6 +136,7 @@ impl LevelName {
             "Tutorial-Task-Mission-Engine-Rel" => LevelName::TutorialTaskMissionEngineRel,
             "Tutorial-Mission-Engine-Rel" => LevelName::TutorialMissionEngineRel,
             "Tutorial-Task-Engine-Combine" => LevelName::TutorialTaskEngineCombine,
+            "Challenge-Shield-Radiation-Area-Task-On" => LevelName::ChallengeShieldRadiationAreaTaskOn,
             "Challenge-Engine-Rel" => LevelName::ChallengeEngineRel,
             "Tutorial-Shield" => LevelName::TutorialShield,
             "Tutorial-Fire" => LevelName::TutorialFire,
@@ -152,6 +157,7 @@ impl LevelName {
             LevelName::TutorialTaskMissionEngineRel => "Tutorial-Task-Mission-Engine-Rel",
             LevelName::TutorialMissionEngineRel => "Tutorial-Mission-Engine-Rel",
             LevelName::TutorialTaskEngineCombine => "Tutorial-Task-Engine-Combine",
+            LevelName::ChallengeShieldRadiationAreaTaskOn => "Challenge-Shield-Radiation-Area-Task-On",
             LevelName::ChallengeEngineRel => "Challenge-Engine-Rel",
             LevelName::TutorialShield => "Tutorial-Shield",
             LevelName::TutorialFire => "Tutorial-Fire",
@@ -456,9 +462,26 @@ pub mod planet {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod challenge_shield_radiation_area {
+    pub const POINT_1: &str = "/root/Scene/Level/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Point_3/Target_3";
+    pub const POINT_4: &str = "/root/Scene/Level/Point_4";
+    pub const TARGET_4: &str = "/root/Scene/Level/Point_4/Target_4";
+    pub const POINT_5: &str = "/root/Scene/Level/Point_5";
+    pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
+    pub const POINT_6: &str = "/root/Scene/Level/Point_6";
+    pub const TARGET_6: &str = "/root/Scene/Level/Point_6/Target_6";
+    pub const POINT_7: &str = "/root/Scene/Level/Point_7";
+    pub const TARGET_7: &str = "/root/Scene/Level/Point_7/Target_7";
+    pub const POINT_8: &str = "/root/Scene/Level/Point_8";
+    pub const TARGET_8: &str = "/root/Scene/Level/Point_8/Target_8";
     pub const ORBIT: &str = "/root/Scene/Orbit";
     pub const SPATIAL: &str = "/root/Scene/Spatial";
-    pub const SPATIAL_2: &str = "/root/Scene/Spatial2";
+    pub const SPATIAL_4: &str = "/root/Scene/Spatial4";
+    pub const PLANET: &str = "/root/Scene/Planet";
     pub const PATH: &str = "/root/Scene/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Path/PathFollow/PlayerMjolnir";
@@ -539,6 +562,29 @@ pub mod tutorial_task_engine_combine {
     pub const TARGET_4: &str = "/root/Scene/Level/Point_4/Target_4";
     pub const POINT_5: &str = "/root/Scene/Level/Point_5";
     pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod challenge_shield_radiation_area_task_on {
+    pub const POINT_1: &str = "/root/Scene/Level/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Point_2";
+    pub const TARGET_2: &str = "/root/Scene/Level/Point_2/Target_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Point_3/Target_3";
+    pub const POINT_4: &str = "/root/Scene/Level/Point_4";
+    pub const TARGET_4: &str = "/root/Scene/Level/Point_4/Target_4";
+    pub const POINT_5: &str = "/root/Scene/Level/Point_5";
+    pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
+    pub const POINT_6: &str = "/root/Scene/Level/Point_6";
+    pub const TARGET_6: &str = "/root/Scene/Level/Point_6/Target_6";
+    pub const ORBIT: &str = "/root/Scene/Orbit";
+    pub const SPATIAL: &str = "/root/Scene/Spatial";
+    pub const SPATIAL_4: &str = "/root/Scene/Spatial4";
+    pub const PATH: &str = "/root/Scene/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Path/PathFollow/PlayerMjolnir";
 }
 
 #[rustfmt::skip]

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, fmt::Display};
 use zf_ffi::{
     memory::Tag, CommandArgs, CommandResults, GameCommand, LevelCommand, MissionCommand,
-    ShieldCommand, TaskCommand,
+    ShieldCommand, TaskCommand, TaskListenableEvent,
 };
 
 use crate::{
@@ -50,6 +50,7 @@ impl Display for Task {
 struct VMData {
     cmd_id: u32,
     background_tasks: HashMap<usize, Task>,
+    listen_tasks: HashMap<TaskListenableEvent, String>,
     base: Ref<Node>,
 }
 
@@ -58,6 +59,7 @@ impl VMData {
         Self {
             cmd_id: 0,
             background_tasks: HashMap::new(),
+            listen_tasks: HashMap::new(),
             base,
         }
     }
@@ -124,6 +126,7 @@ impl VMManager {
         builder.signal(VMSignal::OnCmdParsed.as_str()).done();
         builder.signal(VMSignal::OnCmdResult.as_str()).done();
         builder.signal(VMSignal::OnGameState.as_str()).done();
+        builder.signal(VMSignal::OnListenableEvent.as_str()).done();
     }
 
     #[method]
@@ -186,6 +189,25 @@ impl VMManager {
         for cmd in cmds {
             _ = runtime.eval(cmd);
         }
+        Some(())
+    }
+
+    #[method]
+    fn on_listenable_event(
+        &mut self,
+        #[base] _base: TRef<Node>,
+        event: TaskListenableEvent,
+    ) -> Option<()> {
+        tracing::debug!("on_listenable_event: {}", event);
+        let runtime = self.runtime.as_mut()?;
+        let cmd = runtime
+            .store
+            .data()
+            .ext
+            .listen_tasks
+            .get(&event)?
+            .to_owned();
+        _ = runtime.eval(cmd);
         Some(())
     }
 
@@ -317,6 +339,12 @@ impl RuntimeFunc {
                         let task = Task { id: task_id, cmd };
                         let start_info = format!("start {}", &task);
                         caller.data_mut().ext.background_tasks.insert(task_id, task);
+
+                        start_info
+                    }
+                    TaskCommand::On { event, cmd } => {
+                        let start_info = format!("start {cmd} on {event}");
+                        caller.data_mut().ext.listen_tasks.insert(event, cmd);
 
                         start_info
                     }

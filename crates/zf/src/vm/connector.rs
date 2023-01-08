@@ -36,6 +36,7 @@ pub enum VMSignal {
     OnCmdParsed,
     OnCmdResult,
     OnGameState,
+    OnListenableEvent,
 }
 
 pub struct VMSignalConnectOptions {
@@ -73,6 +74,7 @@ impl VMSignal {
             VMSignal::OnCmdParsed => "on_cmd_parsed",
             VMSignal::OnCmdResult => "on_cmd_result",
             VMSignal::OnGameState => "on_game_state",
+            VMSignal::OnListenableEvent => "on_listenable_event",
         }
     }
 }

@@ -30,8 +30,7 @@ bind_path!(
     VMManager => auto_load::VM
 );
 
-pub fn next_level(current: String) -> Option<LevelName> {
+pub fn next_level(current: String) -> Option<&'static LevelName> {
     let current_idx = LEVELS.iter().position(|l| l.as_str() == &current)?;
-    let next = LEVELS.get(current_idx + 1)?;
-    Some(next.clone())
+    LEVELS.get(current_idx + 1)
 }

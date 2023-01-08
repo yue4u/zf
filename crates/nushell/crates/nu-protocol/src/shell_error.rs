@@ -190,7 +190,7 @@ pub enum ShellError {
     /// Make sure there's an appropriate `run-external` declaration for this external command.
     #[error("Running external commands not supported")]
     #[diagnostic(code(nu::shell::external_commands), url(docsrs))]
-    ExternalNotSupported(#[label = "external not supported"] Span),
+    ExternalNotSupported(#[label = "unknown command"] Span),
 
     /// The given probability input is invalid. The probability must be between 0 and 1.
     ///

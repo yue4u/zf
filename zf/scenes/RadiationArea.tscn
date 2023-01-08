@@ -10,6 +10,7 @@ shader_param/hit = 0.0
 [sub_resource type="SphereShape" id=2]
 
 [node name="RadiationArea" type="CSGSphere"]
+rings = 12
 material = SubResource( 1 )
 script = ExtResource( 2 )
 

@@ -71,7 +71,7 @@ impl VMData {
         self.background_tasks.clear();
     }
 
-    fn change_scene(&mut self, scene: LevelName) {
+    fn change_scene(&mut self, scene: &LevelName) {
         self.clean_background_tasks();
 
         unsafe {
@@ -80,7 +80,7 @@ impl VMData {
                 .get_node_as_instance::<ScreenTransition>(auto_load::POST_PROCESSING_TEXTURE_RECT)
         }
         .unwrap()
-        .map_mut(|screen_transition, _| screen_transition.to(scene))
+        .map_mut(|screen_transition, _| screen_transition.to(scene.to_owned()))
         .unwrap();
     }
 
@@ -89,7 +89,7 @@ impl VMData {
     }
 
     fn reload_scene(&mut self) {
-        self.change_scene(self.current_level());
+        self.change_scene(&self.current_level());
     }
 
     fn target_point_info_in_group(&self, group: impl Into<GodotString>) -> Vec<TargetPointInfo> {
@@ -359,10 +359,10 @@ impl RuntimeFunc {
                         caller
                             .data_mut()
                             .ext
-                            .change_scene(LevelName::ChallengeInfinite);
+                            .change_scene(&LevelName::ChallengeInfinite);
                     }
                     GameCommand::Menu => {
-                        caller.data_mut().ext.change_scene(LevelName::StartMenu);
+                        caller.data_mut().ext.change_scene(&LevelName::StartMenu);
                     }
                     GameCommand::End => {
                         caller.data().ext.scene_tree().quit(0);
@@ -374,7 +374,7 @@ impl RuntimeFunc {
                 LevelCommand::Start(name) => {
                     let scene = LevelName::from(&name);
                     if scene != LevelName::Unknown {
-                        caller.data_mut().ext.change_scene(scene);
+                        caller.data_mut().ext.change_scene(&scene);
                     }
                     0
                 }
@@ -405,7 +405,7 @@ impl RuntimeFunc {
                 caller
                     .data_mut()
                     .ext
-                    .change_scene(LevelName::TutorialHelloWorld);
+                    .change_scene(&LevelName::TutorialHelloWorld);
                 0
             }
             CommandArgs::Hint => {

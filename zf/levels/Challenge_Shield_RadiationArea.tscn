@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/RadiationArea.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scenes/Orbit.tscn" type="PackedScene" id=3]
 [ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=4]
 [ext_resource path="res://scenes/TargetPoint.tscn" type="PackedScene" id=5]
+[ext_resource path="res://scenes/Planet.tscn" type="PackedScene" id=6]
 
 [sub_resource type="Curve3D" id=1]
 _data = {
@@ -61,18 +62,18 @@ path_node = NodePath("../Path")
 transform = Transform( 20, 0, 0, 0, 20, 0, 0, 0, 20, -4.01324, -7.15847, 60.4624 )
 radius = 0.91869
 
-[node name="Spatial3" parent="." index="3" instance=ExtResource( 2 )]
-transform = Transform( 20, 0, 0, 0, 20, 0, 0, 0, 20, 80.1006, 14.8086, 86.3979 )
-radius = 0.91869
-
-[node name="Spatial4" parent="." index="4" instance=ExtResource( 2 )]
+[node name="Spatial4" parent="." index="3" instance=ExtResource( 2 )]
 transform = Transform( 20, 0, 0, 0, 20, 0, 0, 0, 20, 60.3949, -1.6891, -18.3524 )
 radius = 0.91869
+
+[node name="Planet" parent="." index="4" instance=ExtResource( 6 )]
+transform = Transform( 13.4134, 0, 14.8351, 0, 20, 0, -14.8351, 0, 13.4134, 101.177, 11.2313, 53.6624 )
 
 [node name="Path" type="Path" parent="." index="5"]
 curve = SubResource( 1 )
 
 [node name="PathFollow" type="PathFollow" parent="Path" index="0"]
+transform = Transform( 0.865716, -0.132024, -0.482809, 0, 0.964587, -0.263766, 0.500535, 0.228346, 0.835058, 0, 0, 0 )
 rotation_mode = 4
 
 [node name="PlayerMjolnir" parent="Path/PathFollow" index="0" instance=ExtResource( 1 )]

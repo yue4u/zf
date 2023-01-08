@@ -48,7 +48,7 @@ impl RadiationArea {
             return None;
         }
         let player = unsafe { base.get_node_as_instance::<Player>(Player::path_from(base))? };
-        player.map_mut(|player, _| player.damage(100)).ok()
+        player.map_mut(|player, _| player.damage(30)).ok()
     }
 
     #[method]

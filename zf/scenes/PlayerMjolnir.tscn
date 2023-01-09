@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://assets/3rd/mjolnir/scene.gltf" type="PackedScene" id=1]
 [ext_resource path="res://scripts/player.gdns" type="Script" id=2]
 [ext_resource path="res://scenes/Shield.tscn" type="PackedScene" id=3]
+[ext_resource path="res://scenes/EngineParticles.tscn" type="PackedScene" id=4]
 
 [sub_resource type="CapsuleShape" id=2]
 radius = 2.2
@@ -41,6 +42,18 @@ tracks/0/keys = {
 [node name="PlayerMjolnir" instance=ExtResource( 1 )]
 transform = Transform( -1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0 )
 script = ExtResource( 2 )
+
+[node name="Spatial" type="Spatial" parent="Sketchfab_model" index="1"]
+transform = Transform( 1, 0, 0, 0, 2.22045e-16, -1, 0, 1, 2.22045e-16, -2.5, -2.3, -0.2 )
+
+[node name="EngineParticles" parent="Sketchfab_model/Spatial" index="0" instance=ExtResource( 4 )]
+transform = Transform( 0.3, 0, 0, 0, 0.3, -1.31134e-08, 0, 1.31134e-08, 0.3, 0, 0, 0 )
+
+[node name="Spatial2" type="Spatial" parent="Sketchfab_model" index="2"]
+transform = Transform( 1, 0, 0, 0, 2.22045e-16, -1, 0, 1, 2.22045e-16, 2.5, -2.3, -0.2 )
+
+[node name="EngineParticles" parent="Sketchfab_model/Spatial2" index="0" instance=ExtResource( 4 )]
+transform = Transform( 0.3, 0, 0, 0, 0.3, -1.31134e-08, 0, 1.31134e-08, 0.3, 0, 0, 0 )
 
 [node name="Camera" type="Camera" parent="." index="1"]
 transform = Transform( 0.0999998, -6.18929e-08, 1.6531e-08, 3.63798e-11, 0.0999999, -6.51926e-09, -2.32831e-10, 1.16415e-10, 0.1, 0, 3, 10 )

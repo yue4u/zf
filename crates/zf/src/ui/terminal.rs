@@ -430,7 +430,7 @@ impl Terminal {
 
                     cl.set_size(
                         Vector2 {
-                            x: matched_max as f32 * self.cell_size.x,
+                            x: (matched_max + 1) as f32 * self.cell_size.x,
                             y: matched_len as f32 * self.cell_size.y,
                         },
                         false,

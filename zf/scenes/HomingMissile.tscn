@@ -24,14 +24,14 @@ gradient = SubResource( 7 )
 max_value = 20.0
 _data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 1, 20 ), 0.0, 0.0, 0, 0 ]
 
-[sub_resource type="CurveTexture" id=6]
+[sub_resource type="CurveTexture" id=9]
 curve = SubResource( 5 )
 
 [sub_resource type="ParticlesMaterial" id=2]
 emission_shape = 2
 emission_box_extents = Vector3( 3, 3, 0 )
 gravity = Vector3( 0, 0, 5 )
-scale_curve = SubResource( 6 )
+scale_curve = SubResource( 9 )
 color_ramp = SubResource( 8 )
 
 [sub_resource type="QuadMesh" id=3]

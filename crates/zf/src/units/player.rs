@@ -1,5 +1,5 @@
 use gdnative::{
-    api::{Area, CSGSphere, PathFollow, ShaderMaterial},
+    api::{Area, CSGSphere, Particles, ParticlesMaterial, PathFollow, ShaderMaterial},
     prelude::*,
 };
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use crate::{
     refs::{
         self,
         groups::{self, Layer},
-        path::scenes,
+        path::{player_mjolnir, scenes},
     },
     vm::{CommandInput, VMConnecter, VMSignal},
     weapons::HomingMissile,
@@ -111,6 +111,7 @@ impl Player {
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Spatial>) -> Option<()> {
         base.add_to_group(groups::PLAYER, false);
+        self.update_engine();
         // FIXME: this is a hack to get it to work.
         let node = unsafe { base.get_node_as::<Node>(".")? };
         node.connect_vm_signal(VMSignal::OnCmdParsed.into());
@@ -177,6 +178,7 @@ impl Player {
         };
 
         self.engine.status = next_status;
+        self.update_engine();
         self.speed = speed;
 
         let res = input.into_result(Ok("ok".to_string()));
@@ -188,7 +190,7 @@ impl Player {
         Some(unsafe {
             self.base
                 .assume_safe()
-                .get_node(refs::path::player_mjolnir::SHIELD)?
+                .get_node(player_mjolnir::SHIELD)?
                 .assume_safe()
                 .cast::<Spatial>()?
                 .assume_shared()
@@ -255,6 +257,37 @@ impl Player {
         let follow = unsafe { base.get_parent()?.assume_safe() }.cast::<PathFollow>()?;
         follow.set_offset(follow.offset() + self.speed * 500. * delta);
         Some(())
+    }
+
+    fn update_engine(&self) {
+        let amount = match self.engine.status {
+            EngineStatus::On(amount) => amount,
+            EngineStatus::Off => 0,
+        };
+
+        [
+            player_mjolnir::ENGINE_PARTICLES,
+            player_mjolnir::ENGINE_PARTICLES_1,
+        ]
+        .into_iter()
+        .for_each(|path| {
+            unsafe {
+                self.base
+                    .assume_safe()
+                    .get_node_as::<Particles>(path)
+                    .map(|p| {
+                        p.set_visible(amount > 0);
+                        p.process_material()
+                            .unwrap()
+                            .assume_safe()
+                            .cast::<ParticlesMaterial>()
+                            .unwrap()
+                            .set_initial_velocity(-10. * amount as f64 / 128.);
+                        // set_amount: Amount of particles cannot be smaller than 1.
+                        p.set_amount(amount.max(1) as i64);
+                    })
+            };
+        });
     }
 
     #[method]

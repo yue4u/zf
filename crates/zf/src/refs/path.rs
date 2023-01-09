@@ -21,6 +21,7 @@ pub mod scenes {
     pub const PLAYER_HEALTH_BAR: &str = "res://scenes/PlayerHealthBar.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
     pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
+    pub const ENGINE_PARTICLES: &str = "res://scenes/EngineParticles.tscn";
     pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
     pub const TITLE_LABEL: &str = "res://scenes/TitleLabel.tscn";
@@ -249,6 +250,10 @@ pub mod sandbox_2_d {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod player_mjolnir {
+    pub const SPATIAL: &str = "./Sketchfab_model/Spatial";
+    pub const ENGINE_PARTICLES: &str = "./Sketchfab_model/Spatial/EngineParticles";
+    pub const SPATIAL_2: &str = "./Sketchfab_model/Spatial2";
+    pub const ENGINE_PARTICLES_1: &str = "./Sketchfab_model/Spatial2/EngineParticles";
     pub const CAMERA: &str = "./Camera";
     pub const PROJECTILES: &str = "./Projectiles";
     pub const AREA: &str = "./Area";
@@ -323,6 +328,12 @@ pub mod t_dummy {
     pub const AREA: &str = "/root/Scene/Area";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
     pub const HP: &str = "/root/Scene/HP";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod engine_particles {
+
 }
 
 #[rustfmt::skip]

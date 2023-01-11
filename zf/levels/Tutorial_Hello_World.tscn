@@ -9,4 +9,7 @@
 [node name="PlayerMjolnir" parent="Level" index="1" instance=ExtResource( 3 )]
 
 [node name="CommandInputWatcher" parent="Level" index="2" instance=ExtResource( 1 )]
+__meta__ = {
+"_editor_description_": ""
+}
 target_input = "hi"

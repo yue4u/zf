@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://scenes/HealthBar2D.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/EnemyHealthBar2D.tscn" type="PackedScene" id=1]
 
 [sub_resource type="ViewportTexture" id=1]
 viewport_path = NodePath("Viewport")

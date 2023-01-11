@@ -9,13 +9,13 @@ void fragment() {
 	if (l < w){
 		float border = .01;
 		if (l < border || l > w - border){
-			ALPHA = .5
+			ALPHA = .2
 		}
 		ALBEDO += vec3(.2, 0.2, 0.6);
 
 		if (fract((-UV.x + TIME) / 4.) < .01){
 			ALPHA = 1.
 		}
-		ALPHA += 0.05;
+		ALPHA += 0.02;
 	}
 }

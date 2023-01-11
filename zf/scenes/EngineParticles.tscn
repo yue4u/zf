@@ -11,7 +11,7 @@ colors = PoolColorArray( 1, 1, 1, 1, 1, 0.208008, 0, 1, 0, 0.701172, 1, 0 )
 gradient = SubResource( 16 )
 
 [sub_resource type="Curve" id=18]
-_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 0.255906, 0.513636 ), -1.30514, -1.30514, 0, 0, Vector2( 1, 0 ), 0.0, 0.0, 0, 0 ]
+_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 0.318898, 0.492045 ), -1.30514, -1.30514, 0, 0, Vector2( 1, 0.192045 ), 0.0, 0.0, 0, 0 ]
 
 [sub_resource type="CurveTexture" id=19]
 curve = SubResource( 18 )
@@ -42,7 +42,7 @@ vertex_color_use_as_albedo = true
 params_blend_mode = 1
 params_billboard_mode = 3
 params_grow = true
-params_grow_amount = 10.0
+params_grow_amount = 16.0
 particles_anim_h_frames = 1
 particles_anim_v_frames = 1
 particles_anim_loop = false
@@ -52,7 +52,7 @@ albedo_texture = ExtResource( 1 )
 material = SubResource( 20 )
 
 [node name="EngineParticles" type="Particles"]
-transform = Transform( 0.3, 0, 0, 0, -1.31134e-08, -0.3, 0, 0.3, -1.31134e-08, -2.5, -2.4, -0.2 )
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0 )
 cast_shadow = 0
 amount = 100
 draw_order = 2

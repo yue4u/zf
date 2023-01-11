@@ -247,6 +247,7 @@ impl Player {
 
         let local_transform = base.transform();
 
+        // TODO: update show engine effect for rel
         base.set_transform(Transform {
             basis: local_transform.basis,
             origin: local_transform
@@ -266,8 +267,10 @@ impl Player {
         };
 
         [
-            player_mjolnir::ENGINE_PARTICLES,
-            player_mjolnir::ENGINE_PARTICLES_1,
+            player_mjolnir::EL_1,
+            player_mjolnir::EL_2,
+            player_mjolnir::EL_3,
+            player_mjolnir::EL_4,
         ]
         .into_iter()
         .for_each(|path| {

@@ -31,6 +31,7 @@ pub mod scenes {
     pub const MISSION: &str = "res://scenes/Mission.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
     pub const RADIATION_AREA: &str = "res://scenes/RadiationArea.tscn";
+    pub const ITEM_LIST: &str = "res://scenes/ItemList.tscn";
     pub const SANDBOX: &str = "res://scenes/Sandbox.tscn";
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
     pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
@@ -244,16 +245,17 @@ pub mod health_bar_2_d {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod sandbox_2_d {
-    pub const ITEM_LIST: &str = "/root/Scene/ItemList";
+
 }
 
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod player_mjolnir {
-    pub const SPATIAL: &str = "./Sketchfab_model/Spatial";
-    pub const ENGINE_PARTICLES: &str = "./Sketchfab_model/Spatial/EngineParticles";
-    pub const SPATIAL_2: &str = "./Sketchfab_model/Spatial2";
-    pub const ENGINE_PARTICLES_1: &str = "./Sketchfab_model/Spatial2/EngineParticles";
+    pub const ENGINE_PARTICLES: &str = "./Sketchfab_model/EngineParticles";
+    pub const EL_1: &str = "./Sketchfab_model/EngineParticles/EL1";
+    pub const EL_2: &str = "./Sketchfab_model/EngineParticles/EL2";
+    pub const EL_3: &str = "./Sketchfab_model/EngineParticles/EL3";
+    pub const EL_4: &str = "./Sketchfab_model/EngineParticles/EL4";
     pub const CAMERA: &str = "./Camera";
     pub const PROJECTILES: &str = "./Projectiles";
     pub const AREA: &str = "./Area";
@@ -404,6 +406,12 @@ pub mod terminal_sandbox {
 pub mod radiation_area {
     pub const AREA: &str = "/root/Scene/Area";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod item_list {
+    pub const ITEM_LIST: &str = "/root/Scene/ItemList";
 }
 
 #[rustfmt::skip]

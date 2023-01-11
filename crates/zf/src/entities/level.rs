@@ -195,8 +195,10 @@ Radiation areas are dangerous to travel without shield,
 try turn on/off the shield at the right timing!
 "#,
     hint: [
+        "e t 100",
         "shield on",
-        "shield off"
+        "shield off",
+        "shield on"
     ],
 
     @ChallengeShieldRadiationAreaTaskOn where

@@ -1,11 +1,11 @@
 [gd_scene load_steps=11 format=2]
 
-[ext_resource path="res://assets/code_theme.tres" type="Theme" id=1]
+[ext_resource path="res://assets/CodeTheme.tres" type="Theme" id=1]
 [ext_resource path="res://scripts/PerfLabel.gdns" type="Script" id=2]
 [ext_resource path="res://scripts/VMManager.gdns" type="Script" id=3]
 [ext_resource path="res://scripts/ScreenTransition.gdns" type="Script" id=4]
 [ext_resource path="res://icon.png" type="Texture" id=5]
-[ext_resource path="res://assets/pixelate.tres" type="Material" id=6]
+[ext_resource path="res://assets/Pixelate.tres" type="Material" id=6]
 [ext_resource path="res://scenes/Terminal.tscn" type="PackedScene" id=7]
 [ext_resource path="res://assets/UITheme.tres" type="Theme" id=8]
 

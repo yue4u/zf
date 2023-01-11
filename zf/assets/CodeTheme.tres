@@ -18,7 +18,9 @@ corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id=7]
-bg_color = Color( 1, 0.74902, 0, 0.388235 )
+bg_color = Color( 0.372549, 0.894118, 0.807843, 0.631373 )
+shadow_size = 10
+shadow_offset = Vector2( 5, 0 )
 
 [sub_resource type="DynamicFont" id=4]
 size = 24
@@ -36,7 +38,6 @@ corner_radius_bottom_left = 5
 [resource]
 default_font = SubResource( 1 )
 ItemList/colors/font_color = Color( 1, 1, 1, 1 )
-ItemList/colors/guide_color = Color( 0.176471, 0.176471, 0.176471, 1 )
 ItemList/fonts/font = SubResource( 1 )
 ItemList/styles/bg = SubResource( 8 )
 ItemList/styles/selected = SubResource( 7 )

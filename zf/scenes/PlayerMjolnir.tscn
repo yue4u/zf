@@ -43,17 +43,20 @@ tracks/0/keys = {
 transform = Transform( -1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0 )
 script = ExtResource( 2 )
 
-[node name="Spatial" type="Spatial" parent="Sketchfab_model" index="1"]
-transform = Transform( 1, 0, 0, 0, 2.22045e-16, -1, 0, 1, 2.22045e-16, -2.5, -2.3, -0.2 )
+[node name="EngineParticles" type="Spatial" parent="Sketchfab_model" index="1"]
+transform = Transform( 1, -1.05324e-33, 0, 0, 2.22045e-16, -1, 0, 1, 2.22045e-16, 0, 0, 0.1 )
 
-[node name="EngineParticles" parent="Sketchfab_model/Spatial" index="0" instance=ExtResource( 4 )]
-transform = Transform( 0.3, 0, 0, 0, 0.3, -1.31134e-08, 0, 1.31134e-08, 0.3, 0, 0, 0 )
+[node name="EL1" parent="Sketchfab_model/EngineParticles" index="0" instance=ExtResource( 4 )]
+transform = Transform( 0.15, 6.39469e-36, 0, 0, 0.15, 0, 0, 0, 0.3, -2.4365, -0.0940779, 2.18263 )
 
-[node name="Spatial2" type="Spatial" parent="Sketchfab_model" index="2"]
-transform = Transform( 1, 0, 0, 0, 2.22045e-16, -1, 0, 1, 2.22045e-16, 2.5, -2.3, -0.2 )
+[node name="EL2" parent="Sketchfab_model/EngineParticles" index="1" instance=ExtResource( 4 )]
+transform = Transform( 0.15, 1.01563e-35, 0, 0, 0.15, 0, 0, 0, 0.3, -2.34037, -0.535115, 2.20889 )
 
-[node name="EngineParticles" parent="Sketchfab_model/Spatial2" index="0" instance=ExtResource( 4 )]
-transform = Transform( 0.3, 0, 0, 0, 0.3, -1.31134e-08, 0, 1.31134e-08, 0.3, 0, 0, 0 )
+[node name="EL3" parent="Sketchfab_model/EngineParticles" index="2" instance=ExtResource( 4 )]
+transform = Transform( 0.15, 7.14701e-36, 0, 0, 0.15, 0, 0, 0, 0.3, 2.34, -0.0940779, 2.18263 )
+
+[node name="EL4" parent="Sketchfab_model/EngineParticles" index="3" instance=ExtResource( 4 )]
+transform = Transform( 0.15, 1.12847e-35, 0, 0, 0.15, 0, 0, 0, 0.3, 2.26348, -0.535115, 2.20889 )
 
 [node name="Camera" type="Camera" parent="." index="1"]
 transform = Transform( 0.0999998, -6.18929e-08, 1.6531e-08, 3.63798e-11, 0.0999999, -6.51926e-09, -2.32831e-10, 1.16415e-10, 0.1, 0, 3, 10 )

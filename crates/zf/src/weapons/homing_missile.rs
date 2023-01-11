@@ -26,19 +26,17 @@ impl HomingMissile {
     }
 
     #[method]
-    fn _process(&self, #[base] base: &Spatial, delta: f64) {
-        let delta = (delta as f32) * 300.0;
-
+    fn _process(&self, #[base] base: &Spatial, delta: f32) {
         if let Some(target_pos) = self.target_pos {
             let mut t = base.global_transform();
-            t.origin = t.origin.move_toward(target_pos, delta);
+            t.origin = t.origin.move_toward(target_pos, delta * 20.);
 
             if t.origin.distance_to(target_pos) > 0.1 {
                 base.look_at(target_pos, Vector3::UP);
             }
             base.set_global_transform(t);
         } else {
-            base.translate(Vector3::new(0.0, 0.0, -delta));
+            base.translate(Vector3::new(0.0, 0.0, -delta * 300.0));
         }
     }
 

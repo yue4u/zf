@@ -10,19 +10,19 @@
 [node name="PlayerMjolnir" parent="Level" index="1" instance=ExtResource( 2 )]
 
 [node name="t-dummy" parent="Level" index="2" instance=ExtResource( 4 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 38.6167, 28.6443, 94.5243 )
+transform = Transform( 0.932198, 0, 0.36195, -0.0867298, 0.970867, 0.223371, -0.351405, -0.239618, 0.90504, 28.2879, 30.7314, 155.374 )
 
 [node name="t-dummy2" parent="Level" index="3" instance=ExtResource( 4 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -19.3404, -7.74132, 70.7383 )
+transform = Transform( 0.962931, 0.00319566, -0.26973, 0.00948453, 0.99891, 0.0456943, 0.269582, -0.0465587, 0.961851, -17.9133, -7.9347, 161.412 )
 
 [node name="t-dummy3" parent="Level" index="4" instance=ExtResource( 4 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -48.6666, -2.67606, 85.4101 )
+transform = Transform( 0.962931, 0.00319566, -0.26973, 0.00948453, 0.99891, 0.0456943, 0.269582, -0.0465587, 0.961851, -50.0937, -2.48268, 167.383 )
 
 [node name="t-dummy4" parent="Level" index="5" instance=ExtResource( 4 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 66.7167, 17.0396, 85.2345 )
+transform = Transform( 0.932198, 0, 0.36195, -0.0867298, 0.970867, 0.223371, -0.351405, -0.239618, 0.90504, 51.1202, 14.9525, 139.872 )
 
 [node name="t-dummy5" parent="Level" index="6" instance=ExtResource( 4 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 59.1776, -14.8896, 170.82 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 59.1776, -14.8896, 257.143 )
 
 [node name="TimeTrialTimer" parent="Level" index="7" instance=ExtResource( 1 )]
 wait_time = 15.0

@@ -43,7 +43,7 @@ impl Weapon for TRef<'_, Spatial> {
             .expect("failed to connect on_timeout_queue_free");
 
         timer.set_one_shot(true);
-        timer.start(3.);
+        timer.start(10.);
     }
 }
 

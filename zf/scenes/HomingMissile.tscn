@@ -1,40 +1,39 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://scripts/HomingMissile.gdns" type="Script" id=1]
 [ext_resource path="res://assets/3rd/missiles/source/missiles.glb" type="PackedScene" id=2]
+[ext_resource path="res://assets/3rd/Spark.png" type="Texture" id=3]
 
 [sub_resource type="BoxShape" id=1]
 extents = Vector3( 5, 5, 20 )
+
+[sub_resource type="Gradient" id=7]
+offsets = PoolRealArray( 0, 0.203463, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 0.826126, 0.447059, 0.741176, 0.0759125, 0.698751, 0.97168, 0 )
+
+[sub_resource type="GradientTexture" id=8]
+gradient = SubResource( 7 )
+
+[sub_resource type="ParticlesMaterial" id=2]
+emission_shape = 2
+emission_box_extents = Vector3( 3, 3, 0 )
+direction = Vector3( 0, 0, 0 )
+gravity = Vector3( 0, 0, 2 )
+scale = 100.0
+color_ramp = SubResource( 8 )
 
 [sub_resource type="SpatialMaterial" id=4]
 flags_transparent = true
 flags_unshaded = true
 vertex_color_use_as_albedo = true
+params_blend_mode = 1
 params_cull_mode = 2
 params_billboard_mode = 1
-albedo_color = Color( 0.231373, 0.941176, 0.921569, 0.352941 )
-
-[sub_resource type="Gradient" id=7]
-colors = PoolColorArray( 1, 1, 1, 1, 0.324219, 0, 1, 0.301961 )
-
-[sub_resource type="GradientTexture" id=8]
-gradient = SubResource( 7 )
-
-[sub_resource type="Curve" id=5]
-max_value = 20.0
-_data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 1, 20 ), 0.0, 0.0, 0, 0 ]
-
-[sub_resource type="CurveTexture" id=9]
-curve = SubResource( 5 )
-
-[sub_resource type="ParticlesMaterial" id=2]
-emission_shape = 2
-emission_box_extents = Vector3( 3, 3, 0 )
-gravity = Vector3( 0, 0, 5 )
-scale_curve = SubResource( 9 )
-color_ramp = SubResource( 8 )
+albedo_texture = ExtResource( 3 )
 
 [sub_resource type="QuadMesh" id=3]
+material = SubResource( 4 )
+size = Vector2( 0.05, 0.05 )
 
 [node name="HomingMissile" type="Spatial"]
 transform = Transform( 0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.05, 0, 0, 0 )
@@ -51,12 +50,11 @@ collision_mask = 31
 shape = SubResource( 1 )
 
 [node name="Particles" type="Particles" parent="Area"]
-transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, -19.2804 )
-material_override = SubResource( 4 )
+transform = Transform( 1, 1.42109e-14, 0, 0, -4.37114e-08, -1, -1.42109e-14, 1, -4.37114e-08, 5.53252e-07, 0, -25.6089 )
 cast_shadow = 0
 generate_lightmap = false
-amount = 12
-lifetime = 3.0
+amount = 40
+lifetime = 2.0
 speed_scale = 2.0
 local_coords = false
 process_material = SubResource( 2 )

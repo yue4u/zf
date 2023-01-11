@@ -3,31 +3,31 @@ use gdnative::prelude::{FromVariant, ToVariant};
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod scenes {
-    pub const HEALTH_BAR_3_D: &str = "res://scenes/HealthBar3D.tscn";
     pub const ORBIT: &str = "res://scenes/Orbit.tscn";
     pub const ENVIRONMENT: &str = "res://scenes/Environment.tscn";
     pub const BASE: &str = "res://scenes/Base.tscn";
-    pub const RADAR: &str = "res://scenes/Radar.tscn";
     pub const TERMINAL: &str = "res://scenes/Terminal.tscn";
+    pub const MODEL_S_1: &str = "res://scenes/Model_S1.tscn";
     pub const TYPING_PARTICLES: &str = "res://scenes/TypingParticles.tscn";
     pub const PLANET_LAVA: &str = "res://scenes/PlanetLava.tscn";
-    pub const HEALTH_BAR_2_D: &str = "res://scenes/HealthBar2D.tscn";
     pub const SANDBOX_2_D: &str = "res://scenes/Sandbox2D.tscn";
     pub const PLAYER_MJOLNIR: &str = "res://scenes/PlayerMjolnir.tscn";
+    pub const TUTORIAL_S_1: &str = "res://scenes/Tutorial_S1.tscn";
     pub const LEVEL_TIME: &str = "res://scenes/LevelTime.tscn";
     pub const SANDBOX_3_D: &str = "res://scenes/Sandbox3D.tscn";
+    pub const ENEMY_HEALTH_BAR_3_D: &str = "res://scenes/EnemyHealthBar3D.tscn";
     pub const TUTORIAL_COMPLETE: &str = "res://scenes/Tutorial_Complete.tscn";
+    pub const ENEMY_HEALTH_BAR_2_D: &str = "res://scenes/EnemyHealthBar2D.tscn";
     pub const PLAYER_STATUS: &str = "res://scenes/PlayerStatus.tscn";
     pub const PLAYER_HEALTH_BAR: &str = "res://scenes/PlayerHealthBar.tscn";
     pub const BEAM: &str = "res://scenes/Beam.tscn";
-    pub const T_DUMMY: &str = "res://scenes/T-Dummy.tscn";
     pub const ENGINE_PARTICLES: &str = "res://scenes/EngineParticles.tscn";
     pub const LAUNCHER: &str = "res://scenes/Launcher.tscn";
     pub const BASE_LEVEL: &str = "res://scenes/BaseLevel.tscn";
     pub const TITLE_LABEL: &str = "res://scenes/TitleLabel.tscn";
     pub const COMMAND_INPUT_WATCHER: &str = "res://scenes/CommandInputWatcher.tscn";
-    pub const TARGET_DUMMY: &str = "res://scenes/TargetDummy.tscn";
     pub const TIME_TRIAL_TIMER: &str = "res://scenes/TimeTrialTimer.tscn";
+    pub const ENEMY_S_1: &str = "res://scenes/Enemy_S1.tscn";
     pub const MISSION: &str = "res://scenes/Mission.tscn";
     pub const TERMINAL_SANDBOX: &str = "res://scenes/TerminalSandbox.tscn";
     pub const RADIATION_AREA: &str = "res://scenes/RadiationArea.tscn";
@@ -180,14 +180,6 @@ impl std::fmt::Display for LevelName {
 }
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod health_bar_3_d {
-    pub const VIEWPORT: &str = "/root/Scene/Viewport";
-    pub const CONTROL: &str = "/root/Scene/Viewport/Control";
-    pub const SPRITE_3_D: &str = "/root/Scene/Sprite3D";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
 pub mod orbit {
 
 }
@@ -196,6 +188,7 @@ pub mod orbit {
 #[allow(dead_code)]
 pub mod environment {
     pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/DirectionalLight";
+    pub const DIRECTIONAL_LIGHT_2: &str = "/root/Scene/DirectionalLight2";
     pub const WORLD_ENVIRONMENT: &str = "/root/Scene/WorldEnvironment";
 }
 
@@ -211,16 +204,14 @@ pub mod base {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod radar {
-    pub const D_4: &str = "/root/Scene/D4";
-    pub const BG: &str = "/root/Scene/BG";
-    pub const TEXTURE_RECT: &str = "/root/Scene/TextureRect";
+pub mod terminal {
+
 }
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod terminal {
-
+pub mod model_s_1 {
+    pub const CUBE_0: &str = "/root/Scene/Sketchfab_model/Root/Cube001/Cube_0";
 }
 
 #[rustfmt::skip]
@@ -234,12 +225,6 @@ pub mod typing_particles {
 pub mod planet_lava {
     pub const SCENE_2: &str = "/root/Scene/scene2";
     pub const ANIMATION_PLAYER: &str = "/root/Scene/scene2/AnimationPlayer";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
-pub mod health_bar_2_d {
-
 }
 
 #[rustfmt::skip]
@@ -267,6 +252,15 @@ pub mod player_mjolnir {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod tutorial_s_1 {
+    pub const R_S_1: &str = "/root/Scene/R_S1";
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+    pub const HP: &str = "/root/Scene/HP";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod level_time {
 
 }
@@ -281,6 +275,14 @@ pub mod sandbox_3_d {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod enemy_health_bar_3_d {
+    pub const VIEWPORT: &str = "/root/Scene/Viewport";
+    pub const CONTROL: &str = "/root/Scene/Viewport/Control";
+    pub const SPRITE_3_D: &str = "/root/Scene/Sprite3D";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod tutorial_complete {
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PATH: &str = "/root/Scene/Level/Path";
@@ -288,6 +290,12 @@ pub mod tutorial_complete {
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
     pub const TARGET_POINT: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir/TargetPoint";
     pub const MARGIN_CONTAINER: &str = "/root/Scene/UI/MarginContainer";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod enemy_health_bar_2_d {
+
 }
 
 #[rustfmt::skip]
@@ -321,15 +329,6 @@ pub mod beam {
     pub const AREA: &str = "/root/Scene/Area";
     pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
     pub const MESH_INSTANCE: &str = "/root/Scene/Area/MeshInstance";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
-pub mod t_dummy {
-    pub const SKETCHFAB_MODEL: &str = "/root/Scene/Sketchfab_model";
-    pub const AREA: &str = "/root/Scene/Area";
-    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
-    pub const HP: &str = "/root/Scene/HP";
 }
 
 #[rustfmt::skip]
@@ -376,17 +375,17 @@ pub mod command_input_watcher {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod target_dummy {
-    pub const SKETCHFAB_MODEL: &str = "/root/Scene/Sketchfab_model";
-    pub const AREA: &str = "/root/Scene/Area";
-    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
-    pub const HP: &str = "/root/Scene/HP";
+pub mod time_trial_timer {
+
 }
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod time_trial_timer {
-
+pub mod enemy_s_1 {
+    pub const R_S_1: &str = "/root/Scene/R_S1";
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+    pub const HP: &str = "/root/Scene/HP";
 }
 
 #[rustfmt::skip]
@@ -718,26 +717,23 @@ pub mod challenge_shield {
 pub mod assets {
     pub const PATH_FOLLOW_SHADER: &str = "res://assets/PathFollow.shader";
     pub const UI_FONT_MENU_TITLE_TRES: &str = "res://assets/UIFontMenuTitle.tres";
-    pub const T_DUMMY_TSCN: &str = "res://assets/t-dummy.tscn";
     pub const UI_THEME_TRES: &str = "res://assets/UITheme.tres";
     pub const JET_BRAINS_MONO_TRES: &str = "res://assets/JetBrains_Mono.tres";
     pub const PLAYER_HEALTH_BAR_SHADER: &str = "res://assets/PlayerHealthBar.shader";
-    pub const BAR_PROGRESS_PNG: &str = "res://assets/bar_progress.png";
-    pub const RADAR_TINT_SHADER: &str = "res://assets/radar_tint.shader";
-    pub const RADAR_BG_SHADER: &str = "res://assets/radar_bg.shader";
-    pub const THEME_TRANSPARENT_TRES: &str = "res://assets/theme_transparent.tres";
     pub const RADIATION_AREA_SHADER: &str = "res://assets/RadiationArea.shader";
     pub const SHIELD_SHADER: &str = "res://assets/Shield.shader";
+    pub const CODE_THEME_TRES: &str = "res://assets/CodeTheme.tres";
     pub const PLAYER_HEALTH_BAR_SHADER_TRES: &str = "res://assets/PlayerHealthBarShader.tres";
-    pub const PIXELATE_TRES: &str = "res://assets/pixelate.tres";
-    pub const BAR_UNDER_PNG: &str = "res://assets/bar_under.png";
+    pub const PIXELATE_TRES: &str = "res://assets/Pixelate.tres";
+    pub const THEME_TRANSPARENT_TRES: &str = "res://assets/ThemeTransparent.tres";
+    pub const ENEMY_BAR_PROGRESS_UNDER_PNG: &str = "res://assets/EnemyBarProgressUnder.png";
     pub const TARGET_POINT_SHADER: &str = "res://assets/TargetPoint.shader";
     pub const UI_FONT_TITLE_TRES: &str = "res://assets/UIFontTitle.tres";
-    pub const T_DUMMY_TRES: &str = "res://assets/t-dummy.tres";
     pub const UI_FONT_TRES: &str = "res://assets/UIFont.tres";
-    pub const CODE_THEME_TRES: &str = "res://assets/code_theme.tres";
-    pub const PIXELATE_SHADER: &str = "res://assets/pixelate.shader";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
+    pub const ENEMY_BAR_PROGRESS_PNG: &str = "res://assets/EnemyBarProgress.png";
+    pub const PIXELATE_SHADER: &str = "res://assets/Pixelate.shader";
+    pub const DEFAULT_ENV_TRES: &str = "res://assets/DefaultEnv.tres";
     pub const PATH_FOLLOW_RANBOW_SHADER: &str = "res://assets/PathFollowRanbow.shader";
 }
 

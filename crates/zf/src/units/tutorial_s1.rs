@@ -3,30 +3,28 @@ use gdnative::{
     prelude::*,
 };
 
-use crate::{
-    common::find_ref, entities::GameEvent, managers::VMManager, refs::groups, vm::VMSignal,
-};
+use crate::{common::find_ref, entities::GameEvent, managers::VM, refs::groups, vm::VMSignal};
 
 #[derive(NativeClass)]
 #[inherit(Spatial)]
 #[register_with(Self::register_signals)]
-pub struct TargetDummy {
+pub struct TutorialS1 {
     base: Ref<Spatial>,
 }
 
 const HIT_BY_PLAYER: &'static str = "hit_by_player";
 
 #[methods]
-impl TargetDummy {
+impl TutorialS1 {
     fn new(base: TRef<Spatial>) -> Self {
         base.add_to_group(groups::ENEMY, false);
-        TargetDummy { base: base.claim() }
+        TutorialS1 { base: base.claim() }
     }
 
     #[method]
     fn _ready(&self, #[base] base: TRef<Spatial>) -> Option<()> {
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
-        let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+        let vm_manager = find_ref::<VM, Node>(as_node)?;
 
         base.connect(
             HIT_BY_PLAYER,

@@ -4,7 +4,7 @@
 [ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scripts/GangutSpaceHub.gdns" type="Script" id=3]
 [ext_resource path="res://assets/3rd/gangut_space_hub/scene.gltf" type="PackedScene" id=5]
-[ext_resource path="res://scenes/E_S1.tscn" type="PackedScene" id=6]
+[ext_resource path="res://scenes/Enemy_S1.tscn" type="PackedScene" id=6]
 [ext_resource path="res://scenes/Orbit.tscn" type="PackedScene" id=8]
 
 [sub_resource type="Curve3D" id=1]

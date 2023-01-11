@@ -1,4 +1,4 @@
-use crate::{common::find_ref, managers::VMManager, vm::VMSignal};
+use crate::{common::find_ref, managers::VM, vm::VMSignal};
 use gdnative::{
     api::{object::ConnectFlags, LineEdit},
     prelude::*,
@@ -27,7 +27,7 @@ impl CommandPalette {
         .expect("failed to connect line edit");
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
-        let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+        let vm_manager = find_ref::<VM, Node>(as_node)?;
         base.connect(
             "text_entered",
             vm_manager,

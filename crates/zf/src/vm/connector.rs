@@ -1,7 +1,7 @@
 use gdnative::{api::object::ConnectFlags, prelude::*};
 use zf_ffi::CommandArgs;
 
-use crate::{common::find_ref, managers::VMManager};
+use crate::{common::find_ref, managers::VM};
 
 #[derive(Debug, FromVariant, ToVariant, Clone)]
 pub struct CommandInput {
@@ -97,7 +97,7 @@ pub trait VMConnecter {
 
 impl<'a> VMConnecter for TRef<'a, Node> {
     fn connect_vm_signal(self, config: VMSignalConnectOptions) -> Option<()> {
-        let vm_manager = find_ref::<VMManager, Node>(self)?;
+        let vm_manager = find_ref::<VM, Node>(self)?;
         vm_manager
             .connect(
                 &config.signal,

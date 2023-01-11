@@ -1,7 +1,7 @@
 use crate::{
     common::{current_level, find_ref, get_tree},
     entities::GameEvent,
-    managers::VMManager,
+    managers::VM,
     refs::{groups, path::LevelName},
     vm::VMSignal,
 };
@@ -46,7 +46,7 @@ impl Mission {
     #[method]
     fn _ready(&mut self, #[base] base: TRef<RichTextLabel>) -> Option<()> {
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
-        let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+        let vm_manager = find_ref::<VM, Node>(as_node)?;
 
         vm_manager
             .connect(

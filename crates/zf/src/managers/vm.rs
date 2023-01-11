@@ -23,7 +23,7 @@ use zf_runtime::{decode_from_caller, Caller, ExtendedStore, HostWrite, Runtime};
 #[derive(NativeClass)]
 #[inherit(Node)]
 #[register_with(Self::register_signals)]
-pub struct VMManager {
+pub struct VM {
     cmds_available: Vec<String>,
     result_buffer: RefCell<ResultBuffer>,
     runtime: Option<Runtime<VMData>>,
@@ -111,9 +111,9 @@ impl VMData {
 }
 
 #[methods]
-impl VMManager {
+impl VM {
     pub(crate) fn new(_base: &Node) -> Self {
-        VMManager {
+        VM {
             cmds_available: vec![],
             result_buffer: RefCell::new(HashMap::new()),
             runtime: None,

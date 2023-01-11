@@ -1,4 +1,4 @@
-use crate::{entities::LEVELS, managers::VMManager};
+use crate::{entities::LEVELS, managers::VM};
 
 use self::path::LevelName;
 
@@ -27,7 +27,7 @@ macro_rules! bind_path {
 }
 
 bind_path!(
-    VMManager => auto_load::VM
+    VM => auto_load::VM
 );
 
 pub fn next_level(current: String) -> Option<&'static LevelName> {

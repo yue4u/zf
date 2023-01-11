@@ -6,7 +6,7 @@ use gdnative::{
 use crate::{
     common::find_ref,
     entities::GameEvent,
-    managers::VMManager,
+    managers::VM,
     refs::{self, groups},
     vm::VMSignal,
 };
@@ -38,7 +38,7 @@ impl TargetPoint {
         .expect("failed to connect area_entered");
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
-        let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+        let vm_manager = find_ref::<VM, Node>(as_node)?;
 
         let label = unsafe {
             base.get_node_as::<Label3D>(refs::path::target_point::LABEL_3_D)

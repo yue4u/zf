@@ -6,7 +6,7 @@ use gdnative::{
 use crate::{
     common::find_ref,
     entities::GameEvent,
-    managers::VMManager,
+    managers::VM,
     refs::path::player_health_bar,
     units::{Player, PLAYER_HIT},
     vm::VMSignal,
@@ -73,7 +73,7 @@ impl PlayerHealthBar {
             )
             .expect("failed to connect line edit");
 
-        let vm_manager = find_ref::<VMManager, Node>(base).unwrap();
+        let vm_manager = find_ref::<VM, Node>(base).unwrap();
 
         base.connect(
             VMSignal::OnGameState,

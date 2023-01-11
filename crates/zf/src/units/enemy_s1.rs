@@ -6,7 +6,7 @@ use gdnative::{
 use crate::{
     common::{find_ref, LookAtPlauer},
     entities::GameEvent,
-    managers::VMManager,
+    managers::VM,
     refs::{groups, path},
     vm::VMSignal,
     weapons::Launcher,
@@ -15,7 +15,7 @@ use crate::{
 #[derive(NativeClass)]
 #[inherit(Spatial)]
 #[register_with(Self::register_signals)]
-pub struct TDummy {
+pub struct EnemyS1 {
     hp: Option<Ref<TextureProgress>>,
     base_ref: Ref<Spatial>,
 }
@@ -23,12 +23,12 @@ pub struct TDummy {
 const ON_DESTROY: &'static str = "ON_DESTROY";
 
 #[methods]
-impl TDummy {
+impl EnemyS1 {
     fn new(base: TRef<Spatial>) -> Self {
         base.add_to_group(groups::ENEMY, false);
         Launcher::load_with_weapon(base, path::scenes::BEAM);
 
-        TDummy {
+        EnemyS1 {
             hp: None,
             base_ref: base.claim(),
         }
@@ -51,7 +51,7 @@ impl TDummy {
         self.hp = Some(hp);
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
-        let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+        let vm_manager = find_ref::<VM, Node>(as_node)?;
 
         base.connect(
             ON_DESTROY,

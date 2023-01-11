@@ -4,5 +4,5 @@
 
 [resource]
 resource_name = "TDummy"
-class_name = "TDummy"
+class_name = "EnemyS1"
 library = ExtResource( 1 )

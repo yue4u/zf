@@ -3,7 +3,7 @@ use gdnative::{api::object::ConnectFlags, prelude::*};
 use crate::{
     common::find_ref,
     entities::GameEvent,
-    managers::VMManager,
+    managers::VM,
     vm::{VMConnecter, VMSignal},
 };
 
@@ -35,7 +35,7 @@ impl CommandInputWatcher {
         let node = unsafe { base.get_node_as::<Node>(".")? };
         node.connect_vm_signal(VMSignal::OnCmdEntered.into());
 
-        let vm_manager = find_ref::<VMManager, Node>(node)?;
+        let vm_manager = find_ref::<VM, Node>(node)?;
 
         base.connect(
             INPUT_MATCH,

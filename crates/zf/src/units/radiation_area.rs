@@ -4,7 +4,7 @@ use gdnative::{
 };
 use zf_ffi::TaskListenableEvent;
 
-use crate::{common::find_ref, managers::VMManager, refs::groups, vm::VMSignal};
+use crate::{common::find_ref, managers::VM, refs::groups, vm::VMSignal};
 
 use super::Player;
 
@@ -47,7 +47,7 @@ impl RadiationArea {
         )
         .expect("failed to connect area_exited");
 
-        let vm_manager = find_ref::<VMManager, Node>(base).unwrap();
+        let vm_manager = find_ref::<VM, Node>(base).unwrap();
 
         base.connect(
             VMSignal::OnListenableEvent.as_str(),

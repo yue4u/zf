@@ -1,6 +1,6 @@
 use gdnative::{api::object::ConnectFlags, prelude::*};
 
-use crate::{common::find_ref, entities::GameEvent, managers::VMManager, vm::VMSignal};
+use crate::{common::find_ref, entities::GameEvent, managers::VM, vm::VMSignal};
 
 #[derive(NativeClass)]
 #[inherit(Timer)]
@@ -15,7 +15,7 @@ impl TimeTrialTimer {
     #[method]
     fn _ready(&self, #[base] base: TRef<Timer>) -> Option<()> {
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
-        let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+        let vm_manager = find_ref::<VM, Node>(as_node)?;
         base.connect(
             "timeout",
             vm_manager,

@@ -20,7 +20,7 @@ use zf_term::{TerminalSize, ZFTerm, ZF};
 use crate::{
     common::{current_level, find_ref, PackedSceneRef, SceneLoader, StyledLabel},
     entities::{GameEvent, LevelHelper},
-    managers::VMManager,
+    managers::VM,
     refs::{self, HasPath},
     vm::{CommandInput, CommandResult, VMSignal},
 };
@@ -45,7 +45,7 @@ impl Default for ProcessState {
 pub struct Terminal {
     // seqno: usize,
     base: Ref<Control>,
-    vm: Option<Instance<VMManager>>,
+    vm: Option<Instance<VM>>,
     term: ZFTerm,
     // HACK: This is very wrong and we should not doing this
     // term_scroll_offset: isize,
@@ -183,9 +183,9 @@ impl Terminal {
             .expect("failed to connect resize");
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
-        let vm_manager = find_ref::<VMManager, Node>(as_node)?;
+        let vm_manager = find_ref::<VM, Node>(as_node)?;
 
-        self.vm = vm_manager.cast_instance::<VMManager>().map(|vm| vm.claim());
+        self.vm = vm_manager.cast_instance::<VM>().map(|vm| vm.claim());
 
         base.connect(
             ENTER_SIGNAL,

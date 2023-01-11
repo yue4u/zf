@@ -36,4 +36,4 @@ wezterm is licensed under [MIT License](../crates/wezterm/LICENSE.md)
 
 nushell is licensed under [MIT License](../crates/nushell/LICENSE)
 
-other licenses of cargo dependencies can be found at [LICENSE-THIRD-PARTY](./LICENSE-THIRD-PARTY) (generated with https://github.com/onur/cargo-license)
+other licenses of cargo dependencies can be found at [LICENSE-THIRD-PARTY](./docs/LICENSE-THIRD-PARTY) (generated with https://github.com/onur/cargo-license)

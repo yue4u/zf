@@ -2,7 +2,7 @@
 
 [ext_resource path="res://scripts/TargetPoint.gdns" type="Script" id=1]
 [ext_resource path="res://assets/TargetPoint.shader" type="Shader" id=2]
-[ext_resource path="res://assets/3rd/Julius_Sans_One,Lancelot,Orbitron/Orbitron/static/Orbitron-Regular.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://assets/3rd/Orbitron/static/Orbitron-Regular.ttf" type="DynamicFontData" id=3]
 
 [sub_resource type="SphereShape" id=8]
 

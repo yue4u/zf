@@ -43,4 +43,4 @@ common/enable_pause_aware_picking=true
 
 threads/thread_model=2
 quality/filters/msaa=4
-environment/default_environment="res://default_env.tres"
+environment/default_environment="res://assets/DefaultEnv.tres"

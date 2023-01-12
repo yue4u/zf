@@ -18,10 +18,15 @@ config/icon="res://icon.png"
 
 AutoLoad="*res://scenes/AutoLoad.tscn"
 
+[debug]
+
+settings/stdout/verbose_stdout=true
+
 [global]
 
 thread=false
 custom=false
+max_=false
 
 [layer_names]
 
@@ -34,6 +39,10 @@ custom=false
 [logging]
 
 file_logging/enable_file_logging=true
+
+[network]
+
+limits/debugger_stdout/max_chars_per_second=16777216
 
 [physics]
 

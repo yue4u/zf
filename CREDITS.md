@@ -6,6 +6,8 @@ JetBrains Mono (https://www.jetbrains.com/lp/mono) is available under the SIL Op
 
 Orbitron (https://fonts.google.com/specimen/Orbitron) is licensed under the Open Font License. (https://fonts.google.com/specimen/Orbitron/about)
 
+Noto Sans Japanese ((https://fonts.google.com/noto/specimen/Noto+Sans+JP/about) is licensed under the Open Font License. (https://fonts.google.com/noto/specimen/Noto+Sans+JP/about)
+
 ## Images
 
 Space HDRs (https://imgur.com/a/moRhZ) from (https://www.reddit.com/r/blender/comments/3ebzwz/free_space_hdrs_1/?utm_source=share&utm_medium=web2x&context=3)

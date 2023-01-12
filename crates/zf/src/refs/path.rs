@@ -212,6 +212,7 @@ pub mod terminal {
 #[allow(dead_code)]
 pub mod model_s_1 {
     pub const CUBE_0: &str = "/root/Scene/Sketchfab_model/Root/Cube001/Cube_0";
+    pub const ANIMATION_PLAYER: &str = "/root/Scene/AnimationPlayer";
 }
 
 #[rustfmt::skip]
@@ -230,7 +231,7 @@ pub mod planet_lava {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod sandbox_2_d {
-
+    pub const TEXT_EDIT: &str = "/root/Scene/TextEdit";
 }
 
 #[rustfmt::skip]
@@ -447,6 +448,7 @@ pub mod auto_load {
     pub const CONTROL: &str = "/root/AutoLoad/UI/MarginContainer/Control";
     pub const PERF_LABEL: &str = "/root/AutoLoad/UI/MarginContainer/Control/PerfLabel";
     pub const TERMINAL: &str = "/root/AutoLoad/UI/MarginContainer/Control/Terminal";
+    pub const LABEL: &str = "/root/AutoLoad/UI/MarginContainer/Control/Label";
     pub const UI_EXTRA: &str = "/root/AutoLoad/UI/MarginContainer/UIExtra";
     pub const POST_PROCESSING_TEXTURE_RECT: &str = "/root/AutoLoad/UI/PostProcessingTextureRect";
     pub const SCREEN_TRANSITION_PLAYER: &str = "/root/AutoLoad/UI/PostProcessingTextureRect/ScreenTransitionPlayer";
@@ -724,8 +726,8 @@ pub mod assets {
     pub const SHIELD_SHADER: &str = "res://assets/Shield.shader";
     pub const CODE_THEME_TRES: &str = "res://assets/CodeTheme.tres";
     pub const PLAYER_HEALTH_BAR_SHADER_TRES: &str = "res://assets/PlayerHealthBarShader.tres";
+    pub const TERMINAL_FONT_TRES: &str = "res://assets/TerminalFont.tres";
     pub const PIXELATE_TRES: &str = "res://assets/Pixelate.tres";
-    pub const THEME_TRANSPARENT_TRES: &str = "res://assets/ThemeTransparent.tres";
     pub const ENEMY_BAR_PROGRESS_UNDER_PNG: &str = "res://assets/EnemyBarProgressUnder.png";
     pub const TARGET_POINT_SHADER: &str = "res://assets/TargetPoint.shader";
     pub const UI_FONT_TITLE_TRES: &str = "res://assets/UIFontTitle.tres";

@@ -54,7 +54,7 @@ pub struct Terminal {
     history: VecDeque<String>,
     font: Ref<DynamicFont>,
     // font: Ref<Font>,
-    cell_size: Vector2,
+    base_cell_size: Vector2,
     completion_item_list: Ref<ItemList>,
     typing_particles: PackedSceneRef,
     bg_opacity: f32,
@@ -118,18 +118,13 @@ impl std::io::Write for TerminalWriter {
 impl Terminal {
     fn new(base: TRef<Control>) -> Self {
         let font = ResourceLoader::godot_singleton()
-            .load(
-                refs::path::assets::JET_BRAINS_MONO_TRES,
-                "DynamicFont",
-                false,
-            )
+            .load(refs::path::assets::TERMINAL_FONT_TRES, "DynamicFont", false)
             .unwrap()
             .cast::<DynamicFont>()
             .unwrap();
 
-        // let font = unsafe { base.get_font("", "").unwrap().assume_safe() }.claim();
         let writer = Box::new(TerminalWriter {});
-        let cell_size = unsafe { font.assume_safe() }.get_string_size("W");
+        let base_cell_size = unsafe { font.assume_safe() }.get_string_size("W");
         let completion_item_list = ItemList::new().into_shared();
         Terminal {
             // seqno: 0,
@@ -139,7 +134,7 @@ impl Terminal {
             process_state: ProcessState::Idle,
             buffer: String::new(),
             history: VecDeque::new(),
-            cell_size,
+            base_cell_size,
             term: ZFTerm::new(writer, TerminalSize::default()),
             // term_scroll_offset: 0,
             completion_item_list,
@@ -154,7 +149,7 @@ impl Terminal {
 
     #[method]
     fn resize(&mut self, #[base] base: TRef<Control>) {
-        let term_size = calc_terminal_size(base, self.cell_size);
+        let term_size = calc_terminal_size(base, self.base_cell_size);
         self.term.resize(term_size);
     }
 
@@ -430,8 +425,8 @@ impl Terminal {
 
                     cl.set_size(
                         Vector2 {
-                            x: (matched_max + 1) as f32 * self.cell_size.x,
-                            y: matched_len as f32 * self.cell_size.y,
+                            x: (matched_max + 1) as f32 * self.base_cell_size.x,
+                            y: matched_len as f32 * self.base_cell_size.y,
                         },
                         false,
                     );
@@ -462,9 +457,9 @@ impl Terminal {
 
     fn draw_pos(&self, x: f32, y: f32) -> Vector2 {
         Vector2 {
-            x: TERM_PADDING + x * self.cell_size.x,
+            x: TERM_PADDING + x * self.base_cell_size.x,
             // position uses bottom-left so 2x here
-            y: 2. * TERM_PADDING + y * self.cell_size.y,
+            y: 2. * TERM_PADDING + y * self.base_cell_size.y,
         }
     }
 
@@ -503,18 +498,27 @@ impl Terminal {
             .enumerate()
             .for_each(|(y, line)| {
                 let mut x = 0;
+                // HACK: somehow when cell width > 1, next cell is a extra space. skip that.
+                let mut skip = false;
+
                 for cell in line.cells_mut() {
+                    if skip {
+                        skip = !skip;
+                        if cell.str() == " " {
+                            continue;
+                        }
+                    }
                     let fg = zf_term::Color::resolve_cell_fg_color(cell, color_palette);
                     let bg = zf_term::Color::resolve_cell_bg_color(cell, color_palette);
                     // base.draw_rect(
                     //     Rect2 {
                     //         position: Vector2 {
-                    //             x: (x as f32) * self.cell_size.x,
-                    //             y: (y as f32) * self.cell_size.y,
+                    //             x: (x as f32) * self.base_cell_size.x,
+                    //             y: (y as f32) * self.base_cell_size.y,
                     //         },
                     //         size: Vector2 {
-                    //             x: cell.width() as f32 * self.cell_size.x,
-                    //             y: self.cell_size.y,
+                    //             x: cell.width() as f32 * self.base_cell_size.x,
+                    //             y: self.base_cell_size.y,
                     //         },
                     //     },
                     //     Color::from_rgba(bg.0, bg.1, bg.2, bg.3),
@@ -539,6 +543,10 @@ impl Terminal {
                         Color::from_rgba(fg.0, fg.1, fg.2, fg.3),
                         -1,
                     );
+
+                    if cell.width() > 1 {
+                        skip = true
+                    }
                     x += cell.width();
                 }
             });

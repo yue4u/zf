@@ -2,7 +2,7 @@ use crate::commands::{
     Clear, Engine, EngineOff, EngineOn, EngineRel, EngineThruster, EngineThrusterShort, Fire,
     Fsays, Game, GameEnd, GameMenu, GameStart, Hi, Hint, Level, LevelList, LevelNext, LevelRestart,
     LevelStart, Mission, MissionTargets, Mystery, Radar, RandomPos, Shield, ShieldOff, ShieldOn,
-    Task, TaskOn, TaskRun, TaskStop, TermOpacity, Time, TimeScale, Tutorial, UI,
+    SpecialThanks, Task, TaskOn, TaskRun, TaskStop, TermOpacity, Time, TimeScale, Tutorial, UI,
 };
 use anyhow::Result;
 use nu_command::*;
@@ -89,6 +89,8 @@ impl ShellState {
             Fsays,
 
             RandomPos,
+
+            SpecialThanks,
 
             // default_context below
 

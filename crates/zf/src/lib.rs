@@ -24,12 +24,14 @@ fn init(handle: InitHandle) {
     handle.add_class::<ui::PlayerHealthBar>();
     handle.add_class::<ui::LevelName>();
     handle.add_class::<ui::LevelTime>();
+    handle.add_class::<ui::ListenableEvent>();
     handle.add_class::<units::GangutSpaceHub>();
     handle.add_class::<units::Player>();
     handle.add_class::<units::EnemyS1>();
     handle.add_class::<units::TargetPoint>();
     handle.add_class::<units::TutorialS1>();
     handle.add_class::<units::RadiationArea>();
+    handle.add_class::<units::EnemySpawner>();
     handle.add_class::<weapons::Launcher>();
     handle.add_class::<weapons::HomingMissile>();
     handle.add_class::<weapons::Beam>();

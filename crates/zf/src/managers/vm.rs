@@ -195,9 +195,12 @@ impl VM {
     #[method]
     fn on_listenable_event(
         &mut self,
-        #[base] _base: TRef<Node>,
+        #[base] base: TRef<Node>,
         event: TaskListenableEvent,
     ) -> Option<()> {
+        // broadcast again
+        base.emit_signal(VMSignal::OnListenableEvent, &[event.to_variant()]);
+
         tracing::debug!("on_listenable_event: {}", event);
         let runtime = self.runtime.as_mut()?;
         let cmd = runtime
@@ -215,6 +218,7 @@ impl VM {
     pub(crate) fn on_cmd_entered(&mut self, #[base] base: &Node, text: String) -> Option<()> {
         let runtime = self.runtime.as_mut()?;
         tracing::info!("on_cmd_entered: {text}!");
+        // broadcast again
         base.emit_signal(VMSignal::OnCmdEntered, &[Variant::new(text.clone())]);
 
         let result = runtime.eval(text).map_err(|e| e.to_string());

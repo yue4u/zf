@@ -47,6 +47,7 @@ pub enum LevelCommand {
 pub enum TaskListenableEvent {
     RadiationAreaEntered,
     RadiationAreaExited,
+    EnemyAppeared,
 }
 
 impl TaskListenableEvent {
@@ -54,6 +55,7 @@ impl TaskListenableEvent {
         &[
             TaskListenableEvent::RadiationAreaEntered,
             TaskListenableEvent::RadiationAreaExited,
+            TaskListenableEvent::EnemyAppeared,
         ]
     }
 }
@@ -63,6 +65,7 @@ impl Display for TaskListenableEvent {
         let ev = match self {
             TaskListenableEvent::RadiationAreaEntered => "radiation_area_entered",
             TaskListenableEvent::RadiationAreaExited => "radiation_area_exited",
+            TaskListenableEvent::EnemyAppeared => "enemy_appeared",
         };
         f.write_str(ev)
     }
@@ -75,6 +78,7 @@ impl TryFrom<&str> for TaskListenableEvent {
         match value {
             "radiation_area_entered" => Ok(TaskListenableEvent::RadiationAreaEntered),
             "radiation_area_exited" => Ok(TaskListenableEvent::RadiationAreaExited),
+            "enemy_appeared" => Ok(TaskListenableEvent::EnemyAppeared),
             _ => Err(format!("unknown event `{}`", value)),
         }
     }

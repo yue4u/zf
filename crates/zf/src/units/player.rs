@@ -26,7 +26,7 @@ pub struct Player {
     shield: PlayerShield,
     position: Position,
     rotation: Rotation,
-    engine: EngineState,
+    engine: EngineTargetState,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -49,28 +49,27 @@ impl From<Ref<Spatial>> for Player {
             },
             position: Position::default(),
             rotation: Rotation::default(),
-            engine: EngineState::default(),
+            engine: EngineTargetState::default(),
         }
     }
 }
 
-type EngineRelState = Vector3;
-
 #[derive(Debug, Default)]
-struct EngineState {
-    status: EngineStatus,
-    rel: EngineRelState,
+struct EngineTargetState {
+    thruster: EngineThruster,
+    rotation: Vector3,
+    rel: Vector3,
 }
 
 #[derive(Debug)]
-pub enum EngineStatus {
+pub enum EngineThruster {
     On(i8),
     Off,
 }
 
-impl Default for EngineStatus {
+impl Default for EngineThruster {
     fn default() -> Self {
-        EngineStatus::Off
+        EngineThruster::Off
     }
 }
 
@@ -111,6 +110,10 @@ impl Player {
     #[method]
     fn _ready(&mut self, #[base] base: TRef<Spatial>) -> Option<()> {
         base.add_to_group(groups::PLAYER, false);
+
+        // HACK: base rotation from scene, better do this inside the player scene
+        self.engine.rotation.y = 180.;
+
         self.update_engine();
         // FIXME: this is a hack to get it to work.
         let node = unsafe { base.get_node_as::<Node>(".")? };
@@ -122,11 +125,15 @@ impl Player {
     fn on_cmd_parsed(&mut self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
         // tracing::debug!("{:?}",&input);
         let next_status = match &input.cmd {
-            CommandArgs::Engine(EngineCommand::Off) => Some(EngineStatus::Off),
+            CommandArgs::Engine(EngineCommand::Off) => Some(EngineThruster::Off),
             CommandArgs::Engine(EngineCommand::Thruster(percent)) => {
-                Some(EngineStatus::On(*percent))
+                Some(EngineThruster::On(*percent))
             }
-            CommandArgs::Engine(EngineCommand::On) => Some(EngineStatus::On(0)),
+            CommandArgs::Engine(EngineCommand::On) => Some(EngineThruster::On(0)),
+            CommandArgs::Engine(EngineCommand::Rotate(rotate)) => {
+                self.engine.rotation.z = *rotate;
+                None
+            }
             CommandArgs::Engine(EngineCommand::Rel { x, y, z }) => {
                 let transform = base.transform();
                 let rel = Vector3::new(
@@ -173,11 +180,11 @@ impl Player {
         }?;
 
         let speed = match next_status {
-            EngineStatus::On(percent) => MAX_SPEED * (percent as f64) / 100.,
-            EngineStatus::Off => 0.,
+            EngineThruster::On(percent) => MAX_SPEED * (percent as f64) / 100.,
+            _ => 0.,
         };
 
-        self.engine.status = next_status;
+        self.engine.thruster = next_status;
         self.update_engine();
         self.speed = speed;
 
@@ -247,7 +254,16 @@ impl Player {
 
         let local_transform = base.transform();
 
-        // TODO: update show engine effect for rel
+        if self.engine.rotation.z != 0. {
+            let mut local_rotation = base.rotation_degrees();
+            if (self.engine.rotation.z - local_rotation.z).abs() > 2. {
+                local_rotation.z += 10. * (delta as f32);
+            } else {
+                local_rotation.z -= 10. * (delta as f32);
+            }
+            base.set_rotation_degrees(local_rotation);
+        }
+
         base.set_transform(Transform {
             basis: local_transform.basis,
             origin: local_transform
@@ -261,9 +277,9 @@ impl Player {
     }
 
     fn update_engine(&self) {
-        let amount = match self.engine.status {
-            EngineStatus::On(amount) => amount,
-            EngineStatus::Off => 0,
+        let amount = match self.engine.thruster {
+            EngineThruster::On(amount) => amount,
+            _ => 0,
         };
 
         [
@@ -318,7 +334,7 @@ rel: {}
             self.position.display(),
             self.rotation.display(),
             self.shield.time_left.max(0.),
-            self.engine.status,
+            self.engine.thruster,
             self.engine.rel.display()
         )
     }

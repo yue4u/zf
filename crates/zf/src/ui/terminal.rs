@@ -244,6 +244,12 @@ impl Terminal {
             _ /*     fmt     */ => Black.on(LightCyan).paint(" "),
         };
         self.write(&format!("\n{} > ", before));
+
+        // repush buffer
+        if !self.buffer.is_empty() {
+            let buffer = self.buffer.clone();
+            self.write(&buffer);
+        }
     }
 
     fn clear(&mut self) {

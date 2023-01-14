@@ -190,3 +190,38 @@ impl Command for EngineRel {
         Ok(Value::Nothing { span: call.head }.into_pipeline_data())
     }
 }
+
+#[derive(Clone)]
+pub(crate) struct EngineRotate;
+
+impl Command for EngineRotate {
+    fn name(&self) -> &str {
+        "engine rotate"
+    }
+
+    fn signature(&self) -> nu_protocol::Signature {
+        Signature::build(self.name()).required(
+            "number", //
+            SyntaxShape::Int,
+            "engine rotate in turn",
+        )
+    }
+
+    fn usage(&self) -> &str {
+        "Set engine rotate"
+    }
+
+    fn run(
+        &self,
+        engine_state: &EngineState,
+        stack: &mut Stack,
+        call: &Call,
+        _input: PipelineData,
+    ) -> Result<PipelineData, ShellError> {
+        let t: f64 = call.req(engine_state, stack, 0)?;
+
+        let args = CommandArgs::Engine(EngineCommand::Rotate(t as f32));
+        zf_ffi::cmd_legacy(args);
+        Ok(Value::Nothing { span: call.head }.into_pipeline_data())
+    }
+}

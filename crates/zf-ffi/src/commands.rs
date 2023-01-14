@@ -109,6 +109,8 @@ pub enum EngineCommand {
         y: Option<f32>,
         z: Option<f32>,
     },
+    // Z only for now
+    Rotate(f32),
 }
 #[derive(Decode, Encode, Debug, PartialEq)]
 #[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]

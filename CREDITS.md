@@ -39,3 +39,18 @@ wezterm is licensed under [MIT License](../crates/wezterm/LICENSE.md)
 nushell is licensed under [MIT License](../crates/nushell/LICENSE)
 
 other licenses of cargo dependencies can be found at [LICENSE-THIRD-PARTY](./docs/LICENSE-THIRD-PARTY) (generated with https://github.com/onur/cargo-license)
+
+## Articles
+
+- [Godot Docs](https://docs.godotengine.org/en/stable/)
+- [The godot-rust Book](https://godot-rust.github.io/book/index.html)
+- [Wasmtime doc](https://docs.wasmtime.dev/)
+- [Anatomy of a Terminal Emulator](https://poor.dev/blog/terminal-anatomy/)
+
+## Special Thanks
+
+- [戌亥とこ](https://www.youtube.com/@InuiToko)
+- [リゼ・ヘルエスタ](https://www.youtube.com/@LizeHelesta)
+- [兎田ぺこら](https://www.youtube.com/@usadapekora)
+- [名取さな](https://www.youtube.com/@sana_natori)
+- [南登かなる](https://www.youtube.com/@nantokanaru0405)

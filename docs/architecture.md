@@ -1,4 +1,4 @@
-# Some architecture diagrams
+# Architecture
 
 ## Command / Code Runtime
 
@@ -7,12 +7,12 @@ C4Context
   Person(player ,"player")
   Boundary(zf, "ZF") {
     Boundary("godot", "godot") {
-      Component(zf term, "zf term", "zf term")
+      Component(zf term, "zf term (wezterm)", "zf term")
       Component_Ext(engine, "godot engine", "rust")
       Component(zf runtime, "zf runtime(wasmtime)", "zf runtime")
     }
     Boundary("shell wasm", "wasm sandbox") {
-      Component(zf shell, "shell", "shell")
+      Component(zf shell, "shell (nushell)", "shell")
     }
   }
 

@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/Analog_TV_Sandstorm.mp3-a8a977f8b3c7ae7f7408070407c23af3.mp3str"
+
+[deps]
+
+source_file="res://assets/3rd/audio/Analog_TV_Sandstorm.mp3"
+dest_files=[ "res://.import/Analog_TV_Sandstorm.mp3-a8a977f8b3c7ae7f7408070407c23af3.mp3str" ]
+
+[params]
+
+loop=true
+loop_offset=0

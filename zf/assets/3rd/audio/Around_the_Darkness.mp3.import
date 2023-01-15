@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/Around_the_Darkness.mp3-0f470644b0ace31854e1e633bb25f48f.mp3str"
+
+[deps]
+
+source_file="res://assets/3rd/audio/Around_the_Darkness.mp3"
+dest_files=[ "res://.import/Around_the_Darkness.mp3-0f470644b0ace31854e1e633bb25f48f.mp3str" ]
+
+[params]
+
+loop=true
+loop_offset=0

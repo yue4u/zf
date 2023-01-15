@@ -26,4 +26,5 @@ external
 logs
 build/
 
-zf/assets/3rd
+zf/assets/3rd/**/*.*
+!/zf/assets/3rd/**/*.import

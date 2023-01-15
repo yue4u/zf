@@ -4,6 +4,7 @@ use gdnative::{
     api::{
         control::FocusMode,
         object::ConnectFlags,
+        AudioStreamPlayer,
         // Font,
         DynamicFont,
         GlobalConstants,
@@ -57,6 +58,7 @@ pub struct Terminal {
     base_cell_size: Vector2,
     completion_item_list: Ref<ItemList>,
     typing_particles: PackedSceneRef,
+    audio_stream_player: Option<Ref<AudioStreamPlayer>>,
     bg_opacity: f32,
 }
 
@@ -140,6 +142,7 @@ impl Terminal {
             completion_item_list,
             typing_particles: SceneLoader::load(refs::path::scenes::TYPING_PARTICLES).unwrap(),
             bg_opacity: 0.3,
+            audio_stream_player: None,
         }
     }
 
@@ -176,6 +179,10 @@ impl Terminal {
 
         base.connect("resized", base, "resize", VariantArray::new_shared(), 0)
             .expect("failed to connect resize");
+
+        unsafe { base.get_node_as::<AudioStreamPlayer>("./SEAudioStreamPlayer") }.map(
+            |audio_stream_player| self.audio_stream_player = Some(audio_stream_player.claim()),
+        );
 
         let as_node = unsafe { base.get_node_as::<Node>(".")? };
         let vm_manager = find_ref::<VM, Node>(as_node)?;
@@ -587,6 +594,9 @@ impl Terminal {
                 result
             }
             Err(result) => {
+                self.audio_stream_player.map(|player| {
+                    unsafe { player.assume_safe() }.play(0.);
+                });
                 self.process_state = ProcessState::Error;
                 result
             }

@@ -1,5 +1,5 @@
 use gdnative::{
-    api::{AnimationPlayer, ShaderMaterial, TextureRect},
+    api::{AnimationPlayer, AudioStreamPlayer, ShaderMaterial, TextureRect},
     prelude::*,
 };
 
@@ -10,6 +10,7 @@ use crate::refs::path::LevelName;
 pub struct ScreenTransition {
     base: Ref<TextureRect>,
     animation_player: Option<Ref<AnimationPlayer>>,
+    audio_stream_player: Option<Ref<AudioStreamPlayer>>,
     next_level: Option<LevelName>,
 }
 
@@ -19,6 +20,7 @@ impl ScreenTransition {
         ScreenTransition {
             base: base.claim(),
             animation_player: None,
+            audio_stream_player: None,
             next_level: None,
         }
     }
@@ -39,16 +41,23 @@ impl ScreenTransition {
                 .unwrap()
         };
 
-        // base.connect(
-        //     "animation_finished",
-        //     base,
-        //     "on_animation_finished",
-        //     VariantArray::new_shared(),
-        //     0,
-        // )
-        // .unwrap();
+        let audio_stream_player = unsafe {
+            base.get_node_as::<AudioStreamPlayer>("./ScreenTransitionAudioStreamPlayer")
+                .unwrap()
+        };
+
+        animation_player
+            .connect(
+                "animation_finished",
+                base,
+                "on_animation_finished",
+                VariantArray::new_shared(),
+                0,
+            )
+            .unwrap();
 
         self.animation_player = Some(animation_player.claim());
+        self.audio_stream_player = Some(audio_stream_player.claim());
 
         Some(())
     }
@@ -57,7 +66,10 @@ impl ScreenTransition {
     /// Start playing transition and set next scene target but not start right now
     pub fn to(&mut self, next_scene: LevelName) {
         self.next_level = Some(next_scene);
+        let audio_stream_player = unsafe { self.audio_stream_player.unwrap().assume_safe() };
         let animation_player = unsafe { self.animation_player.unwrap().assume_safe() };
+
+        audio_stream_player.play(0.);
         animation_player.play("Pixelate", -1., 1.0, false);
     }
 
@@ -70,14 +82,10 @@ impl ScreenTransition {
         tree.set_pause(false);
     }
 
-    // #[method]
-    // fn on_animation_finished(
-    //     &mut self,
-    //     #[base] _base: TRef<AnimationPlayer>,
-    //     _name: String,
-    // ) -> Option<()> {
-    //     tracing::debug!("{:?}","on_animation_finished");
-    //
-    //     Some(())
-    // }
+    #[method]
+    fn on_animation_finished(&self, #[base] _base: TRef<TextureRect>, _name: String) -> Option<()> {
+        let audio_stream_player = unsafe { self.audio_stream_player?.assume_safe() };
+        audio_stream_player.stop();
+        Some(())
+    }
 }

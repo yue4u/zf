@@ -482,6 +482,7 @@ pub mod auto_load {
     pub const UI_EXTRA: &str = "/root/AutoLoad/UI/MarginContainer/UIExtra";
     pub const POST_PROCESSING_TEXTURE_RECT: &str = "/root/AutoLoad/UI/PostProcessingTextureRect";
     pub const SCREEN_TRANSITION_PLAYER: &str = "/root/AutoLoad/UI/PostProcessingTextureRect/ScreenTransitionPlayer";
+    pub const SCREEN_TRANSITION_AUDIO_STREAM_PLAYER: &str = "/root/AutoLoad/UI/PostProcessingTextureRect/ScreenTransitionAudioStreamPlayer";
     pub const MANAGERS: &str = "/root/AutoLoad/Managers";
     pub const VM: &str = "/root/AutoLoad/Managers/VM";
     pub const BGM_PLAYER: &str = "/root/AutoLoad/BGMPlayer";

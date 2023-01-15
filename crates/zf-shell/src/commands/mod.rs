@@ -1,3 +1,4 @@
+mod audio;
 mod clear;
 mod engine;
 mod fire;
@@ -11,13 +12,14 @@ mod mystery;
 mod radar;
 mod random_pos;
 mod shield;
+mod special_thanks;
 mod task;
 mod term;
 mod time;
 mod tutorial;
 mod ui;
-mod special_thanks;
 
+pub(crate) use audio::*;
 pub(crate) use clear::*;
 pub(crate) use engine::*;
 pub(crate) use fire::*;
@@ -31,12 +33,12 @@ pub(crate) use mystery::*;
 pub(crate) use radar::*;
 pub(crate) use random_pos::*;
 pub(crate) use shield::*;
+pub(crate) use special_thanks::*;
 pub(crate) use task::*;
 pub(crate) use term::*;
 pub(crate) use time::*;
 pub(crate) use tutorial::*;
 pub(crate) use ui::*;
-pub(crate) use special_thanks::*;
 
 use nu_engine::CallExt;
 

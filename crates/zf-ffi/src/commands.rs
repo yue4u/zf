@@ -19,6 +19,7 @@ pub enum CommandArgs {
     Fire(FireCommand),
     Radar(RadarCommand),
     UI(UICommand),
+    Audio(AudioCommand),
     Time(TimeCommand),
     Term(TermCommand),
     /// up to host impl and could use for test
@@ -132,6 +133,12 @@ pub enum UIAction {
 pub struct UICommand {
     pub label: String,
     pub action: UIAction,
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
+pub enum AudioCommand {
+    Volume(f64),
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

@@ -223,6 +223,15 @@ Enemies will appear in after you reach certain area, try defeat them all.
         "e t 100"
     ],
 
+    @ChallengeEnemyAppear where
+    guide: r#"
+Enemies will appear in after you reach certain area, try defeat them all.
+"#,
+    hint: [
+        "task run 'radar | get 0 | fire hm'",
+        "e t 100"
+    ],
+
     @ChallengeInfinite where
     guide: "Keep alive as long as possible",
     hint: [],

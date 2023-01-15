@@ -1,4 +1,7 @@
-use gdnative::{api::Engine, prelude::*};
+use gdnative::{
+    api::{AudioStreamPlayer, Engine},
+    prelude::*,
+};
 use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, fmt::Display};
 use zf_ffi::{
@@ -459,6 +462,22 @@ impl RuntimeFunc {
                     })
                     .unwrap_or(0)
             }
+            CommandArgs::Audio(audio) => match audio {
+                zf_ffi::AudioCommand::Volume(volume) => {
+                    if let Some(bgm_player) = unsafe {
+                        caller
+                            .data()
+                            .ext
+                            .base
+                            .assume_safe()
+                            .get_node_as::<AudioStreamPlayer>(auto_load::BGM_PLAYER)
+                    } {
+                        tracing::debug!("{:?}", bgm_player);
+                        bgm_player.set_volume_db(volume);
+                    }
+                    0
+                }
+            },
             cmd => {
                 fire_and_forget(&mut caller.data_mut().ext, cmd);
                 0

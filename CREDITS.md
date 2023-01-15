@@ -32,6 +32,13 @@ Spark Texture (https://www.youtube.com/watch?v=UYFb06NpreQ) from Nolkaloid (http
 
 "Vulcan Dkyr Class" (https://skfb.ly/HzUX) by morenostefanuto is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
 
+## BGM / SE
+
+https://dova-s.jp
+
+"Around the Darkness" (https://dova-s.jp/bgm/play16722.html) license (https://dova-s.jp/_contents/license/)
+
+
 ## Libraries
 
 wezterm is licensed under [MIT License](../crates/wezterm/LICENSE.md)

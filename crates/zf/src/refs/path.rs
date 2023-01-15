@@ -59,6 +59,7 @@ pub mod levels {
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const CHALLENGE_TASK_ENGINE_COMBINE: &str = "res://levels/Challenge_Task_Engine_Combine.tscn";
     pub const TUTORIAL_ENGINE: &str = "res://levels/Tutorial_Engine.tscn";
+    pub const CHALLENGE_ENEMY_APPEAR: &str = "res://levels/Challenge_Enemy_Appear.tscn";
     pub const TUTORIAL_HELLO_WORLD: &str = "res://levels/Tutorial_Hello_World.tscn";
     pub const CHALLENGE_SHIELD: &str = "res://levels/Challenge_Shield.tscn";
 }
@@ -81,10 +82,12 @@ pub enum LevelName {
     StartMenu,
     ChallengeTaskEngineCombine,
     TutorialEngine,
+    ChallengeEnemyAppear,
     TutorialHelloWorld,
     ChallengeShield,
     Unknown,
 }
+
 
 impl LevelName {
     #[rustfmt::skip]
@@ -104,6 +107,7 @@ impl LevelName {
             levels::START_MENU => LevelName::StartMenu,
             levels::CHALLENGE_TASK_ENGINE_COMBINE => LevelName::ChallengeTaskEngineCombine,
             levels::TUTORIAL_ENGINE => LevelName::TutorialEngine,
+            levels::CHALLENGE_ENEMY_APPEAR => LevelName::ChallengeEnemyAppear,
             levels::TUTORIAL_HELLO_WORLD => LevelName::TutorialHelloWorld,
             levels::CHALLENGE_SHIELD => LevelName::ChallengeShield,
             _ => LevelName::Unknown,
@@ -129,6 +133,7 @@ impl LevelName {
             LevelName::StartMenu => levels::START_MENU,
             LevelName::ChallengeTaskEngineCombine => levels::CHALLENGE_TASK_ENGINE_COMBINE,
             LevelName::TutorialEngine => levels::TUTORIAL_ENGINE,
+            LevelName::ChallengeEnemyAppear => levels::CHALLENGE_ENEMY_APPEAR,
             LevelName::TutorialHelloWorld => levels::TUTORIAL_HELLO_WORLD,
             LevelName::ChallengeShield => levels::CHALLENGE_SHIELD,
             LevelName::Unknown => unreachable!(),
@@ -154,6 +159,7 @@ impl LevelName {
             "Start-Menu" => LevelName::StartMenu,
             "Challenge-Task-Engine-Combine" => LevelName::ChallengeTaskEngineCombine,
             "Tutorial-Engine" => LevelName::TutorialEngine,
+            "Challenge-Enemy-Appear" => LevelName::ChallengeEnemyAppear,
             "Tutorial-Hello-World" => LevelName::TutorialHelloWorld,
             "Challenge-Shield" => LevelName::ChallengeShield,
             _ => LevelName::Unknown,
@@ -177,6 +183,7 @@ impl LevelName {
             LevelName::StartMenu => "Start-Menu",
             LevelName::ChallengeTaskEngineCombine => "Challenge-Task-Engine-Combine",
             LevelName::TutorialEngine => "Tutorial-Engine",
+            LevelName::ChallengeEnemyAppear => "Challenge-Enemy-Appear",
             LevelName::TutorialHelloWorld => "Tutorial-Hello-World",
             LevelName::ChallengeShield => "Challenge-Shield",
             _ => "Unknown",
@@ -477,6 +484,7 @@ pub mod auto_load {
     pub const SCREEN_TRANSITION_PLAYER: &str = "/root/AutoLoad/UI/PostProcessingTextureRect/ScreenTransitionPlayer";
     pub const MANAGERS: &str = "/root/AutoLoad/Managers";
     pub const VM: &str = "/root/AutoLoad/Managers/VM";
+    pub const BGM_PLAYER: &str = "/root/AutoLoad/BGMPlayer";
 }
 
 #[rustfmt::skip]
@@ -678,9 +686,9 @@ pub mod tutorial_shield {
 #[allow(dead_code)]
 pub mod tutorial_fire {
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
-    pub const T_DUMMY: &str = "/root/Scene/Level/t-dummy";
-    pub const T_DUMMY_2: &str = "/root/Scene/Level/t-dummy2";
-    pub const T_DUMMY_3: &str = "/root/Scene/Level/t-dummy3";
+    pub const T_DUMMY: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy2";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy3";
 }
 
 #[rustfmt::skip]
@@ -737,6 +745,19 @@ pub mod tutorial_engine {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod challenge_enemy_appear {
+    pub const LEVEL_INDICATOR: &str = "/root/Scene/Level/LevelIndicator";
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const ENEMY_SPAWNER: &str = "/root/Scene/Level/EnemySpawner";
+    pub const ENEMY_SPAWNER_2: &str = "/root/Scene/Level/EnemySpawner2";
+    pub const ENEMY_SPAWNER_3: &str = "/root/Scene/Level/EnemySpawner3";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod tutorial_hello_world {
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
     pub const COMMAND_INPUT_WATCHER: &str = "/root/Scene/Level/CommandInputWatcher";
@@ -777,3 +798,4 @@ pub mod assets {
     pub const DEFAULT_ENV_TRES: &str = "res://assets/DefaultEnv.tres";
     pub const PATH_FOLLOW_RANBOW_SHADER: &str = "res://assets/PathFollowRanbow.shader";
 }
+

@@ -1,5 +1,5 @@
 use crate::commands::{
-    Clear, Engine, EngineOff, EngineOn, EngineRel, EngineRotate, EngineThruster,
+    AudioVolume, Clear, Engine, EngineOff, EngineOn, EngineRel, EngineRotate, EngineThruster,
     EngineThrusterShort, Fire, Fsays, Game, GameEnd, GameMenu, GameStart, Hi, Hint, Level,
     LevelList, LevelNext, LevelRestart, LevelStart, Mission, MissionTargets, Mystery, Radar,
     RandomPos, Shield, ShieldOff, ShieldOn, SpecialThanks, Task, TaskOn, TaskRun, TaskStop,
@@ -73,6 +73,8 @@ impl ShellState {
             TaskStop,
 
             UI,
+
+            AudioVolume,
 
             TermOpacity,
 

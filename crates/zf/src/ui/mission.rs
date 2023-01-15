@@ -7,7 +7,7 @@ use crate::{
     vm::VMSignal,
 };
 use gdnative::{
-    api::{object::ConnectFlags, RichTextLabel},
+    api::{object::ConnectFlags, AudioStreamPlayer, RichTextLabel},
     prelude::*,
 };
 
@@ -73,11 +73,7 @@ impl Mission {
     }
 
     #[method]
-    fn on_game_state(
-        &mut self,
-        #[base] _base: TRef<RichTextLabel>,
-        state: GameEvent,
-    ) -> Option<()> {
+    fn on_game_state(&mut self, #[base] base: TRef<RichTextLabel>, state: GameEvent) -> Option<()> {
         let m = self.mission.as_mut().unwrap();
         match state {
             // GameEvent::MissionComplete(msg) => {}
@@ -88,6 +84,8 @@ impl Mission {
             GameEvent::HitTargetPoint => {
                 m.target_points += 1;
                 self.update_text();
+                unsafe { base.get_node_as::<AudioStreamPlayer>("./SEAudioStreamPlayer") }
+                    .map(|player| player.play(0.));
             }
             GameEvent::EnemyDestroied => {
                 m.enemies += 1;

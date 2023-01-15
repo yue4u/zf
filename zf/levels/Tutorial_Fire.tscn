@@ -8,11 +8,11 @@
 
 [node name="PlayerMjolnir" parent="Level" index="1" instance=ExtResource( 2 )]
 
-[node name="t-dummy" parent="Level" index="2" instance=ExtResource( 4 )]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 21.6317 )
+[node name="t-dummy" parent="Level/PlayerMjolnir" index="7" instance=ExtResource( 4 )]
+transform = Transform( -0.1, 0, -8.74228e-09, 0, 0.1, 0, 8.74228e-09, 0, -0.1, -1.8911e-06, 0, -21.6317 )
 
-[node name="t-dummy2" parent="Level" index="3" instance=ExtResource( 4 )]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, -13.1856, 0, 16.3249 )
+[node name="t-dummy2" parent="Level/PlayerMjolnir" index="8" instance=ExtResource( 4 )]
+transform = Transform( -0.1, 0, -8.74228e-09, 0, 0.1, 0, 8.74228e-09, 0, -0.1, 13.1856, 0, -16.3249 )
 
-[node name="t-dummy3" parent="Level" index="4" instance=ExtResource( 4 )]
-transform = Transform( 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 12.6779, 2.90473, 19.1498 )
+[node name="t-dummy3" parent="Level/PlayerMjolnir" index="9" instance=ExtResource( 4 )]
+transform = Transform( -0.1, 0, -8.74228e-09, 0, 0.1, 0, 8.74228e-09, 0, -0.1, -12.6779, 2.90473, -19.1498 )

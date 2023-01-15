@@ -20,6 +20,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = { workspace = true }
 tracing-subscriber = "0.3"
+rand = "0.8"
 
 zf-ffi = { path = "../zf-ffi", features = ["godot"] }
 zf-runtime = { path = "../zf-runtime" }

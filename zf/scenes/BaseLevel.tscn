@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://scenes/Base.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/PlayerStatus.tscn" type="PackedScene" id=2]
@@ -8,6 +8,7 @@
 [ext_resource path="res://scenes/TitleLabel.tscn" type="PackedScene" id=6]
 [ext_resource path="res://scripts/LevelName.gdns" type="Script" id=7]
 [ext_resource path="res://scenes/LevelTime.tscn" type="PackedScene" id=8]
+[ext_resource path="res://scripts/ListenableEvent.gdns" type="Script" id=9]
 
 [node name="Scene" instance=ExtResource( 1 )]
 
@@ -39,21 +40,21 @@ margin_bottom = 90.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Control2" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="1"]
+[node name="M_Placeholder_1" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="1"]
 margin_left = 193.0
 margin_right = 383.0
 margin_bottom = 90.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Control3" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="2"]
+[node name="M_Placeholder_2" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="2"]
 margin_left = 387.0
 margin_right = 576.0
 margin_bottom = 90.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Control" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="3"]
+[node name="M_Placeholder_3" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer" index="3"]
 margin_left = 580.0
 margin_right = 770.0
 margin_bottom = 90.0
@@ -78,7 +79,56 @@ Engine
 engine: {:?}"
 scroll_active = false
 
-[node name="Control" type="HBoxContainer" parent="UI/MarginContainer/UIExtra" index="1"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="UI/MarginContainer/UIExtra" index="1"]
+anchor_top = 0.25
+anchor_right = 1.0
+anchor_bottom = 0.4
+margin_left = 30.0
+margin_right = -30.0
+theme = ExtResource( 4 )
+alignment = 1
+
+[node name="ListenableEvent" type="RichTextLabel" parent="UI/MarginContainer/UIExtra/HBoxContainer2" index="0"]
+margin_right = 189.0
+margin_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+bbcode_text = "[b][color=#4FFFCA]Events[/color][/b]"
+text = "Events"
+script = ExtResource( 9 )
+
+[node name="LE_Placeholder_1" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer2" index="1"]
+margin_left = 193.0
+margin_right = 383.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LE_Placeholder_2" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer2" index="2"]
+margin_left = 387.0
+margin_right = 576.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LE_Placeholder_3" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer2" index="3"]
+margin_left = 580.0
+margin_right = 770.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LE_Placeholder_4" type="Control" parent="UI/MarginContainer/UIExtra/HBoxContainer2" index="4"]
+margin_left = 774.0
+margin_right = 964.0
+margin_bottom = 90.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Control" type="HBoxContainer" parent="UI/MarginContainer/UIExtra" index="2"]
 anchor_top = 0.57
 anchor_right = 1.0
 anchor_bottom = 0.57

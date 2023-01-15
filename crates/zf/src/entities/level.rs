@@ -214,6 +214,15 @@ try combine this command with `shield` like
         "time scale 2; e t 100"
     ],
 
+    @TutorialEnemyAppear where
+    guide: r#"
+Enemies will appear in after you reach certain area, try defeat them all.
+"#,
+    hint: [
+        "task run 'radar | get 0 | fire hm'",
+        "e t 100"
+    ],
+
     @ChallengeInfinite where
     guide: "Keep alive as long as possible",
     hint: [],

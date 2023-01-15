@@ -8,9 +8,8 @@ use zf_ffi::{CommandArgs, EngineCommand, ShieldCommand};
 use crate::{
     common::{Position, Rotation, SceneLoader, Vector3DisplayShort},
     refs::{
-        self,
         groups::{self, Layer},
-        path::{player_mjolnir, scenes},
+        path::{self, player_mjolnir, scenes},
     },
     vm::{CommandInput, VMConnecter, VMSignal},
     weapons::HomingMissile,
@@ -208,7 +207,7 @@ impl Player {
         Some(unsafe {
             self.shield_ref()?
                 .assume_safe()
-                .get_node(refs::path::shield::CSG_SPHERE)?
+                .get_node(path::shield::CSG_SPHERE)?
                 .assume_safe()
                 .cast::<CSGSphere>()?
                 .material()?

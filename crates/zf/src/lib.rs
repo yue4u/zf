@@ -32,6 +32,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<units::TutorialS1>();
     handle.add_class::<units::RadiationArea>();
     handle.add_class::<units::EnemySpawner>();
+    handle.add_class::<units::LevelIndicator>();
     handle.add_class::<weapons::Launcher>();
     handle.add_class::<weapons::HomingMissile>();
     handle.add_class::<weapons::Beam>();

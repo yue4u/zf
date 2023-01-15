@@ -4,6 +4,7 @@ pub const PLAYER: &'static str = "player";
 pub const ENEMY: &'static str = "enemy";
 pub const RADAR: &'static str = "radar";
 pub const TARGET_POINT: &'static str = "target_point";
+pub const LEVEL_INDICATOR: &'static str = "level_indicator";
 
 #[derive(Debug)]
 #[allow(dead_code, non_camel_case_types)]

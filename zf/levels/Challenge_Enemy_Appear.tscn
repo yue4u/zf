@@ -22,9 +22,16 @@ path_node = NodePath("../Path")
 
 [node name="EnemySpawner" parent="Level" index="3" instance=ExtResource( 1 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.49893, -2.04622, 16.4115 )
-max_spawn = 1
 
-[node name="Path" type="Path" parent="Level" index="4"]
+[node name="EnemySpawner2" parent="Level" index="4" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -28.335, -2.18369, 15.9006 )
+max_spawn = 3
+
+[node name="EnemySpawner3" parent="Level" index="5" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -22.1689, -9.69726, 58.5971 )
+max_spawn = 3
+
+[node name="Path" type="Path" parent="Level" index="6"]
 transform = Transform( 1.00549, 0, 0, 0, 1.00549, 0, 0, 0, 1.00549, 0, 0, 0 )
 curve = SubResource( 1 )
 

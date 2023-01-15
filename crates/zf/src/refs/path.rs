@@ -5,6 +5,7 @@ use gdnative::prelude::{FromVariant, ToVariant};
 pub mod scenes {
     pub const ORBIT: &str = "res://scenes/Orbit.tscn";
     pub const ENVIRONMENT: &str = "res://scenes/Environment.tscn";
+    pub const ENEMY_SPAWNER: &str = "res://scenes/EnemySpawner.tscn";
     pub const BASE: &str = "res://scenes/Base.tscn";
     pub const TERMINAL: &str = "res://scenes/Terminal.tscn";
     pub const MODEL_S_1: &str = "res://scenes/Model_S1.tscn";
@@ -37,6 +38,7 @@ pub mod scenes {
     pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
     pub const SHIELD: &str = "res://scenes/Shield.tscn";
+    pub const LEVEL_INDICATOR: &str = "res://scenes/LevelIndicator.tscn";
     pub const PLANET: &str = "res://scenes/Planet.tscn";
 }
 
@@ -45,6 +47,7 @@ pub mod scenes {
 pub mod levels {
     pub const CHALLENGE_SHIELD_RADIATION_AREA: &str = "res://levels/Challenge_Shield_RadiationArea.tscn";
     pub const TUTORIAL_ENGINE_REL: &str = "res://levels/Tutorial_Engine_Rel.tscn";
+    pub const TUTORIAL_ENEMY_APPEAR: &str = "res://levels/Tutorial_Enemy_Appear.tscn";
     pub const CHALLENGE_INFINITE: &str = "res://levels/Challenge_Infinite.tscn";
     pub const TUTORIAL_TASK_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Task_Mission_Engine_Rel.tscn";
     pub const TUTORIAL_MISSION_ENGINE_REL: &str = "res://levels/Tutorial_Mission_Engine_Rel.tscn";
@@ -66,6 +69,7 @@ pub mod levels {
 pub enum LevelName {
     ChallengeShieldRadiationArea,
     TutorialEngineRel,
+    TutorialEnemyAppear,
     ChallengeInfinite,
     TutorialTaskMissionEngineRel,
     TutorialMissionEngineRel,
@@ -82,12 +86,13 @@ pub enum LevelName {
     Unknown,
 }
 
-
 impl LevelName {
+    #[rustfmt::skip]
     pub fn from_path(value: &str) -> Self {
         match value {
             levels::CHALLENGE_SHIELD_RADIATION_AREA => LevelName::ChallengeShieldRadiationArea,
             levels::TUTORIAL_ENGINE_REL => LevelName::TutorialEngineRel,
+            levels::TUTORIAL_ENEMY_APPEAR => LevelName::TutorialEnemyAppear,
             levels::CHALLENGE_INFINITE => LevelName::ChallengeInfinite,
             levels::TUTORIAL_TASK_MISSION_ENGINE_REL => LevelName::TutorialTaskMissionEngineRel,
             levels::TUTORIAL_MISSION_ENGINE_REL => LevelName::TutorialMissionEngineRel,
@@ -107,10 +112,12 @@ impl LevelName {
 }
 
 impl LevelName {
+    #[rustfmt::skip]
     pub fn path(&self) -> &'static str {
         match self {
             LevelName::ChallengeShieldRadiationArea => levels::CHALLENGE_SHIELD_RADIATION_AREA,
             LevelName::TutorialEngineRel => levels::TUTORIAL_ENGINE_REL,
+            LevelName::TutorialEnemyAppear => levels::TUTORIAL_ENEMY_APPEAR,
             LevelName::ChallengeInfinite => levels::CHALLENGE_INFINITE,
             LevelName::TutorialTaskMissionEngineRel => levels::TUTORIAL_TASK_MISSION_ENGINE_REL,
             LevelName::TutorialMissionEngineRel => levels::TUTORIAL_MISSION_ENGINE_REL,
@@ -130,10 +137,12 @@ impl LevelName {
 }
 
 impl LevelName {
+    #[rustfmt::skip]
     pub fn from(name: &str) -> LevelName {
         match name {
             "Challenge-Shield-Radiation-Area" => LevelName::ChallengeShieldRadiationArea,
             "Tutorial-Engine-Rel" => LevelName::TutorialEngineRel,
+            "Tutorial-Enemy-Appear" => LevelName::TutorialEnemyAppear,
             "Challenge-Infinite" => LevelName::ChallengeInfinite,
             "Tutorial-Task-Mission-Engine-Rel" => LevelName::TutorialTaskMissionEngineRel,
             "Tutorial-Mission-Engine-Rel" => LevelName::TutorialMissionEngineRel,
@@ -151,10 +160,12 @@ impl LevelName {
         }
     }
 
+    #[rustfmt::skip]
     pub fn as_str(&self) -> &str {
         match &self {
             LevelName::ChallengeShieldRadiationArea => "Challenge-Shield-Radiation-Area",
             LevelName::TutorialEngineRel => "Tutorial-Engine-Rel",
+            LevelName::TutorialEnemyAppear => "Tutorial-Enemy-Appear",
             LevelName::ChallengeInfinite => "Challenge-Infinite",
             LevelName::TutorialTaskMissionEngineRel => "Tutorial-Task-Mission-Engine-Rel",
             LevelName::TutorialMissionEngineRel => "Tutorial-Mission-Engine-Rel",
@@ -190,6 +201,13 @@ pub mod environment {
     pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/DirectionalLight";
     pub const DIRECTIONAL_LIGHT_2: &str = "/root/Scene/DirectionalLight2";
     pub const WORLD_ENVIRONMENT: &str = "/root/Scene/WorldEnvironment";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod enemy_spawner {
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
 }
 
 #[rustfmt::skip]
@@ -231,7 +249,7 @@ pub mod planet_lava {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod sandbox_2_d {
-    pub const TEXT_EDIT: &str = "/root/Scene/TextEdit";
+
 }
 
 #[rustfmt::skip]
@@ -352,11 +370,17 @@ pub mod base_level {
     pub const UI_EXTRA: &str = "/root/Scene/UI/MarginContainer/UIExtra";
     pub const H_BOX_CONTAINER: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer";
     pub const MISSION: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Mission";
-    pub const CONTROL_2: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Control2";
-    pub const CONTROL_3: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Control3";
-    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/Control";
+    pub const M_PLACEHOLDER_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/M_Placeholder_1";
+    pub const M_PLACEHOLDER_2: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/M_Placeholder_2";
+    pub const M_PLACEHOLDER_3: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/M_Placeholder_3";
     pub const PLAYER_STATUS: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer/PlayerStatus";
-    pub const CONTROL_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
+    pub const H_BOX_CONTAINER_2: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer2";
+    pub const LISTENABLE_EVENT: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer2/ListenableEvent";
+    pub const LE_PLACEHOLDER_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer2/LE_Placeholder_1";
+    pub const LE_PLACEHOLDER_2: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer2/LE_Placeholder_2";
+    pub const LE_PLACEHOLDER_3: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer2/LE_Placeholder_3";
+    pub const LE_PLACEHOLDER_4: &str = "/root/Scene/UI/MarginContainer/UIExtra/HBoxContainer2/LE_Placeholder_4";
+    pub const CONTROL: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control";
     pub const H_BOX_CONTAINER_1: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/HBoxContainer";
     pub const LEVEL_NAME: &str = "/root/Scene/UI/MarginContainer/UIExtra/Control/LevelName";
     pub const LABEL: &str = "/root/Scene/UI/Label";
@@ -448,7 +472,6 @@ pub mod auto_load {
     pub const CONTROL: &str = "/root/AutoLoad/UI/MarginContainer/Control";
     pub const PERF_LABEL: &str = "/root/AutoLoad/UI/MarginContainer/Control/PerfLabel";
     pub const TERMINAL: &str = "/root/AutoLoad/UI/MarginContainer/Control/Terminal";
-    pub const LABEL: &str = "/root/AutoLoad/UI/MarginContainer/Control/Label";
     pub const UI_EXTRA: &str = "/root/AutoLoad/UI/MarginContainer/UIExtra";
     pub const POST_PROCESSING_TEXTURE_RECT: &str = "/root/AutoLoad/UI/PostProcessingTextureRect";
     pub const SCREEN_TRANSITION_PLAYER: &str = "/root/AutoLoad/UI/PostProcessingTextureRect/ScreenTransitionPlayer";
@@ -470,6 +493,12 @@ pub mod homing_missile {
 pub mod shield {
     pub const CSG_SPHERE: &str = "./CSGSphere";
     pub const ANIMATION_PLAYER: &str = "./CSGSphere/AnimationPlayer";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod level_indicator {
+
 }
 
 #[rustfmt::skip]
@@ -515,6 +544,17 @@ pub mod tutorial_engine_rel {
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const POINT_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1";
     pub const TARGET_1: &str = "/root/Scene/Level/Path/PathFollow/Point_1/Target_1";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_enemy_appear {
+    pub const LEVEL_INDICATOR: &str = "/root/Scene/Level/LevelIndicator";
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const ENEMY_SPAWNER: &str = "/root/Scene/Level/EnemySpawner";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
 }
 
@@ -720,7 +760,6 @@ pub mod assets {
     pub const PATH_FOLLOW_SHADER: &str = "res://assets/PathFollow.shader";
     pub const UI_FONT_MENU_TITLE_TRES: &str = "res://assets/UIFontMenuTitle.tres";
     pub const UI_THEME_TRES: &str = "res://assets/UITheme.tres";
-    pub const JET_BRAINS_MONO_TRES: &str = "res://assets/JetBrains_Mono.tres";
     pub const PLAYER_HEALTH_BAR_SHADER: &str = "res://assets/PlayerHealthBar.shader";
     pub const RADIATION_AREA_SHADER: &str = "res://assets/RadiationArea.shader";
     pub const SHIELD_SHADER: &str = "res://assets/Shield.shader";
@@ -738,4 +777,3 @@ pub mod assets {
     pub const DEFAULT_ENV_TRES: &str = "res://assets/DefaultEnv.tres";
     pub const PATH_FOLLOW_RANBOW_SHADER: &str = "res://assets/PathFollowRanbow.shader";
 }
-

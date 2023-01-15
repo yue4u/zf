@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use gdnative::api::*;
 use gdnative::prelude::*;
 
@@ -16,7 +18,6 @@ impl HomingMissile {
     const DAMGAE: u32 = 50;
 
     fn new(_base: &Spatial) -> Self {
-        // tracing::info!("prepare HomingMissile");
         HomingMissile { target_pos: None }
     }
 
@@ -27,14 +28,20 @@ impl HomingMissile {
 
     #[method]
     fn _process(&self, #[base] base: &Spatial, delta: f32) {
-        if let Some(target_pos) = self.target_pos {
-            let mut t = base.global_transform();
-            t.origin = t.origin.move_toward(target_pos, delta * 20.);
+        if let Some(local_target_pos) = self.target_pos {
+            // FIXME: better always use global transform?
+            let mut local_t = base.transform();
+            let global_t = base.global_transform();
 
-            if t.origin.distance_to(target_pos) > 0.1 {
-                base.look_at(target_pos, Vector3::UP);
+            let next_origin = local_t.origin.move_toward(local_target_pos, delta * 20.);
+
+            if local_t.origin.distance_to(local_target_pos) > 0.1 {
+                base.look_at(global_t.origin + next_origin, Vector3::UP);
+                base.rotate_object_local(Vector3::UP, PI)
             }
-            base.set_global_transform(t);
+
+            local_t.origin = next_origin;
+            base.set_transform(local_t);
         } else {
             base.translate(Vector3::new(0.0, 0.0, -delta * 300.0));
         }

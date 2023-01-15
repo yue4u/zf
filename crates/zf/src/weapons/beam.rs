@@ -17,7 +17,6 @@ impl Beam {
     const DAMAGE: u32 = 50;
 
     fn new(_base: &Spatial) -> Self {
-        // tracing::info!("prepare Beam");
         Beam {
             target_pos: None,
             direction: None,

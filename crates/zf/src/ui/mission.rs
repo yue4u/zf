@@ -3,6 +3,7 @@ use crate::{
     entities::GameEvent,
     managers::VM,
     refs::{groups, path::LevelName},
+    units::LevelIndicator,
     vm::VMSignal,
 };
 use gdnative::{
@@ -102,13 +103,27 @@ impl Mission {
             .unwrap()
             .as_ref();
         let tree = get_tree(as_node_ref);
+
+        let target_points_all = tree.get_nodes_in_group(groups::TARGET_POINT).len() as u32;
+        let mut enemies_all = tree.get_nodes_in_group(groups::ENEMY).len() as u32;
+
         let level = current_level(as_node_ref);
+
+        let level_indicator_group = tree.get_nodes_in_group(groups::LEVEL_INDICATOR);
+        if !level_indicator_group.is_empty() {
+            level_indicator_group
+                .get(0)
+                .to::<Ref<Node>>()
+                .and_then(|node| unsafe { node.assume_safe() }.cast_instance::<LevelIndicator>())
+                .map(|instance| instance.map(|i, _| enemies_all = enemies_all.max(i.max_enemy)));
+        }
+
         let m = MissionDetails {
             level,
             target_points: 0,
-            target_points_all: tree.get_nodes_in_group(groups::TARGET_POINT).len() as u32,
+            target_points_all,
             enemies: 0,
-            enemies_all: tree.get_nodes_in_group(groups::ENEMY).len() as u32,
+            enemies_all,
         };
         self.mission = Some(m);
         self.update_text();

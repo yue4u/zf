@@ -75,6 +75,7 @@ pub fn main() -> io::Result<()> {
                 code.push_str(&format!(
                     r#"
 impl LevelName {{
+    #[rustfmt::skip]
     pub fn from_path(value: &str) -> Self {{
         match value {{
 {from_path_inner}
@@ -124,6 +125,7 @@ impl LevelName {{
 
                 code.push_str(&format!(
                     r#"impl LevelName {{
+    #[rustfmt::skip]
     pub fn path(&self) -> &'static str {{
         match self {{
 {path_inner}
@@ -133,6 +135,7 @@ impl LevelName {{
 }}
 
 impl LevelName {{
+    #[rustfmt::skip]
     pub fn from(name: &str) -> LevelName {{
         match name {{
 {from_inner}
@@ -140,6 +143,7 @@ impl LevelName {{
         }}
     }}
 
+    #[rustfmt::skip]
     pub fn as_str(&self) -> &str {{
         match &self {{
 {display_inner}

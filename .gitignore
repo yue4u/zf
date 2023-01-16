@@ -26,5 +26,6 @@ external
 logs
 build/
 
+zf/assets/*.blend?
 zf/assets/3rd/**/*.*
 !/zf/assets/3rd/**/*.import

@@ -1,5 +1,7 @@
 # Project: ZF
 
+<p align="center"><img width=500 src="./zf/assets/ZF.png" /></p>
+
 ## Documents
 
 - [Architecture](./docs/architecture.md)

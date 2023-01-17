@@ -20,6 +20,6 @@ void fragment() {
         tex.a = COLOR.a * tex.a;
         COLOR = tex;
     }else{
-        COLOR = vec4(COLOR.rgb, tex.a * COLOR.a);
+        COLOR = min(COLOR, tex);
     }
 }

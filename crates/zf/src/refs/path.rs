@@ -230,7 +230,7 @@ pub mod base {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod terminal {
-
+    pub const SE_AUDIO_STREAM_PLAYER: &str = "/root/Scene/SEAudioStreamPlayer";
 }
 
 #[rustfmt::skip]
@@ -423,7 +423,7 @@ pub mod enemy_s_1 {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod mission {
-
+    pub const SE_AUDIO_STREAM_PLAYER: &str = "/root/Scene/SEAudioStreamPlayer";
 }
 
 #[rustfmt::skip]
@@ -697,9 +697,11 @@ pub mod tutorial_fire {
 pub mod start_menu {
     pub const PLANET: &str = "/root/Scene/Level/Planet";
     pub const CENTER_CONTAINER: &str = "/root/Scene/Level/CenterContainer";
-    pub const LEVEL_RESULT: &str = "/root/Scene/Level/CenterContainer/LevelResult";
+    pub const TITLE: &str = "/root/Scene/Level/CenterContainer/Title";
+    pub const TEXTURE_RECT: &str = "/root/Scene/Level/CenterContainer/Title/TextureRect";
     pub const OMNI_LIGHT: &str = "/root/Scene/Level/OmniLight";
     pub const CAMERA: &str = "/root/Scene/Level/Camera";
+    pub const UI: &str = "/root/Scene/UI";
 }
 
 #[rustfmt::skip]
@@ -779,19 +781,26 @@ pub mod challenge_shield {
 #[rustfmt::skip]
 #[allow(dead_code)]
 pub mod assets {
+    pub const ZF_TRANSPARENT_256_X_256_PNG: &str = "res://assets/ZF_Transparent_256x256.png";
     pub const PATH_FOLLOW_SHADER: &str = "res://assets/PathFollow.shader";
     pub const UI_FONT_MENU_TITLE_TRES: &str = "res://assets/UIFontMenuTitle.tres";
     pub const UI_THEME_TRES: &str = "res://assets/UITheme.tres";
     pub const PLAYER_HEALTH_BAR_SHADER: &str = "res://assets/PlayerHealthBar.shader";
+    pub const ZF_PNG: &str = "res://assets/ZF.png";
     pub const RADIATION_AREA_SHADER: &str = "res://assets/RadiationArea.shader";
     pub const SHIELD_SHADER: &str = "res://assets/Shield.shader";
     pub const CODE_THEME_TRES: &str = "res://assets/CodeTheme.tres";
+    pub const ZF_TITLE_BLEND_1: &str = "res://assets/ZF_Title.blend1";
+    pub const ZF_BLEND_1: &str = "res://assets/ZF.blend1";
     pub const PLAYER_HEALTH_BAR_SHADER_TRES: &str = "res://assets/PlayerHealthBarShader.tres";
     pub const TERMINAL_FONT_TRES: &str = "res://assets/TerminalFont.tres";
     pub const PIXELATE_TRES: &str = "res://assets/Pixelate.tres";
+    pub const ZF_TRANSPARENT_PNG: &str = "res://assets/ZF_Transparent.png";
+    pub const ZF_BLEND: &str = "res://assets/ZF.blend";
     pub const ENEMY_BAR_PROGRESS_UNDER_PNG: &str = "res://assets/EnemyBarProgressUnder.png";
     pub const TARGET_POINT_SHADER: &str = "res://assets/TargetPoint.shader";
     pub const UI_FONT_TITLE_TRES: &str = "res://assets/UIFontTitle.tres";
+    pub const ZF_BLEND_1: &str = "res://assets/zf.blend1";
     pub const UI_FONT_TRES: &str = "res://assets/UIFont.tres";
     pub const UI_TITLE_SHADER: &str = "res://assets/UITitle.shader";
     pub const ENEMY_BAR_PROGRESS_PNG: &str = "res://assets/EnemyBarProgress.png";

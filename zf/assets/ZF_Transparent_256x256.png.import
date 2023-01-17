@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ZFTransparent.png-b6655509c184d319cff2a98849976454.stex"
+path="res://.import/ZF_Transparent_256x256.png-4626f2349e9aa84dc7908987f7f1003e.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ZFTransparent.png"
-dest_files=[ "res://.import/ZFTransparent.png-b6655509c184d319cff2a98849976454.stex" ]
+source_file="res://assets/ZF_Transparent_256x256.png"
+dest_files=[ "res://.import/ZF_Transparent_256x256.png-4626f2349e9aa84dc7908987f7f1003e.stex" ]
 
 [params]
 

@@ -3,7 +3,7 @@ use gdnative::{
     prelude::*,
 };
 use serde::{Deserialize, Serialize};
-use zf_ffi::{CommandArgs, EngineCommand, ShieldCommand};
+use zf_ffi::{CommandArgs, EngineCommand, ShieldCommand, WeaponName};
 
 use crate::{
     common::{Position, Rotation, SceneLoader, Vector3DisplayShort},
@@ -12,7 +12,7 @@ use crate::{
         path::{self, player_mjolnir, scenes},
     },
     vm::{CommandInput, VMConnecter, VMSignal},
-    weapons::HomingMissile,
+    weapons::{Beam, HomingMissile},
 };
 
 #[derive(NativeClass)]
@@ -142,21 +142,38 @@ impl Player {
                 self.engine.rel = rel;
                 None
             }
-            CommandArgs::Fire(fire) => {
-                let weapon =
-                    SceneLoader::load_and_instance_as::<Spatial>(scenes::HOMING_MISSILE).unwrap();
-                let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
-                Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
-                let missile = weapon.cast_instance::<HomingMissile>().unwrap();
+            CommandArgs::Fire(fire) => match fire.weapon {
+                WeaponName::HomingMissile => {
+                    let weapon =
+                        SceneLoader::load_and_instance_as::<Spatial>(scenes::HOMING_MISSILE)
+                            .unwrap();
+                    let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
+                    Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
+                    let missile = weapon.cast_instance::<HomingMissile>().unwrap();
 
-                missile
-                    .map_mut(|m, _| m.target_pos = fire.pos.map(|(x, y, z)| Vector3::new(x, y, z)))
-                    .unwrap();
+                    missile
+                        .map_mut(|m, _| {
+                            m.target_pos = fire.pos.map(|(x, y, z)| Vector3::new(x, y, z))
+                        })
+                        .unwrap();
 
-                unsafe { base.get_node("Projectiles").unwrap().assume_safe() }
-                    .add_child(missile, true);
-                None
-            }
+                    unsafe { base.get_node("Projectiles").unwrap().assume_safe() }
+                        .add_child(missile, true);
+                    None
+                }
+                WeaponName::Beam => {
+                    let weapon =
+                        SceneLoader::load_and_instance_as::<Spatial>(scenes::BEAM).unwrap();
+                    weapon.set_scale(Vector3::new(1., 1., 1.));
+                    let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();
+                    Layer::PLAYER_FIRE.prepare_collision_for(weapon_area);
+                    let beam = weapon.cast_instance::<Beam>().unwrap();
+
+                    unsafe { base.get_node("Projectiles").unwrap().assume_safe() }
+                        .add_child(beam, true);
+                    None
+                }
+            },
             CommandArgs::Shield(shield @ (ShieldCommand::On | ShieldCommand::Off)) => {
                 let shield_ref = unsafe { self.shield_ref().unwrap().assume_safe() };
                 match shield {

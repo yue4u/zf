@@ -2,7 +2,7 @@ use std::io::Cursor;
 use wasi_common::{pipe::WritePipe, WasiCtx};
 use wasmtime::*;
 use wasmtime_wasi::WasiCtxBuilder;
-use zf_ffi::{CommandArgs, TaskListenableEvent};
+use zf_ffi::{CommandArgs, TaskListenableEvent, WeaponName};
 
 pub use wasmtime::{Caller, Func, Store};
 
@@ -86,6 +86,14 @@ impl<S> Runtime<S> {
             &mut TaskListenableEvent::all()
                 .iter()
                 .map(|ev| format!("task on {ev}"))
+                .collect::<Vec<String>>(),
+        );
+
+        // provide extra weapons
+        cmds.append(
+            &mut WeaponName::all()
+                .iter()
+                .map(|w| format!("fire {}", w.as_str()))
                 .collect::<Vec<String>>(),
         );
         Ok(cmds)

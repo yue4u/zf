@@ -88,11 +88,15 @@ impl EnemySpawner {
 
         let player = unsafe { self.player.as_ref()?.base().assume_safe() };
         let enemy = SceneLoader::load_and_instance_as::<Spatial>(refs::path::scenes::ENEMY_S_1)?;
-        let local = Vector3::new(
-            0. + self.rng.gen_range(-10.0..=10.0),
-            5. + self.rng.gen_range(-10.0..=10.0),
-            -40. + self.rng.gen_range(-5.0..=5.0),
-        );
+        let local = if self.rng.gen_bool(1. / 5.) {
+            Vector3::new(0., 0., -40. + self.rng.gen_range(-5.0..=5.0))
+        } else {
+            Vector3::new(
+                0. + self.rng.gen_range(-10.0..=10.0),
+                5. + self.rng.gen_range(-10.0..=10.0),
+                -40. + self.rng.gen_range(-5.0..=5.0),
+            )
+        };
         enemy.set_transform(Transform {
             basis: player.transform().basis,
             origin: local,

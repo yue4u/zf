@@ -150,9 +150,29 @@ pub struct RadarCommand {
 #[derive(Decode, Encode, Debug, PartialEq)]
 #[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub struct FireCommand {
-    pub weapon: String,
+    pub weapon: WeaponName,
     pub target: Option<String>,
     pub pos: Option<(f32, f32, f32)>,
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
+pub enum WeaponName {
+    Beam,
+    HomingMissile,
+}
+
+impl WeaponName {
+    pub fn all() -> &'static [WeaponName] {
+        &[WeaponName::Beam, WeaponName::HomingMissile]
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            WeaponName::Beam => "beam",
+            WeaponName::HomingMissile => "homing-missile",
+        }
+    }
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

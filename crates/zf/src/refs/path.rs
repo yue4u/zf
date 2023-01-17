@@ -50,16 +50,17 @@ pub mod levels {
     pub const TUTORIAL_RADAR_ENGINE_REL: &str = "res://levels/Tutorial_Radar_Engine_Rel.tscn";
     pub const CHALLENGE_SHIELD_RADIATION_AREA: &str = "res://levels/Challenge_Shield_RadiationArea.tscn";
     pub const TUTORIAL_TASK_RADAR_ENGINE_REL: &str = "res://levels/Tutorial_Task_Radar_Engine_Rel.tscn";
+    pub const TUTORIAL_FIRE_HOMING_MISSILE: &str = "res://levels/Tutorial_Fire_HomingMissile.tscn";
     pub const TUTORIAL_ENGINE_REL: &str = "res://levels/Tutorial_Engine_Rel.tscn";
     pub const TUTORIAL_ENEMY_APPEAR: &str = "res://levels/Tutorial_Enemy_Appear.tscn";
     pub const CHALLENGE_INFINITE: &str = "res://levels/Challenge_Infinite.tscn";
     pub const TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER: &str = "res://levels/Tutorial_Task_Radar_Engine_Rel_Filter.tscn";
+    pub const TUTORIAL_FIRE_BEAM: &str = "res://levels/Tutorial_Fire_Beam.tscn";
     pub const GAME_CLEAR: &str = "res://levels/GameClear.tscn";
     pub const TUTORIAL_TASK_ENGINE_COMBINE: &str = "res://levels/Tutorial_Task_Engine_Combine.tscn";
     pub const CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON: &str = "res://levels/Challenge_Shield_RadiationArea_Task_On.tscn";
     pub const CHALLENGE_ENGINE_REL: &str = "res://levels/Challenge_Engine_Rel.tscn";
     pub const TUTORIAL_SHIELD: &str = "res://levels/Tutorial_Shield.tscn";
-    pub const TUTORIAL_FIRE: &str = "res://levels/Tutorial_Fire.tscn";
     pub const START_MENU: &str = "res://levels/StartMenu.tscn";
     pub const CHALLENGE_TASK_ENGINE_COMBINE: &str = "res://levels/Challenge_Task_Engine_Combine.tscn";
     pub const TUTORIAL_ENGINE: &str = "res://levels/Tutorial_Engine.tscn";
@@ -75,16 +76,17 @@ pub enum LevelName {
     TutorialRadarEngineRel,
     ChallengeShieldRadiationArea,
     TutorialTaskRadarEngineRel,
+    TutorialFireHomingMissile,
     TutorialEngineRel,
     TutorialEnemyAppear,
     ChallengeInfinite,
     TutorialTaskRadarEngineRelFilter,
+    TutorialFireBeam,
     GameClear,
     TutorialTaskEngineCombine,
     ChallengeShieldRadiationAreaTaskOn,
     ChallengeEngineRel,
     TutorialShield,
-    TutorialFire,
     StartMenu,
     ChallengeTaskEngineCombine,
     TutorialEngine,
@@ -94,6 +96,7 @@ pub enum LevelName {
     Unknown,
 }
 
+
 impl LevelName {
     #[rustfmt::skip]
     pub fn from_path(value: &str) -> Self {
@@ -101,16 +104,17 @@ impl LevelName {
             levels::TUTORIAL_RADAR_ENGINE_REL => LevelName::TutorialRadarEngineRel,
             levels::CHALLENGE_SHIELD_RADIATION_AREA => LevelName::ChallengeShieldRadiationArea,
             levels::TUTORIAL_TASK_RADAR_ENGINE_REL => LevelName::TutorialTaskRadarEngineRel,
+            levels::TUTORIAL_FIRE_HOMING_MISSILE => LevelName::TutorialFireHomingMissile,
             levels::TUTORIAL_ENGINE_REL => LevelName::TutorialEngineRel,
             levels::TUTORIAL_ENEMY_APPEAR => LevelName::TutorialEnemyAppear,
             levels::CHALLENGE_INFINITE => LevelName::ChallengeInfinite,
             levels::TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER => LevelName::TutorialTaskRadarEngineRelFilter,
+            levels::TUTORIAL_FIRE_BEAM => LevelName::TutorialFireBeam,
             levels::GAME_CLEAR => LevelName::GameClear,
             levels::TUTORIAL_TASK_ENGINE_COMBINE => LevelName::TutorialTaskEngineCombine,
             levels::CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON => LevelName::ChallengeShieldRadiationAreaTaskOn,
             levels::CHALLENGE_ENGINE_REL => LevelName::ChallengeEngineRel,
             levels::TUTORIAL_SHIELD => LevelName::TutorialShield,
-            levels::TUTORIAL_FIRE => LevelName::TutorialFire,
             levels::START_MENU => LevelName::StartMenu,
             levels::CHALLENGE_TASK_ENGINE_COMBINE => LevelName::ChallengeTaskEngineCombine,
             levels::TUTORIAL_ENGINE => LevelName::TutorialEngine,
@@ -129,16 +133,17 @@ impl LevelName {
             LevelName::TutorialRadarEngineRel => levels::TUTORIAL_RADAR_ENGINE_REL,
             LevelName::ChallengeShieldRadiationArea => levels::CHALLENGE_SHIELD_RADIATION_AREA,
             LevelName::TutorialTaskRadarEngineRel => levels::TUTORIAL_TASK_RADAR_ENGINE_REL,
+            LevelName::TutorialFireHomingMissile => levels::TUTORIAL_FIRE_HOMING_MISSILE,
             LevelName::TutorialEngineRel => levels::TUTORIAL_ENGINE_REL,
             LevelName::TutorialEnemyAppear => levels::TUTORIAL_ENEMY_APPEAR,
             LevelName::ChallengeInfinite => levels::CHALLENGE_INFINITE,
             LevelName::TutorialTaskRadarEngineRelFilter => levels::TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER,
+            LevelName::TutorialFireBeam => levels::TUTORIAL_FIRE_BEAM,
             LevelName::GameClear => levels::GAME_CLEAR,
             LevelName::TutorialTaskEngineCombine => levels::TUTORIAL_TASK_ENGINE_COMBINE,
             LevelName::ChallengeShieldRadiationAreaTaskOn => levels::CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON,
             LevelName::ChallengeEngineRel => levels::CHALLENGE_ENGINE_REL,
             LevelName::TutorialShield => levels::TUTORIAL_SHIELD,
-            LevelName::TutorialFire => levels::TUTORIAL_FIRE,
             LevelName::StartMenu => levels::START_MENU,
             LevelName::ChallengeTaskEngineCombine => levels::CHALLENGE_TASK_ENGINE_COMBINE,
             LevelName::TutorialEngine => levels::TUTORIAL_ENGINE,
@@ -157,16 +162,17 @@ impl LevelName {
             "Tutorial-Radar-Engine-Rel" => LevelName::TutorialRadarEngineRel,
             "Challenge-Shield-Radiation-Area" => LevelName::ChallengeShieldRadiationArea,
             "Tutorial-Task-Radar-Engine-Rel" => LevelName::TutorialTaskRadarEngineRel,
+            "Tutorial-Fire-Homing-Missile" => LevelName::TutorialFireHomingMissile,
             "Tutorial-Engine-Rel" => LevelName::TutorialEngineRel,
             "Tutorial-Enemy-Appear" => LevelName::TutorialEnemyAppear,
             "Challenge-Infinite" => LevelName::ChallengeInfinite,
             "Tutorial-Task-Radar-Engine-Rel-Filter" => LevelName::TutorialTaskRadarEngineRelFilter,
+            "Tutorial-Fire-Beam" => LevelName::TutorialFireBeam,
             "Game-Clear" => LevelName::GameClear,
             "Tutorial-Task-Engine-Combine" => LevelName::TutorialTaskEngineCombine,
             "Challenge-Shield-Radiation-Area-Task-On" => LevelName::ChallengeShieldRadiationAreaTaskOn,
             "Challenge-Engine-Rel" => LevelName::ChallengeEngineRel,
             "Tutorial-Shield" => LevelName::TutorialShield,
-            "Tutorial-Fire" => LevelName::TutorialFire,
             "Start-Menu" => LevelName::StartMenu,
             "Challenge-Task-Engine-Combine" => LevelName::ChallengeTaskEngineCombine,
             "Tutorial-Engine" => LevelName::TutorialEngine,
@@ -183,16 +189,17 @@ impl LevelName {
             LevelName::TutorialRadarEngineRel => "Tutorial-Radar-Engine-Rel",
             LevelName::ChallengeShieldRadiationArea => "Challenge-Shield-Radiation-Area",
             LevelName::TutorialTaskRadarEngineRel => "Tutorial-Task-Radar-Engine-Rel",
+            LevelName::TutorialFireHomingMissile => "Tutorial-Fire-Homing-Missile",
             LevelName::TutorialEngineRel => "Tutorial-Engine-Rel",
             LevelName::TutorialEnemyAppear => "Tutorial-Enemy-Appear",
             LevelName::ChallengeInfinite => "Challenge-Infinite",
             LevelName::TutorialTaskRadarEngineRelFilter => "Tutorial-Task-Radar-Engine-Rel-Filter",
+            LevelName::TutorialFireBeam => "Tutorial-Fire-Beam",
             LevelName::GameClear => "Game-Clear",
             LevelName::TutorialTaskEngineCombine => "Tutorial-Task-Engine-Combine",
             LevelName::ChallengeShieldRadiationAreaTaskOn => "Challenge-Shield-Radiation-Area-Task-On",
             LevelName::ChallengeEngineRel => "Challenge-Engine-Rel",
             LevelName::TutorialShield => "Tutorial-Shield",
-            LevelName::TutorialFire => "Tutorial-Fire",
             LevelName::StartMenu => "Start-Menu",
             LevelName::ChallengeTaskEngineCombine => "Challenge-Task-Engine-Combine",
             LevelName::TutorialEngine => "Tutorial-Engine",
@@ -604,6 +611,15 @@ pub mod tutorial_task_radar_engine_rel {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod tutorial_fire_homing_missile {
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
+    pub const T_DUMMY: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy2";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy3";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod tutorial_engine_rel {
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PATH: &str = "/root/Scene/Level/Path";
@@ -664,6 +680,13 @@ pub mod tutorial_task_radar_engine_rel_filter {
     pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
     pub const POINT_6: &str = "/root/Scene/Level/Point_6";
     pub const TARGET_POINT_6: &str = "/root/Scene/Level/Point_6/TargetPoint_6";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_fire_beam {
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
+    pub const T_DUMMY: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy";
 }
 
 #[rustfmt::skip]
@@ -745,15 +768,6 @@ pub mod tutorial_shield {
     pub const T_DUMMY_2: &str = "/root/Scene/Level/t-dummy2";
     pub const T_DUMMY_3: &str = "/root/Scene/Level/t-dummy3";
     pub const COMMAND_INPUT_WATCHER: &str = "/root/Scene/Level/CommandInputWatcher";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
-pub mod tutorial_fire {
-    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/PlayerMjolnir";
-    pub const T_DUMMY: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy";
-    pub const T_DUMMY_2: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy2";
-    pub const T_DUMMY_3: &str = "/root/Scene/Level/PlayerMjolnir/t-dummy3";
 }
 
 #[rustfmt::skip]
@@ -872,3 +886,4 @@ pub mod assets {
     pub const DEFAULT_ENV_TRES: &str = "res://assets/DefaultEnv.tres";
     pub const PATH_FOLLOW_RANBOW_SHADER: &str = "res://assets/PathFollowRanbow.shader";
 }
+

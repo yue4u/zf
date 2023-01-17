@@ -166,12 +166,20 @@ We can use `radar | where type != hazard` to filter them out and get all target 
 "#,
     hint: ["task run 'radar | where type != hazard | get 0 | e rel'; e t 100"],
 
-    @TutorialFire where
+    @TutorialFireBeam where
     guide: r#"
 let's use our weapon system!
-`fire hm` allow use to fire a homing missile,
-while enemy positions can be retrieved from `radar` command.
-Combining this two commands to destroy enemies!
+Use `fire beam` or `fire b` to fire beam to destroy the enemy before us!
+"#,
+    hint: [
+        "fire b"
+    ],
+
+    @TutorialFireHomingMissile where
+    guide: r#"
+`fire homing-missile` or `fire hm` allow us to fire a homing missile,
+while enemy positions can be retrieved from `radar` command,
+try combining this two commands to destroy enemies!
 "#,
     hint: [
         "task run 'radar | get 0 | fire hm'"
@@ -179,8 +187,7 @@ Combining this two commands to destroy enemies!
 
     @TutorialShield where
     guide: r#"
-Enemy appears!
-Try `shield on` to avoid taking damage.
+We can use our shield by `shield on` command to avoid taking damage.
 Note: shield have a total time limit, use `shield off` to turn off if not necessary
 Check status on the right side or use the `shield` command.
 "#,
@@ -249,6 +256,7 @@ Congratulations! You've cleared this game!
 Don't forget to check `special-thanks` and `credits`!
 Use `game menu` to return to top.
 
+Thanks for playing!
 Author: \x1b[44m @yue@null.ptr.fm \x1b[0m
 ",
     hint: [
@@ -276,7 +284,7 @@ impl LevelHelper for LevelName {
 
     fn guide(&self) -> String {
         let guide = guides(&self);
-        let hint = format!("Type {} to get hint!", StyledLabel::Code.paint("hint"));
+        let hint = format!("\nType {} to get hint!", StyledLabel::Code.paint("hint"));
         let text = format!("{guide}\n{hint}");
 
         let lines = DarkGray.paint(

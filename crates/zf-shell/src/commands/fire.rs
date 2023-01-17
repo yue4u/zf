@@ -5,7 +5,7 @@ use nu_protocol::{
     IntoPipelineData, PipelineData, ShellError, Signature, SyntaxShape, Value,
 };
 
-use zf_ffi::{CommandArgs, FireCommand};
+use zf_ffi::{CommandArgs, FireCommand, WeaponName};
 
 #[derive(Clone)]
 pub(crate) struct Fire;
@@ -54,8 +54,28 @@ impl Command for Fire {
                 }
             }
         }
+
+        let weapon = match call.req::<String>(engine_state, stack, 0)?.as_str() {
+            "b" | "beam" => {
+                if pos.is_some() {
+                    return Err(ShellError::IncompatibleParametersSingle(
+                        "beam does not accept setting a target pos".to_owned(),
+                        call.positional_nth(0).unwrap().span,
+                    ));
+                }
+                WeaponName::Beam
+            }
+            "hm" | "homing-missile" => WeaponName::HomingMissile,
+            other => {
+                return Err(ShellError::IncompatibleParametersSingle(
+                    format!("unknown weapon: {other}"),
+                    call.positional_nth(0).unwrap().span,
+                ))
+            }
+        };
+
         let args = CommandArgs::Fire(FireCommand {
-            weapon: call.req::<String>(engine_state, stack, 0)?,
+            weapon,
             target,
             pos,
         });

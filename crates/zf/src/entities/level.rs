@@ -72,10 +72,10 @@ levels!(
 
     @StartMenu where
     guide: r#"
-Type `tutorial` to continue or `help` for help.
+Type `game start` to continue or `help` for help.
 "#,
     hint: [
-        "tutorial"
+        "game start"
     ],
 
     @TutorialHelloWorld where
@@ -118,33 +118,33 @@ Note: you can use `alias` to create shortcut like `alias r = engine rel`
         "r -y -3 -z 20"
     ],
 
-    @TutorialMissionEngineRel where
+    @TutorialRadarEngineRel where
     guide:
         r#"
 We can use `|` to pipe data from one command to another!
 For example, to show target points of current mission:
-`mission targets`
-Since mission targets returns a list, we can use get 0 to get the first one,
-`mission targets | get 0`
+`radar`
+Since radar returns a list, we can use get 0 to get the first one,
+`radar | get 0`
 or using 0.pos as a index to get detailed info
-`mission targets | get 0.pos`.
+`radar | get 0.pos`.
 Try combine with `engine rel` to clear this level.
 "#,
     hint: [
-        "alias m = (mission targets | get 0 | engine rel)",
+        "alias m = (radar | get 0 | engine rel)",
         "m",
         "m",
         "m"
     ],
 
-    @TutorialTaskMissionEngineRel where
+    @TutorialTaskRadarEngineRel where
     guide: r#"
 `task` command is special, we can use `task` to create tasks that runs in the background!
 For example, to run the task we created in the before mission:
 `task run 'random pos | engine rel'`
 Type `help task` and `help task run` to explore more
 "#,
-    hint: ["task run 'mission targets | get 0 | engine rel'"],
+    hint: ["task run 'radar | get 0 | engine rel'"],
 
     @TutorialTaskEngineCombine where
     guide: r#"
@@ -152,12 +152,12 @@ We can issue two commands togetter in one line seperated by `;`.
 For example: `engine t 50; engine rel -x 5`.
 Try combining task command and engine command togetter!
 "#,
-    hint: ["e t 100; task run 'mission targets | get 0 | e rel'"],
+    hint: ["e t 100; task run 'radar | get 0 | e rel'"],
 
     @ChallengeTaskEngineCombine where
     guide: r#"Reach all target points!
 You can use the `time scale` command to control the game speed"#,
-    hint: ["time scale 1.5; e t 100; task run 'mission targets | get 0 | e rel'"],
+    hint: ["time scale 1.5; e t 100; task run 'radar | get 0 | e rel'"],
 
     @TutorialFire where
     guide: r#"

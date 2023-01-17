@@ -12,7 +12,6 @@ pub enum CommandArgs {
     Level(LevelCommand),
     Tutorial,
     Hint,
-    Mission(MissionCommand),
     Engine(EngineCommand),
     Shield(ShieldCommand),
     Task(TaskCommand),
@@ -22,7 +21,7 @@ pub enum CommandArgs {
     Audio(AudioCommand),
     Time(TimeCommand),
     Term(TermCommand),
-    /// up to host impl and could use for test
+    /// up to host impl and currently used for test
     Mystery,
 }
 
@@ -139,13 +138,6 @@ pub struct UICommand {
 #[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum AudioCommand {
     Volume(f64),
-}
-
-#[derive(Decode, Encode, Debug, PartialEq)]
-#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
-pub enum MissionCommand {
-    Info,
-    Targets,
 }
 
 #[derive(Decode, Encode, Debug, PartialEq)]

@@ -26,6 +26,7 @@ pub struct MissionTarget {
 #[derive(Serialize, Deserialize)]
 pub struct TargetPointInfo {
     pub name: String,
+    pub r#type: String,
     pub pos: [f32; 3],
 }
 

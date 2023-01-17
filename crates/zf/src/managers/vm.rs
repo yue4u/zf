@@ -5,13 +5,13 @@ use gdnative::{
 use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, fmt::Display};
 use zf_ffi::{
-    memory::Tag, CommandArgs, CommandResults, GameCommand, LevelCommand, MissionCommand,
-    ShieldCommand, TaskCommand, TaskListenableEvent,
+    memory::Tag, CommandArgs, CommandResults, GameCommand, LevelCommand, ShieldCommand,
+    TaskCommand, TaskListenableEvent,
 };
 
 use crate::{
     common::{current_level, find_ref, get_tree},
-    entities::{GameEvent, LevelHelper, MissionLegacy, TargetPointInfo, LEVELS},
+    entities::{GameEvent, LevelHelper, TargetPointInfo, LEVELS},
     refs::{
         groups, next_level,
         path::{auto_load, base_level, LevelName},
@@ -97,7 +97,7 @@ impl VMData {
         self.change_scene(&self.current_level());
     }
 
-    fn target_point_info_in_group(&self, group: impl Into<GodotString>) -> Vec<TargetPointInfo> {
+    fn target_point_info_in_group(&self, group: &'static str) -> Vec<TargetPointInfo> {
         self.scene_tree()
             .get_nodes_in_group(group)
             .iter()
@@ -107,9 +107,17 @@ impl VMData {
                 TargetPointInfo {
                     name: unsafe { s.assume_safe() }.name().to_string(),
                     pos: [x, y, z],
+                    r#type: group.into(),
                 }
             })
             .collect::<Vec<TargetPointInfo>>()
+    }
+
+    fn radar(&self) -> Vec<TargetPointInfo> {
+        [groups::ENEMY, groups::TARGET_POINT]
+            .iter()
+            .flat_map(|group| self.target_point_info_in_group(group))
+            .collect()
     }
 }
 
@@ -268,9 +276,7 @@ impl VM {
             GameEvent::MissionFailed => {
                 let runtime = self.runtime.as_mut()?;
                 runtime.store.data_mut().ext.clean_background_tasks();
-                // let result = runtime
-                //     .eval(format!("fsays 'Mission completed: {}'", "Mission failed"))
-                //     .expect("fsays should work");
+
                 let label = unsafe { base.get_node_as::<Label>(base_level::LEVEL_RESULT).unwrap() };
                 label.set_text("Mission failed");
                 // cd00fff3 -> cdff0099
@@ -375,26 +381,13 @@ impl RuntimeFunc {
                 tracing::debug!("{:?}", &ret);
                 caller.write_string_from_host(ret)
             }
-            CommandArgs::Mission(m) => match m {
-                MissionCommand::Info => {
-                    // FIXME: this is outdated
-                    caller.write_string_from_host(MissionLegacy::dummy().summary())
-                }
-                MissionCommand::Targets => {
-                    let targets = caller
-                        .data()
-                        .ext
-                        .target_point_info_in_group(groups::TARGET_POINT);
-                    caller.write_json(&targets)
-                }
-            },
             CommandArgs::Game(g) => {
                 match g {
                     GameCommand::Start => {
                         caller
                             .data_mut()
                             .ext
-                            .change_scene(&LevelName::ChallengeInfinite);
+                            .change_scene(&LevelName::TutorialHelloWorld);
                     }
                     GameCommand::Menu => {
                         caller.data_mut().ext.change_scene(&LevelName::StartMenu);
@@ -436,19 +429,12 @@ impl RuntimeFunc {
                 Engine::godot_singleton().set_time_scale(time.scale);
                 0
             }
-            CommandArgs::Tutorial => {
-                caller
-                    .data_mut()
-                    .ext
-                    .change_scene(&LevelName::TutorialHelloWorld);
-                0
-            }
             CommandArgs::Hint => {
                 let hint = caller.data().ext.current_level().hint();
                 caller.write_string_from_host(hint)
             }
             CommandArgs::Radar(_) => {
-                let targets = caller.data().ext.target_point_info_in_group(groups::ENEMY);
+                let targets = caller.data().ext.radar();
                 caller.write_json(&targets)
             }
             CommandArgs::Shield(ShieldCommand::Show) => {

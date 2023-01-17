@@ -19,7 +19,6 @@ use crate::{
 #[inherit(Spatial)]
 #[register_with(Self::register_signal)]
 pub struct Player {
-    #[allow(unused)]
     base: Ref<Spatial>,
     speed: f64,
     shield: PlayerShield,
@@ -122,7 +121,6 @@ impl Player {
 
     #[method]
     fn on_cmd_parsed(&mut self, #[base] base: &Spatial, input: CommandInput) -> Option<()> {
-        // tracing::debug!("{:?}",&input);
         let next_status = match &input.cmd {
             CommandArgs::Engine(EngineCommand::Off) => Some(EngineThruster::Off),
             CommandArgs::Engine(EngineCommand::Thruster(percent)) => {
@@ -145,7 +143,6 @@ impl Player {
                 None
             }
             CommandArgs::Fire(fire) => {
-                // tracing::info!("fire: {:?}", fire);
                 let weapon =
                     SceneLoader::load_and_instance_as::<Spatial>(scenes::HOMING_MISSILE).unwrap();
                 let weapon_area = unsafe { weapon.get_node_as::<Area>("Area") }.unwrap();

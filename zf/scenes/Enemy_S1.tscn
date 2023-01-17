@@ -25,4 +25,4 @@ transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 2.457, 
 shape = SubResource( 1 )
 
 [node name="HP" parent="." instance=ExtResource( 3 )]
-transform = Transform( 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 8.61353, 0 )
+transform = Transform( 3, 0, 0, 0, 2, 0, 0, 0, 5, 0, 6, 0 )

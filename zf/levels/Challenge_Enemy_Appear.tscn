@@ -15,7 +15,7 @@ _data = {
 [node name="Scene" instance=ExtResource( 3 )]
 
 [node name="LevelIndicator" parent="Level" index="1" instance=ExtResource( 5 )]
-max_enemy = 1
+max_enemy = 5
 
 [node name="Orbit" parent="Level" index="2" instance=ExtResource( 4 )]
 path_node = NodePath("../Path")

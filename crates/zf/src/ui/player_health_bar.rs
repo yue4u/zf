@@ -2,6 +2,7 @@ use gdnative::{
     api::{object::ConnectFlags, ShaderMaterial, TextureRect},
     prelude::*,
 };
+use zf_ffi::CommandArgs;
 
 use crate::{
     common::find_ref,
@@ -9,7 +10,7 @@ use crate::{
     managers::VM,
     refs::path::player_health_bar,
     units::{Player, PLAYER_HIT},
-    vm::VMSignal,
+    vm::{CommandInput, VMSignal},
 };
 
 #[derive(NativeClass)]
@@ -83,6 +84,31 @@ impl PlayerHealthBar {
             ConnectFlags::DEFERRED.into(),
         )
         .expect("failed to connect vm");
+
+        vm_manager
+            .connect(
+                VMSignal::OnCmdParsed,
+                base,
+                VMSignal::OnCmdParsed,
+                VariantArray::new_shared(),
+                ConnectFlags::DEFERRED.into(),
+            )
+            .expect("failed to connect vm");
+    }
+
+    #[method]
+    fn on_cmd_parsed(&mut self, #[base] _base: &Node, input: CommandInput) {
+        match input.cmd {
+            CommandArgs::Repair => {
+                self.current = self.current.saturating_add(200).min(self.max);
+                self.prev = self.current as f64;
+
+                unsafe { self.current_label.as_ref().unwrap().assume_safe() }
+                    .set_text(self.current.to_string());
+                self.update_shader_param();
+            }
+            _ => {}
+        }
     }
 
     #[method]

@@ -246,8 +246,8 @@ Enemies will appear in after you reach certain area, try defeat them all.
         "e t 100"
     ],
 
-    @ChallengeInfinite where
-    guide: "Keep alive as long as possible",
+    @ChallengeFinal where
+    guide: "Complete this level. Ad astra abyssosque!",
     hint: [],
 
     @GameClear where

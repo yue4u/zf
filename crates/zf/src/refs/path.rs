@@ -53,7 +53,6 @@ pub mod levels {
     pub const TUTORIAL_FIRE_HOMING_MISSILE: &str = "res://levels/Tutorial_Fire_HomingMissile.tscn";
     pub const TUTORIAL_ENGINE_REL: &str = "res://levels/Tutorial_Engine_Rel.tscn";
     pub const TUTORIAL_ENEMY_APPEAR: &str = "res://levels/Tutorial_Enemy_Appear.tscn";
-    pub const CHALLENGE_INFINITE: &str = "res://levels/Challenge_Infinite.tscn";
     pub const TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER: &str = "res://levels/Tutorial_Task_Radar_Engine_Rel_Filter.tscn";
     pub const TUTORIAL_FIRE_BEAM: &str = "res://levels/Tutorial_Fire_Beam.tscn";
     pub const GAME_CLEAR: &str = "res://levels/GameClear.tscn";
@@ -65,6 +64,7 @@ pub mod levels {
     pub const CHALLENGE_TASK_ENGINE_COMBINE: &str = "res://levels/Challenge_Task_Engine_Combine.tscn";
     pub const TUTORIAL_ENGINE: &str = "res://levels/Tutorial_Engine.tscn";
     pub const CHALLENGE_ENEMY_APPEAR: &str = "res://levels/Challenge_Enemy_Appear.tscn";
+    pub const CHALLENGE_FINAL: &str = "res://levels/Challenge_Final.tscn";
     pub const TUTORIAL_HELLO_WORLD: &str = "res://levels/Tutorial_Hello_World.tscn";
     pub const CHALLENGE_SHIELD: &str = "res://levels/Challenge_Shield.tscn";
 }
@@ -79,7 +79,6 @@ pub enum LevelName {
     TutorialFireHomingMissile,
     TutorialEngineRel,
     TutorialEnemyAppear,
-    ChallengeInfinite,
     TutorialTaskRadarEngineRelFilter,
     TutorialFireBeam,
     GameClear,
@@ -91,6 +90,7 @@ pub enum LevelName {
     ChallengeTaskEngineCombine,
     TutorialEngine,
     ChallengeEnemyAppear,
+    ChallengeFinal,
     TutorialHelloWorld,
     ChallengeShield,
     Unknown,
@@ -107,7 +107,6 @@ impl LevelName {
             levels::TUTORIAL_FIRE_HOMING_MISSILE => LevelName::TutorialFireHomingMissile,
             levels::TUTORIAL_ENGINE_REL => LevelName::TutorialEngineRel,
             levels::TUTORIAL_ENEMY_APPEAR => LevelName::TutorialEnemyAppear,
-            levels::CHALLENGE_INFINITE => LevelName::ChallengeInfinite,
             levels::TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER => LevelName::TutorialTaskRadarEngineRelFilter,
             levels::TUTORIAL_FIRE_BEAM => LevelName::TutorialFireBeam,
             levels::GAME_CLEAR => LevelName::GameClear,
@@ -119,6 +118,7 @@ impl LevelName {
             levels::CHALLENGE_TASK_ENGINE_COMBINE => LevelName::ChallengeTaskEngineCombine,
             levels::TUTORIAL_ENGINE => LevelName::TutorialEngine,
             levels::CHALLENGE_ENEMY_APPEAR => LevelName::ChallengeEnemyAppear,
+            levels::CHALLENGE_FINAL => LevelName::ChallengeFinal,
             levels::TUTORIAL_HELLO_WORLD => LevelName::TutorialHelloWorld,
             levels::CHALLENGE_SHIELD => LevelName::ChallengeShield,
             _ => LevelName::Unknown,
@@ -136,7 +136,6 @@ impl LevelName {
             LevelName::TutorialFireHomingMissile => levels::TUTORIAL_FIRE_HOMING_MISSILE,
             LevelName::TutorialEngineRel => levels::TUTORIAL_ENGINE_REL,
             LevelName::TutorialEnemyAppear => levels::TUTORIAL_ENEMY_APPEAR,
-            LevelName::ChallengeInfinite => levels::CHALLENGE_INFINITE,
             LevelName::TutorialTaskRadarEngineRelFilter => levels::TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER,
             LevelName::TutorialFireBeam => levels::TUTORIAL_FIRE_BEAM,
             LevelName::GameClear => levels::GAME_CLEAR,
@@ -148,6 +147,7 @@ impl LevelName {
             LevelName::ChallengeTaskEngineCombine => levels::CHALLENGE_TASK_ENGINE_COMBINE,
             LevelName::TutorialEngine => levels::TUTORIAL_ENGINE,
             LevelName::ChallengeEnemyAppear => levels::CHALLENGE_ENEMY_APPEAR,
+            LevelName::ChallengeFinal => levels::CHALLENGE_FINAL,
             LevelName::TutorialHelloWorld => levels::TUTORIAL_HELLO_WORLD,
             LevelName::ChallengeShield => levels::CHALLENGE_SHIELD,
             LevelName::Unknown => unreachable!(),
@@ -165,7 +165,6 @@ impl LevelName {
             "Tutorial-Fire-Homing-Missile" => LevelName::TutorialFireHomingMissile,
             "Tutorial-Engine-Rel" => LevelName::TutorialEngineRel,
             "Tutorial-Enemy-Appear" => LevelName::TutorialEnemyAppear,
-            "Challenge-Infinite" => LevelName::ChallengeInfinite,
             "Tutorial-Task-Radar-Engine-Rel-Filter" => LevelName::TutorialTaskRadarEngineRelFilter,
             "Tutorial-Fire-Beam" => LevelName::TutorialFireBeam,
             "Game-Clear" => LevelName::GameClear,
@@ -177,6 +176,7 @@ impl LevelName {
             "Challenge-Task-Engine-Combine" => LevelName::ChallengeTaskEngineCombine,
             "Tutorial-Engine" => LevelName::TutorialEngine,
             "Challenge-Enemy-Appear" => LevelName::ChallengeEnemyAppear,
+            "Challenge-Final" => LevelName::ChallengeFinal,
             "Tutorial-Hello-World" => LevelName::TutorialHelloWorld,
             "Challenge-Shield" => LevelName::ChallengeShield,
             _ => LevelName::Unknown,
@@ -192,7 +192,6 @@ impl LevelName {
             LevelName::TutorialFireHomingMissile => "Tutorial-Fire-Homing-Missile",
             LevelName::TutorialEngineRel => "Tutorial-Engine-Rel",
             LevelName::TutorialEnemyAppear => "Tutorial-Enemy-Appear",
-            LevelName::ChallengeInfinite => "Challenge-Infinite",
             LevelName::TutorialTaskRadarEngineRelFilter => "Tutorial-Task-Radar-Engine-Rel-Filter",
             LevelName::TutorialFireBeam => "Tutorial-Fire-Beam",
             LevelName::GameClear => "Game-Clear",
@@ -204,6 +203,7 @@ impl LevelName {
             LevelName::ChallengeTaskEngineCombine => "Challenge-Task-Engine-Combine",
             LevelName::TutorialEngine => "Tutorial-Engine",
             LevelName::ChallengeEnemyAppear => "Challenge-Enemy-Appear",
+            LevelName::ChallengeFinal => "Challenge-Final",
             LevelName::TutorialHelloWorld => "Tutorial-Hello-World",
             LevelName::ChallengeShield => "Challenge-Shield",
             _ => "Unknown",
@@ -642,23 +642,6 @@ pub mod tutorial_enemy_appear {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
-pub mod challenge_infinite {
-    pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
-    pub const PATH: &str = "/root/Scene/Level/Path";
-    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
-    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
-    pub const ORBIT: &str = "/root/Scene/Level/Path/Orbit";
-    pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
-    pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
-    pub const T_DUMMY_4: &str = "/root/Scene/Level/EnemyCluster/t-dummy4";
-    pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
-    pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
-    pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
-    pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
-}
-
-#[rustfmt::skip]
-#[allow(dead_code)]
 pub mod tutorial_task_radar_engine_rel_filter {
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
     pub const PLANET: &str = "/root/Scene/Level/Planet";
@@ -835,6 +818,23 @@ pub mod challenge_enemy_appear {
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod challenge_final {
+    pub const T_GANGUT_SPACE_HUB: &str = "/root/Scene/Level/t-gangut_space_hub";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+    pub const ORBIT: &str = "/root/Scene/Level/Path/Orbit";
+    pub const ENEMY_CLUSTER: &str = "/root/Scene/Level/EnemyCluster";
+    pub const T_DUMMY_3: &str = "/root/Scene/Level/EnemyCluster/t-dummy3";
+    pub const T_DUMMY_4: &str = "/root/Scene/Level/EnemyCluster/t-dummy4";
+    pub const T_DUMMY_6: &str = "/root/Scene/Level/EnemyCluster/t-dummy6";
+    pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
+    pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
+    pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
 }
 
 #[rustfmt::skip]

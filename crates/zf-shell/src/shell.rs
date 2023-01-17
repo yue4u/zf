@@ -1,8 +1,8 @@
 use crate::commands::{
     AudioVolume, Clear, Credits, Engine, EngineOff, EngineOn, EngineRel, EngineRotate,
     EngineThruster, EngineThrusterShort, Fire, Fsays, Game, GameEnd, GameMenu, GameStart, Hi, Hint,
-    Level, LevelList, LevelNext, LevelRestart, LevelStart, Mystery, Radar, RandomPos, Shield,
-    ShieldOff, ShieldOn, SpecialThanks, Task, TaskOn, TaskRun, TaskStop, TermOpacity, Time,
+    Level, LevelList, LevelNext, LevelRestart, LevelStart, Mystery, Radar, RandomPos, Repair,
+    Shield, ShieldOff, ShieldOn, SpecialThanks, Task, TaskOn, TaskRun, TaskStop, TermOpacity, Time,
     TimeScale, Tutorial, UI,
 };
 use anyhow::Result;
@@ -66,6 +66,8 @@ impl ShellState {
             Shield,
             ShieldOn,
             ShieldOff,
+
+            Repair,
 
             Task,
             TaskOn,

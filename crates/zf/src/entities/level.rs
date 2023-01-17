@@ -247,7 +247,10 @@ Enemies will appear in after you reach certain area, try defeat them all.
     ],
 
     @ChallengeFinal where
-    guide: "Complete this level. Ad astra abyssosque!",
+    guide: "
+Complete this level.
+If it's too dangerous, use `repair` command to recover health!
+Ad astra abyssosque!",
     hint: [],
 
     @GameClear where

@@ -168,7 +168,7 @@ impl Mission {
             return;
         }
 
-        if enemies == enemies_all && target_points == target_points_all {
+        if enemies >= enemies_all && target_points >= target_points_all {
             base.emit_signal(
                 ON_MISSION_STATE,
                 &[GameEvent::MissionComplete(level.to_string()).to_variant()],

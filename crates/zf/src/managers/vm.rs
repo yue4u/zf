@@ -78,6 +78,8 @@ impl VMData {
 
     fn change_scene(&mut self, scene: &LevelName) {
         self.clean_background_tasks();
+        // reset time scale
+        Engine::godot_singleton().set_time_scale(1.);
 
         unsafe {
             self.base

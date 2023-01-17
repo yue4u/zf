@@ -20,9 +20,12 @@ use super::Player;
 pub struct EnemySpawner {
     #[property]
     pub max_spawn: u32,
+    #[property]
+    pub with_timer: bool,
     spawned: u32,
     player: Option<Instance<Player>>,
     rng: ThreadRng,
+    timer: Option<Ref<Timer>>,
 }
 
 #[methods]
@@ -30,9 +33,11 @@ impl EnemySpawner {
     fn new(_base: &Node) -> Self {
         EnemySpawner {
             max_spawn: 1,
+            with_timer: false,
             spawned: 0,
             player: None,
             rng: thread_rng(),
+            timer: None,
         }
     }
 
@@ -64,8 +69,30 @@ impl EnemySpawner {
         )
         .expect("failed to connect hit_by_player");
 
-        let timer = unsafe { Timer::new().into_shared().assume_safe() };
-        base.add_child(timer, false);
+        if self.with_timer {
+            let timer = unsafe { Timer::new().into_shared().assume_safe() };
+
+            base.add_child(timer, false);
+
+            timer.set_one_shot(false);
+            timer.start(10.);
+            timer
+                .connect("timeout", base, "trigger", VariantArray::new_shared(), 0)
+                .unwrap();
+            self.timer = Some(timer.claim());
+
+            base.add_child(timer, false);
+        }
+    }
+
+    #[method]
+    fn trigger(&mut self, #[base] base: &Node) -> Option<()> {
+        // only trigger after first
+        if self.spawned > 0 {
+            self.spawn(base)
+        } else {
+            None
+        }
     }
 
     #[method]
@@ -74,7 +101,10 @@ impl EnemySpawner {
         if !parent.is_in_group(groups::PLAYER) {
             return None;
         }
+        self.spawn(base)
+    }
 
+    fn spawn(&mut self, base: &Node) -> Option<()> {
         if self.spawned >= self.max_spawn {
             return None;
         }

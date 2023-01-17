@@ -29,6 +29,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<units::Player>();
     handle.add_class::<units::EnemyS1>();
     handle.add_class::<units::TargetPoint>();
+    handle.add_class::<units::TargetPointHazard>();
     handle.add_class::<units::TutorialS1>();
     handle.add_class::<units::RadiationArea>();
     handle.add_class::<units::EnemySpawner>();

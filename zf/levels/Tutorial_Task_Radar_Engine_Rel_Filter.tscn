@@ -1,0 +1,77 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://scenes/PlanetRinged.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/PlayerMjolnir.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=3]
+[ext_resource path="res://scenes/Orbit.tscn" type="PackedScene" id=4]
+[ext_resource path="res://scenes/TargetPointHazard.tscn" type="PackedScene" id=5]
+[ext_resource path="res://scenes/TargetPoint.tscn" type="PackedScene" id=6]
+[ext_resource path="res://scenes/PlanetLava.tscn" type="PackedScene" id=7]
+
+[sub_resource type="Curve3D" id=1]
+_data = {
+"points": PoolVector3Array( 0.797614, 3.0221, -7.27255, -0.797614, -3.0221, 7.27255, 0, 0, 0, -8.66184, 2.49996, -25.2781, 8.66184, -2.49996, 25.2781, 7.02317, -3.52242, 33.1926, 25.615, -14.5097, -2.19809, -25.615, 14.5097, 2.19809, 19.2758, 34.8706, 57.3105, 13.6397, -1.01116, -19.2551, -13.6397, 1.01116, 19.2551, 1.36705, 10.9288, 124.096, 24.958, -0.841351, 34.7229, -24.958, 0.841351, -34.7229, -56.3075, -18.4304, 92.2631, -11.377, -4.28223, 18.8178, 11.377, 4.28223, -18.8178, -36.5685, -15.1748, 22.3429, -11.9567, -1.70231, 8.59951, 11.9567, 1.70231, -8.59951, -10.9675, 11.4348, -2.06184, -2.97947, 4.25481, -6.5106, 2.97947, -4.25481, 6.5106, 0, 0, 0 ),
+"tilts": PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0 )
+}
+
+[node name="Scene" instance=ExtResource( 3 )]
+
+[node name="Orbit" parent="Level" index="1" instance=ExtResource( 4 )]
+path_node = NodePath("../Path")
+
+[node name="Planet" parent="Level" index="2" instance=ExtResource( 7 )]
+transform = Transform( 8.04803, 0, 8.90108, 0, 12, 0, -8.90108, 0, 8.04803, -60.528, -46, 80 )
+
+[node name="Path" type="Path" parent="Level" index="3"]
+transform = Transform( 1.00549, 0, 0, 0, 1.00549, 0, 0, 0, 1.00549, 0, 0, 0 )
+curve = SubResource( 1 )
+
+[node name="PathFollow" type="PathFollow" parent="Level/Path" index="0"]
+transform = Transform( 0.993945, -0.0417115, -0.101643, -3.72529e-09, 0.925132, -0.379644, 0.109869, 0.377348, 0.919527, 0, 0, 0 )
+rotation_mode = 4
+
+[node name="PlayerMjolnir" parent="Level/Path/PathFollow" index="0" instance=ExtResource( 2 )]
+transform = Transform( -1, -7.45058e-09, 1.63913e-07, -3.72529e-09, 1, 0, -1.56462e-07, 5.96046e-08, -1, 0, 0, 0 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="Level" index="4"]
+transform = Transform( 1, 0, 0, 0, -0.884157, -0.467189, 0, 0.467189, -0.884157, -8.03812, 35.2542, 48.2271 )
+light_energy = 0.0
+light_indirect_energy = 0.0
+
+[node name="Spatial" type="Spatial" parent="Level" index="5"]
+transform = Transform( -2.32795, 3.63686, -2.57471, 2.43913, 3.47109, 2.69767, 3.72915, 1.4983e-07, -3.37175, -9.99072, -7.09312, 81.685 )
+
+[node name="PlanetRinged" parent="Level/Spatial" index="0" instance=ExtResource( 1 )]
+
+[node name="Point_1" type="Spatial" parent="Level" index="6"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 7.02317, -3.52242, 33.1926 )
+
+[node name="Target_1" parent="Level/Point_1" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_2" type="Spatial" parent="Level" index="7"]
+transform = Transform( 0.283754, -0.404035, -0.86962, 0.63406, -0.601272, 0.48625, -0.719341, -0.689367, 0.085569, 19.2758, 34.8706, 57.3105 )
+
+[node name="TargetPoint_2" parent="Level/Point_2" index="0" instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 5, 0 )
+
+[node name="Point_3" type="Spatial" parent="Level" index="8"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.36705, 10.9288, 124.096 )
+
+[node name="Target_3" parent="Level/Point_3" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_4" type="Spatial" parent="Level" index="9"]
+transform = Transform( -0.147682, 0.799196, -0.582645, 0.980525, 0.195422, 0.019523, 0.129465, -0.568415, -0.812492, -56.3075, -18.4304, 92.2631 )
+
+[node name="TargetPoint_4" parent="Level/Point_4" index="0" instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 5, -5, 0 )
+
+[node name="Point_5" type="Spatial" parent="Level" index="10"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -36.5685, -15.1748, 22.3429 )
+
+[node name="Target_5" parent="Level/Point_5" index="0" instance=ExtResource( 5 )]
+
+[node name="Point_6" type="Spatial" parent="Level" index="11"]
+transform = Transform( -0.0344705, 0.588281, 0.807922, 0.990479, -0.0876998, 0.106117, 0.133281, 0.803887, -0.579657, -10.9675, 11.4348, -2.06184 )
+
+[node name="TargetPoint_6" parent="Level/Point_6" index="0" instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 10, 0 )

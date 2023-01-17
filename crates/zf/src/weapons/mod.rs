@@ -47,7 +47,7 @@ impl Weapon for TRef<'_, Spatial> {
     }
 }
 
-trait DamageAble {
+pub trait DamageAble {
     fn try_damage(&self, ammount: u32) -> anyhow::Result<()>;
 }
 

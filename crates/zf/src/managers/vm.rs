@@ -114,10 +114,14 @@ impl VMData {
     }
 
     fn radar(&self) -> Vec<TargetPointInfo> {
-        [groups::ENEMY, groups::TARGET_POINT]
-            .iter()
-            .flat_map(|group| self.target_point_info_in_group(group))
-            .collect()
+        [
+            groups::ENEMY,
+            groups::TARGET_POINT,
+            groups::TARGET_POINT_HAZARD,
+        ]
+        .iter()
+        .flat_map(|group| self.target_point_info_in_group(group))
+        .collect()
     }
 }
 

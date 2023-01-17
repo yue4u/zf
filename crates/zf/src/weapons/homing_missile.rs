@@ -56,7 +56,6 @@ impl HomingMissile {
 
     #[method]
     fn on_timeout_queue_free(&self, #[base] base: &Spatial) {
-        // tracing::debug!("{:?}","HomingMissile queue_free");
         base.queue_free()
     }
 }

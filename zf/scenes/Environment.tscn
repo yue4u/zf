@@ -28,10 +28,6 @@ transform = Transform( -0.0218671, 0.56476, 0.824965, -0.910018, -0.352936, 0.21
 light_energy = 3.0
 shadow_enabled = true
 
-[node name="DirectionalLight2" type="DirectionalLight" parent="."]
-transform = Transform( -0.364643, -0.431822, -0.824964, 0.910017, -0.352936, -0.217496, -0.19724, -0.83004, 0.521661, 0, 86.2598, 0 )
-visible = false
-
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource( 2 )
 script = ExtResource( 4 )

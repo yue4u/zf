@@ -3,7 +3,8 @@ use gdnative::{api::Area, prelude::TRef};
 pub const PLAYER: &'static str = "player";
 pub const ENEMY: &'static str = "enemy";
 pub const RADAR: &'static str = "radar";
-pub const TARGET_POINT: &'static str = "target_point";
+pub const TARGET_POINT: &'static str = "point";
+pub const TARGET_POINT_HAZARD: &'static str = "hazard";
 pub const LEVEL_INDICATOR: &'static str = "level_indicator";
 
 #[derive(Debug)]

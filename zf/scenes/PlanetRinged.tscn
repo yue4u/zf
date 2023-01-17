@@ -1,0 +1,49 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://assets/3rd/ringed_gas_giant_planet/scene.gltf" type="PackedScene" id=1]
+
+[sub_resource type="Animation" id=2]
+length = 0.001
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:rotation_degrees")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector3( 0, 0, 0 ) ]
+}
+
+[sub_resource type="Animation" id=1]
+resource_name = "Rotate"
+length = 5.0
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:rotation_degrees")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 5 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Vector3( 0, 0, 0 ), Vector3( 0, 360, 0 ) ]
+}
+
+[node name="PlanetRinged" type="Spatial"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+
+[node name="scene" parent="." instance=ExtResource( 1 )]
+transform = Transform( 0.976205, 0.216848, 0, -0.203367, 0.915513, -0.347099, -0.075268, 0.33884, 0.937828, 0, 0, 0 )
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="scene"]
+root_node = NodePath("../..")
+autoplay = "Rotate"
+playback_speed = 0.1
+anims/RESET = SubResource( 2 )
+anims/Rotate = SubResource( 1 )

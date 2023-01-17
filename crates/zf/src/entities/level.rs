@@ -159,6 +159,13 @@ Try combining task command and engine command togetter!
 You can use the `time scale` command to control the game speed"#,
     hint: ["time scale 1.5; e t 100; task run 'radar | get 0 | e rel'"],
 
+    @TutorialTaskRadarEngineRelFilter where
+    guide: r#"
+Our radar detects some hazards!
+We can use `radar | where type != hazard` to filter them out and get all target points!
+"#,
+    hint: ["task run 'radar | where type != hazard | get 0 | e rel'; e t 100"],
+
     @TutorialFire where
     guide: r#"
 let's use our weapon system!

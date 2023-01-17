@@ -34,6 +34,7 @@ pub mod scenes {
     pub const RADIATION_AREA: &str = "res://scenes/RadiationArea.tscn";
     pub const ITEM_LIST: &str = "res://scenes/ItemList.tscn";
     pub const SANDBOX: &str = "res://scenes/Sandbox.tscn";
+    pub const PLANET_RINGED: &str = "res://scenes/PlanetRinged.tscn";
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
     pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
@@ -51,6 +52,7 @@ pub mod levels {
     pub const TUTORIAL_ENGINE_REL: &str = "res://levels/Tutorial_Engine_Rel.tscn";
     pub const TUTORIAL_ENEMY_APPEAR: &str = "res://levels/Tutorial_Enemy_Appear.tscn";
     pub const CHALLENGE_INFINITE: &str = "res://levels/Challenge_Infinite.tscn";
+    pub const TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER: &str = "res://levels/Tutorial_Task_Radar_Engine_Rel_Filter.tscn";
     pub const TUTORIAL_TASK_ENGINE_COMBINE: &str = "res://levels/Tutorial_Task_Engine_Combine.tscn";
     pub const CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON: &str = "res://levels/Challenge_Shield_RadiationArea_Task_On.tscn";
     pub const CHALLENGE_ENGINE_REL: &str = "res://levels/Challenge_Engine_Rel.tscn";
@@ -74,6 +76,7 @@ pub enum LevelName {
     TutorialEngineRel,
     TutorialEnemyAppear,
     ChallengeInfinite,
+    TutorialTaskRadarEngineRelFilter,
     TutorialTaskEngineCombine,
     ChallengeShieldRadiationAreaTaskOn,
     ChallengeEngineRel,
@@ -99,6 +102,7 @@ impl LevelName {
             levels::TUTORIAL_ENGINE_REL => LevelName::TutorialEngineRel,
             levels::TUTORIAL_ENEMY_APPEAR => LevelName::TutorialEnemyAppear,
             levels::CHALLENGE_INFINITE => LevelName::ChallengeInfinite,
+            levels::TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER => LevelName::TutorialTaskRadarEngineRelFilter,
             levels::TUTORIAL_TASK_ENGINE_COMBINE => LevelName::TutorialTaskEngineCombine,
             levels::CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON => LevelName::ChallengeShieldRadiationAreaTaskOn,
             levels::CHALLENGE_ENGINE_REL => LevelName::ChallengeEngineRel,
@@ -125,6 +129,7 @@ impl LevelName {
             LevelName::TutorialEngineRel => levels::TUTORIAL_ENGINE_REL,
             LevelName::TutorialEnemyAppear => levels::TUTORIAL_ENEMY_APPEAR,
             LevelName::ChallengeInfinite => levels::CHALLENGE_INFINITE,
+            LevelName::TutorialTaskRadarEngineRelFilter => levels::TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER,
             LevelName::TutorialTaskEngineCombine => levels::TUTORIAL_TASK_ENGINE_COMBINE,
             LevelName::ChallengeShieldRadiationAreaTaskOn => levels::CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON,
             LevelName::ChallengeEngineRel => levels::CHALLENGE_ENGINE_REL,
@@ -151,6 +156,7 @@ impl LevelName {
             "Tutorial-Engine-Rel" => LevelName::TutorialEngineRel,
             "Tutorial-Enemy-Appear" => LevelName::TutorialEnemyAppear,
             "Challenge-Infinite" => LevelName::ChallengeInfinite,
+            "Tutorial-Task-Radar-Engine-Rel-Filter" => LevelName::TutorialTaskRadarEngineRelFilter,
             "Tutorial-Task-Engine-Combine" => LevelName::TutorialTaskEngineCombine,
             "Challenge-Shield-Radiation-Area-Task-On" => LevelName::ChallengeShieldRadiationAreaTaskOn,
             "Challenge-Engine-Rel" => LevelName::ChallengeEngineRel,
@@ -175,6 +181,7 @@ impl LevelName {
             LevelName::TutorialEngineRel => "Tutorial-Engine-Rel",
             LevelName::TutorialEnemyAppear => "Tutorial-Enemy-Appear",
             LevelName::ChallengeInfinite => "Challenge-Infinite",
+            LevelName::TutorialTaskRadarEngineRelFilter => "Tutorial-Task-Radar-Engine-Rel-Filter",
             LevelName::TutorialTaskEngineCombine => "Tutorial-Task-Engine-Combine",
             LevelName::ChallengeShieldRadiationAreaTaskOn => "Challenge-Shield-Radiation-Area-Task-On",
             LevelName::ChallengeEngineRel => "Challenge-Engine-Rel",
@@ -464,6 +471,13 @@ pub mod sandbox {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod planet_ringed {
+    pub const SCENE: &str = "/root/Scene/scene";
+    pub const ANIMATION_PLAYER: &str = "/root/Scene/scene/AnimationPlayer";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod target_point {
     pub const AREA: &str = "./Area";
     pub const COLLISION_SHAPE: &str = "./Area/CollisionShape";
@@ -612,6 +626,18 @@ pub mod challenge_infinite {
     pub const T_DUMMY_5: &str = "/root/Scene/Level/EnemyCluster/t-dummy5";
     pub const T_DUMMY_2: &str = "/root/Scene/Level/EnemyCluster/t-dummy2";
     pub const UI_EXTRA: &str = "/root/Scene/UI/UIExtra";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod tutorial_task_radar_engine_rel_filter {
+    pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PATH: &str = "/root/Scene/Level/Path";
+    pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
+    pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
+    pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/Level/DirectionalLight";
+    pub const SPATIAL: &str = "/root/Scene/Level/Spatial";
+    pub const PLANET_RINGED: &str = "/root/Scene/Level/Spatial/PlanetRinged";
 }
 
 #[rustfmt::skip]

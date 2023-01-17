@@ -1,9 +1,9 @@
 use crate::commands::{
-    AudioVolume, Clear, Engine, EngineOff, EngineOn, EngineRel, EngineRotate, EngineThruster,
-    EngineThrusterShort, Fire, Fsays, Game, GameEnd, GameMenu, GameStart, Hi, Hint, Level,
-    LevelList, LevelNext, LevelRestart, LevelStart, Mystery, Radar, RandomPos, Shield, ShieldOff,
-    ShieldOn, SpecialThanks, Task, TaskOn, TaskRun, TaskStop, TermOpacity, Time, TimeScale,
-    Tutorial, UI,
+    AudioVolume, Clear, Credits, Engine, EngineOff, EngineOn, EngineRel, EngineRotate,
+    EngineThruster, EngineThrusterShort, Fire, Fsays, Game, GameEnd, GameMenu, GameStart, Hi, Hint,
+    Level, LevelList, LevelNext, LevelRestart, LevelStart, Mystery, Radar, RandomPos, Shield,
+    ShieldOff, ShieldOn, SpecialThanks, Task, TaskOn, TaskRun, TaskStop, TermOpacity, Time,
+    TimeScale, Tutorial, UI,
 };
 use anyhow::Result;
 use nu_command::*;
@@ -92,6 +92,8 @@ impl ShellState {
             SpecialThanks,
 
             Mystery,
+
+            Credits,
 
             // default_context below
 

@@ -36,6 +36,7 @@ pub mod scenes {
     pub const SANDBOX: &str = "res://scenes/Sandbox.tscn";
     pub const PLANET_RINGED: &str = "res://scenes/PlanetRinged.tscn";
     pub const TARGET_POINT: &str = "res://scenes/TargetPoint.tscn";
+    pub const TARGET_POINT_HAZARD: &str = "res://scenes/TargetPointHazard.tscn";
     pub const AUTO_LOAD: &str = "res://scenes/AutoLoad.tscn";
     pub const HOMING_MISSILE: &str = "res://scenes/HomingMissile.tscn";
     pub const SHIELD: &str = "res://scenes/Shield.tscn";
@@ -53,6 +54,7 @@ pub mod levels {
     pub const TUTORIAL_ENEMY_APPEAR: &str = "res://levels/Tutorial_Enemy_Appear.tscn";
     pub const CHALLENGE_INFINITE: &str = "res://levels/Challenge_Infinite.tscn";
     pub const TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER: &str = "res://levels/Tutorial_Task_Radar_Engine_Rel_Filter.tscn";
+    pub const GAME_CLEAR: &str = "res://levels/GameClear.tscn";
     pub const TUTORIAL_TASK_ENGINE_COMBINE: &str = "res://levels/Tutorial_Task_Engine_Combine.tscn";
     pub const CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON: &str = "res://levels/Challenge_Shield_RadiationArea_Task_On.tscn";
     pub const CHALLENGE_ENGINE_REL: &str = "res://levels/Challenge_Engine_Rel.tscn";
@@ -77,6 +79,7 @@ pub enum LevelName {
     TutorialEnemyAppear,
     ChallengeInfinite,
     TutorialTaskRadarEngineRelFilter,
+    GameClear,
     TutorialTaskEngineCombine,
     ChallengeShieldRadiationAreaTaskOn,
     ChallengeEngineRel,
@@ -91,7 +94,6 @@ pub enum LevelName {
     Unknown,
 }
 
-
 impl LevelName {
     #[rustfmt::skip]
     pub fn from_path(value: &str) -> Self {
@@ -103,6 +105,7 @@ impl LevelName {
             levels::TUTORIAL_ENEMY_APPEAR => LevelName::TutorialEnemyAppear,
             levels::CHALLENGE_INFINITE => LevelName::ChallengeInfinite,
             levels::TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER => LevelName::TutorialTaskRadarEngineRelFilter,
+            levels::GAME_CLEAR => LevelName::GameClear,
             levels::TUTORIAL_TASK_ENGINE_COMBINE => LevelName::TutorialTaskEngineCombine,
             levels::CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON => LevelName::ChallengeShieldRadiationAreaTaskOn,
             levels::CHALLENGE_ENGINE_REL => LevelName::ChallengeEngineRel,
@@ -130,6 +133,7 @@ impl LevelName {
             LevelName::TutorialEnemyAppear => levels::TUTORIAL_ENEMY_APPEAR,
             LevelName::ChallengeInfinite => levels::CHALLENGE_INFINITE,
             LevelName::TutorialTaskRadarEngineRelFilter => levels::TUTORIAL_TASK_RADAR_ENGINE_REL_FILTER,
+            LevelName::GameClear => levels::GAME_CLEAR,
             LevelName::TutorialTaskEngineCombine => levels::TUTORIAL_TASK_ENGINE_COMBINE,
             LevelName::ChallengeShieldRadiationAreaTaskOn => levels::CHALLENGE_SHIELD_RADIATION_AREA_TASK_ON,
             LevelName::ChallengeEngineRel => levels::CHALLENGE_ENGINE_REL,
@@ -157,6 +161,7 @@ impl LevelName {
             "Tutorial-Enemy-Appear" => LevelName::TutorialEnemyAppear,
             "Challenge-Infinite" => LevelName::ChallengeInfinite,
             "Tutorial-Task-Radar-Engine-Rel-Filter" => LevelName::TutorialTaskRadarEngineRelFilter,
+            "Game-Clear" => LevelName::GameClear,
             "Tutorial-Task-Engine-Combine" => LevelName::TutorialTaskEngineCombine,
             "Challenge-Shield-Radiation-Area-Task-On" => LevelName::ChallengeShieldRadiationAreaTaskOn,
             "Challenge-Engine-Rel" => LevelName::ChallengeEngineRel,
@@ -182,6 +187,7 @@ impl LevelName {
             LevelName::TutorialEnemyAppear => "Tutorial-Enemy-Appear",
             LevelName::ChallengeInfinite => "Challenge-Infinite",
             LevelName::TutorialTaskRadarEngineRelFilter => "Tutorial-Task-Radar-Engine-Rel-Filter",
+            LevelName::GameClear => "Game-Clear",
             LevelName::TutorialTaskEngineCombine => "Tutorial-Task-Engine-Combine",
             LevelName::ChallengeShieldRadiationAreaTaskOn => "Challenge-Shield-Radiation-Area-Task-On",
             LevelName::ChallengeEngineRel => "Challenge-Engine-Rel",
@@ -213,7 +219,6 @@ pub mod orbit {
 #[allow(dead_code)]
 pub mod environment {
     pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/DirectionalLight";
-    pub const DIRECTIONAL_LIGHT_2: &str = "/root/Scene/DirectionalLight2";
     pub const WORLD_ENVIRONMENT: &str = "/root/Scene/WorldEnvironment";
 }
 
@@ -487,6 +492,14 @@ pub mod target_point {
 
 #[rustfmt::skip]
 #[allow(dead_code)]
+pub mod target_point_hazard {
+    pub const AREA: &str = "/root/Scene/Area";
+    pub const COLLISION_SHAPE: &str = "/root/Scene/Area/CollisionShape";
+    pub const CSG_MESH: &str = "/root/Scene/CSGMesh";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
 pub mod auto_load {
     pub const UI: &str = "/root/AutoLoad/UI";
     pub const MARGIN_CONTAINER: &str = "/root/AutoLoad/UI/MarginContainer";
@@ -632,12 +645,37 @@ pub mod challenge_infinite {
 #[allow(dead_code)]
 pub mod tutorial_task_radar_engine_rel_filter {
     pub const ORBIT: &str = "/root/Scene/Level/Orbit";
+    pub const PLANET: &str = "/root/Scene/Level/Planet";
     pub const PATH: &str = "/root/Scene/Level/Path";
     pub const PATH_FOLLOW: &str = "/root/Scene/Level/Path/PathFollow";
     pub const PLAYER_MJOLNIR: &str = "/root/Scene/Level/Path/PathFollow/PlayerMjolnir";
     pub const DIRECTIONAL_LIGHT: &str = "/root/Scene/Level/DirectionalLight";
     pub const SPATIAL: &str = "/root/Scene/Level/Spatial";
     pub const PLANET_RINGED: &str = "/root/Scene/Level/Spatial/PlanetRinged";
+    pub const POINT_1: &str = "/root/Scene/Level/Point_1";
+    pub const TARGET_1: &str = "/root/Scene/Level/Point_1/Target_1";
+    pub const POINT_2: &str = "/root/Scene/Level/Point_2";
+    pub const TARGET_POINT_2: &str = "/root/Scene/Level/Point_2/TargetPoint_2";
+    pub const POINT_3: &str = "/root/Scene/Level/Point_3";
+    pub const TARGET_3: &str = "/root/Scene/Level/Point_3/Target_3";
+    pub const POINT_4: &str = "/root/Scene/Level/Point_4";
+    pub const TARGET_POINT_4: &str = "/root/Scene/Level/Point_4/TargetPoint_4";
+    pub const POINT_5: &str = "/root/Scene/Level/Point_5";
+    pub const TARGET_5: &str = "/root/Scene/Level/Point_5/Target_5";
+    pub const POINT_6: &str = "/root/Scene/Level/Point_6";
+    pub const TARGET_POINT_6: &str = "/root/Scene/Level/Point_6/TargetPoint_6";
+}
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+pub mod game_clear {
+    pub const CENTER_CONTAINER: &str = "/root/Scene/Level/CenterContainer";
+    pub const TITLE: &str = "/root/Scene/Level/CenterContainer/Title";
+    pub const TYPING_PARTICLES: &str = "/root/Scene/Level/CenterContainer/Title/TypingParticles";
+    pub const TYPING_PARTICLES_2: &str = "/root/Scene/Level/CenterContainer/Title/TypingParticles2";
+    pub const OMNI_LIGHT: &str = "/root/Scene/Level/OmniLight";
+    pub const CAMERA: &str = "/root/Scene/Level/Camera";
+    pub const UI: &str = "/root/Scene/UI";
 }
 
 #[rustfmt::skip]
@@ -822,6 +860,7 @@ pub mod assets {
     pub const TERMINAL_FONT_TRES: &str = "res://assets/TerminalFont.tres";
     pub const PIXELATE_TRES: &str = "res://assets/Pixelate.tres";
     pub const ZF_TRANSPARENT_PNG: &str = "res://assets/ZF_Transparent.png";
+    pub const TARGET_POINT_HAZARD_SHADER: &str = "res://assets/TargetPointHazard.shader";
     pub const ZF_BLEND: &str = "res://assets/ZF.blend";
     pub const ENEMY_BAR_PROGRESS_UNDER_PNG: &str = "res://assets/EnemyBarProgressUnder.png";
     pub const TARGET_POINT_SHADER: &str = "res://assets/TargetPoint.shader";
@@ -833,4 +872,3 @@ pub mod assets {
     pub const DEFAULT_ENV_TRES: &str = "res://assets/DefaultEnv.tres";
     pub const PATH_FOLLOW_RANBOW_SHADER: &str = "res://assets/PathFollowRanbow.shader";
 }
-

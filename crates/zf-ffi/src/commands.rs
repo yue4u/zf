@@ -21,6 +21,7 @@ pub enum CommandArgs {
     Audio(AudioCommand),
     Time(TimeCommand),
     Term(TermCommand),
+    Credits,
     /// up to host impl and currently used for test
     Mystery,
 }

@@ -242,6 +242,21 @@ Enemies will appear in after you reach certain area, try defeat them all.
     @ChallengeInfinite where
     guide: "Keep alive as long as possible",
     hint: [],
+
+    @GameClear where
+    guide: "
+Congratulations! You've cleared this game!
+Don't forget to check `special-thanks` and `credits`!
+Use `game menu` to return to top.
+
+Author: \x1b[44m @yue@null.ptr.fm \x1b[0m
+",
+    hint: [
+        "special-thanks",
+        "credits",
+        "game menu"
+    ],
+
 );
 
 pub trait LevelHelper {

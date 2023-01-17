@@ -1,5 +1,5 @@
 use gdnative::{
-    api::{AudioStreamPlayer, Engine},
+    api::{AudioStreamPlayer, Engine, OS},
     prelude::*,
 };
 use serde::{Deserialize, Serialize};
@@ -462,12 +462,16 @@ impl RuntimeFunc {
                             .assume_safe()
                             .get_node_as::<AudioStreamPlayer>(auto_load::BGM_PLAYER)
                     } {
-                        tracing::debug!("{:?}", bgm_player);
                         bgm_player.set_volume_db(volume);
                     }
                     0
                 }
             },
+            CommandArgs::Credits => {
+                const REPO_URL: &'static str = "https://github.com/yue4u/zf";
+                _ = OS::godot_singleton().shell_open(REPO_URL);
+                caller.write_string_from_host(format!("opened {} in browser", REPO_URL))
+            }
             cmd => {
                 fire_and_forget(&mut caller.data_mut().ext, cmd);
                 0

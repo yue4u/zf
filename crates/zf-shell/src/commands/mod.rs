@@ -1,5 +1,6 @@
 mod audio;
 mod clear;
+mod credits;
 mod engine;
 mod fire;
 mod fsays;
@@ -20,6 +21,7 @@ mod ui;
 
 pub(crate) use audio::*;
 pub(crate) use clear::*;
+pub(crate) use credits::*;
 pub(crate) use engine::*;
 pub(crate) use fire::*;
 pub(crate) use fsays::*;

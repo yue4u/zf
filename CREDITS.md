@@ -30,8 +30,6 @@ Spark Texture (https://www.youtube.com/watch?v=UYFb06NpreQ) from Nolkaloid (http
 
 "Spaceships" (https://skfb.ly/69G6M) by TechLevel is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
 
-"Vulcan Dkyr Class" (https://skfb.ly/HzUX) by morenostefanuto is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
-
 ## BGM / SE
 
 https://dova-s.jp

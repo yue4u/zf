@@ -51,7 +51,6 @@ impl Beam {
 
     #[method]
     fn on_timeout_queue_free(&self, #[base] base: &Spatial) {
-        // tracing::debug!("{:?}","Beam queue_free");
         base.queue_free()
     }
 }

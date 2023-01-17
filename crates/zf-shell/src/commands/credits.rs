@@ -6,6 +6,6 @@ use crate::cmd;
 cmd::proxy!(
     Credits,
     name: "credits",
-    usage: "Get radar result",
+    usage: "Open repository url for credits",
     arg: CommandArgs::Credits
 );

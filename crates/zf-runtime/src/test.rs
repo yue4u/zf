@@ -31,7 +31,7 @@ fn error() -> anyhow::Result<()> {
                ╭─[line0:1:1]
              1 │ !
                · ┬
-               · ╰── external not supported
+               · ╰── unknown command
                ╰────
         "#]],
     );
@@ -125,6 +125,7 @@ fn preload() -> anyhow::Result<()> {
               engine off - Turn off engine
               engine on - Turn on engine
               engine rel - Set relative pos from orbit
+              engine rotate - Set engine rotate
               engine t - Set engine thruster
               engine thruster - Set engine thruster
 
@@ -209,12 +210,14 @@ fn cmds_len() {
         any
         append
         ast
+        audio volume
         char
         clear
         collect
         columns
         commandline
         compact
+        credits
         date
         date format
         date humanize
@@ -244,6 +247,7 @@ fn cmds_len() {
         engine off
         engine on
         engine rel
+        engine rotate
         engine t
         engine thruster
         error make
@@ -310,8 +314,6 @@ fn cmds_len() {
         math variance
         merge
         metadata
-        mission
-        mission targets
         module
         move
         mystery
@@ -336,6 +338,7 @@ fn cmds_len() {
         reduce
         reject
         rename
+        repair
         reverse
         roll
         roll down
@@ -355,6 +358,7 @@ fn cmds_len() {
         sleep
         sort
         sort-by
+        special-thanks
         split
         split chars
         split column
@@ -391,6 +395,7 @@ fn cmds_len() {
         take until
         take while
         task
+        task on
         task run
         task stop
         term opacity
@@ -408,5 +413,10 @@ fn cmds_len() {
         where
         window
         wrap
-        zip"#]])
+        zip
+        task on radiation_area_entered
+        task on radiation_area_exited
+        task on enemy_appeared
+        fire beam
+        fire homing-missile"#]])
 }

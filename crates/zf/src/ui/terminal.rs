@@ -335,22 +335,11 @@ impl Terminal {
             GlobalConstants::KEY_ENTER => {
                 match self.buffer.as_str() {
                     lines => {
-                        // tracing::debug!("{:?}","lines: {}", lines);
-                        // base.emit_signal(ENTER_SIGNAL, &[self.buffer.to_variant()]);
-                        // self.state = ProcessState::Running;
-                        // let buffer: String = self.buffer.drain(..).collect();
-                        // tracing::debug!("{:?}",lines);
                         if self.history.len() == 50 {
                             self.history.pop_front();
                         }
                         self.history.push_back(lines.to_owned());
                         base.emit_signal(ENTER_SIGNAL, &[lines.to_variant()]);
-
-                        // self.state
-                        //     .term
-                        //     .send_paste(&lines)
-                        //     .expect("failed to send_paste");
-                        // self.buffer = "".to_string();
                     }
                 }
                 self.buffer = "".to_string();

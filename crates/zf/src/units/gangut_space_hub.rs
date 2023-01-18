@@ -7,7 +7,6 @@ pub struct GangutSpaceHub;
 #[methods]
 impl GangutSpaceHub {
     fn new(_base: &Node) -> Self {
-        // tracing::info!("prepare GangutSpaceHub");
         GangutSpaceHub
     }
 

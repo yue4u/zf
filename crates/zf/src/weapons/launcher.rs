@@ -67,7 +67,6 @@ impl Launcher {
         let rng = RandomNumberGenerator::new();
         rng.randomize();
         let start_time_msec = rng.randi_range(0, self.random_start_time_msec as i64);
-        // tracing::debug!("{:?}","rng says {}", start_time_msec);
         let timer = unsafe { Timer::new().into_shared().assume_safe() };
         base.add_child(timer, false);
 

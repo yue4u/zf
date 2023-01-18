@@ -25,8 +25,6 @@ struct MissionDetails {
     target_points_all: u32,
     enemies: u32,
     enemies_all: u32,
-    // TODO: cmds
-    // cmds: u32,
 }
 
 const ON_MISSION_STATE: &'static str = "ON_MISSION_STATE";
@@ -76,7 +74,6 @@ impl Mission {
     fn on_game_state(&mut self, #[base] base: TRef<RichTextLabel>, state: GameEvent) -> Option<()> {
         let m = self.mission.as_mut().unwrap();
         match state {
-            // GameEvent::MissionComplete(msg) => {}
             GameEvent::LevelChange(level) => {
                 m.level = level;
                 self.update_text();

@@ -128,25 +128,6 @@ impl<S> Runtime<S> {
 
         memory::decode_from_host::<_, Result<String, String>>(&mut self.store, &memory, tag)
             .map_err(|e| anyhow::Error::msg(e))
-
-        // let Runtime {
-        //     store,
-        //     stderr,
-        //     stdout,
-        //     ..
-        // } = self;
-
-        // drop(store);
-
-        // let stdout: Vec<u8> = stdout.try_into_inner().unwrap().into_inner();
-        // let stderr: Vec<u8> = stderr.try_into_inner().unwrap().into_inner();
-        // // if stderr.is_empty() {
-        // // return Ok(String::from_utf8(stdout)?.to_string());
-        // // }
-        // let out = String::from_utf8(stdout)?.to_string();
-        // let err = String::from_utf8(stderr)?.to_string();
-
-        // dbg!(&out, &err);
     }
 }
 

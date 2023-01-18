@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+h1 {
+    font-family: Orbitron, MONOSPACE;
+}
+
+img {
+    max-height: 300px;
+}

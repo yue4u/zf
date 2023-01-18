@@ -18,11 +18,15 @@ fn main() -> io::Result<()> {
 
     fs::create_dir_all(&build_dir)?;
 
+    #[cfg(target_os = "linux")]
     Command::new("godot")
         .current_dir(gd_dir)
         .args(["--no-window", "--export", "Linux/X11", "--path", "."])
         .spawn()?
         .wait()?;
+
+    #[cfg(not(target_os = "linux"))]
+    eprintln!("godot cli is not avalible, export directly!");
 
     Ok(())
 }

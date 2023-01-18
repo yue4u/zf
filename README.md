@@ -8,7 +8,7 @@ This is an experimental game about using command line to accomplish tasks and fi
 
 This game is made with [Godot Engine](https://godotengine.org/) and written in [Rust](https://www.rust-lang.org/) using [GDNative](https://github.com/godot-rust/gdnative).
 
-This project internally use a compiled [WASI (The WebAssembly System Interface)](https://wasi.dev/) version of [nushell](https://www.nushell.sh/) for command parsing / executing, while using [Wasmtime](https://wasmtime.dev/) as the runtime at the same time.
+This project internally use a compiled [WASI (The WebAssembly System Interface)](https://wasi.dev/) version of [nushell](https://www.nushell.sh/) for command parsing / executing while using [Wasmtime](https://wasmtime.dev/) as the runtime at the same time. The in-game terminal emulator is powered by [wezterm](https://wezfurlong.org/wezterm/) and rendering is handled in native godot APIs.
 
 This game is mainly developed on Linux but also available for macOS and Windows.
 

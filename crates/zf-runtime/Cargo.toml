@@ -23,4 +23,6 @@ wasi-common = "3.0.1"
 strip-ansi-escapes = "0.1.1"
 
 zf-ffi = { path = "../zf-ffi" }
+
+[target.'cfg(target_os = "linux")'.dependencies]
 zf-shell = { path = "../zf-shell", artifact = "bin", target = "wasm32-wasi" }

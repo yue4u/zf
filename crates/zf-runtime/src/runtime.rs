@@ -18,7 +18,12 @@ pub struct Runtime<S> {
 
 pub const SHELL_MODULE: &'static str = "zf-shell";
 // https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#artifact-dependencies
+#[cfg(target_os = "linux")]
 pub const SHELL_WASM: &[u8] = include_bytes!(env!("CARGO_BIN_FILE_ZF_SHELL"));
+
+#[cfg(not(target_os = "linux"))]
+// bin_deps does not compile except linux
+pub const SHELL_WASM: &[u8] = include_bytes!("../../../target/wasm32-wasi/release/zf-shell.wasm");
 
 pub const SHELL_PRELOAD: &'static str = r#"
 alias e = engine;

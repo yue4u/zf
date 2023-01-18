@@ -7,10 +7,12 @@ reloadable=true
 
 [entry]
 
+OSX.64="res://../target/release/libzf.dylib"
 Windows.64="res://../target/release/zf.dll"
 X11.64="res://../target/release/libzf.so"
 
 [dependencies]
 
+OSX.64=[  ]
 Windows.64=[  ]
 X11.64=[  ]

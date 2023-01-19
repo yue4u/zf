@@ -381,6 +381,64 @@ base.draw_string(
 詳細: https://github.com/yue4u/zf にて公開中
 
 ---
+
+# Shader
+
+本ゲームの制作においてshaderを多用して様々なビジュアルエフェクトを作り出した
+
+タイトルのグリッチからはじめ、
+
+![](title.avif)
+
+---
+layout: two-cols
+---
+
+その他のマティリアルなどでも使用した
+
+
+![](/weapon.avif)
+
+::right::
+
+<br/>
+
+<br/>
+
+<br/>
+
+![](material.avif)
+
+---
+
+シールドのShader、 edgeのラインを描画する部分
+
+```glsl
+void fragment() {
+  ...
+
+	vec4 c = tex(VERTEX.xy + TIME);
+	ALBEDO = hsv2rgb(c.xyz + 0.01 * VERTEX);
+	ALPHA = min(max(0.,fract(c.x * 2.) - (.95 - hit)) * 2., .05);
+
+  float gap = 0.25;
+  vec2 distance = gap / 2. - abs(gap / 2. - mod(UV.xy, gap));
+  float distance_from_edge = min(
+      distance.x,
+      distance.y
+  );
+  if(distance_from_edge < 0.001) {
+      ALPHA = 1.;
+  }
+}
+```
+---
+
+その中、HPバーが一番良く作れたと感じる
+
+![](hp.avif)
+
+---
 layout: two-cols
 ---
 

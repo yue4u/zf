@@ -177,7 +177,7 @@ layout: center
 layout: center
 ---
 
-これらだけではなく、
+シンプルなコマンドだけではなく、
 
 プログラミングのチュートリアルとしてデザインした一面もある
 
@@ -187,8 +187,6 @@ layout: center
 
 アドバンストの内容
 
-ゲームレベルデザインは`nushell`のチュートリアルを参考しながら制作した。
-
 ゲームの進行と共に、以下の少し複雑のテーマが出てくて、
 
 既知なコマンドをうまく組み合わせてクリアするのがポイントとなる
@@ -196,6 +194,8 @@ layout: center
 - data pipeline / filtering
 - background task
 - events tigger
+
+ゲームのレベルデザインの一部は`nushell`のチュートリアルを参考しながら制作した。
 
 ---
 
@@ -259,6 +259,9 @@ This game is made with
 - [nushell](https://www.nushell.sh/) - command parsing / execution
 - [wezterm](https://wezfurlong.org/wezterm/) - in-game terminal emulator
 
+- For Linux/X11
+  - macOS, Windows buildもあります
+  - 1,518,499 LOC
 ---
 
 # Architecture
@@ -413,7 +416,7 @@ layout: two-cols
 
 <br/>
 
-![](material.avif)
+![](/material.avif)
 
 ---
 

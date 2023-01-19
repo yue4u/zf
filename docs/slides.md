@@ -232,13 +232,19 @@ layout: center
 
 ## 入力の補完
 
-![](completion.png)
+![](/completion.png)
 
 ---
 
 ## エラーメッセージ (powerd by miette)
 
 ![](/error.png)
+
+---
+
+## クリアのヒント
+
+![](/hint.png)
 
 ---
 
@@ -270,9 +276,9 @@ This game is made with
 実行環境
 
 - 入力: player -> term -> runtime -> shell
-- 出力: shell -> host funciton -> runtime
-  1. runtime -> term
-  2. host function -> engine -> shell -> runtime -> term
+- 出力:
+  1. shell -> host funciton -> runtime -> term
+  2. shell -> host function -> engine -> shell -> runtime -> term
 
 ---
 
@@ -388,7 +394,7 @@ base.draw_string(
 
 タイトルのグリッチからはじめ、
 
-![](title.avif)
+![](/title.avif)
 
 ---
 layout: two-cols
@@ -436,7 +442,7 @@ void fragment() {
 
 その中、HPバーが一番良く作れたと感じる
 
-![](hp.avif)
+![](/hp.avif)
 
 ---
 layout: two-cols

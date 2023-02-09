@@ -22,6 +22,10 @@ AutoLoad="*res://scenes/AutoLoad.tscn"
 
 settings/stdout/verbose_stdout=true
 
+[display]
+
+window/dpi/allow_hidpi=true
+
 [global]
 
 thread=false

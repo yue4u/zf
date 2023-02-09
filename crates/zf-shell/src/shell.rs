@@ -3,7 +3,7 @@ use crate::commands::{
     EngineThruster, EngineThrusterShort, Fire, Fsays, Game, GameEnd, GameMenu, GameStart, Hi, Hint,
     Level, LevelList, LevelNext, LevelRestart, LevelStart, Mystery, Radar, RandomPos, Repair,
     Shield, ShieldOff, ShieldOn, SpecialThanks, Task, TaskOn, TaskRun, TaskStop, TermOpacity, Time,
-    TimeScale, Tutorial, UI,
+    TimeScale, Tutorial, UI,WindowFullScreen,WindowModeWindowed
 };
 use anyhow::Result;
 use nu_command::*;
@@ -79,6 +79,9 @@ impl ShellState {
             AudioVolume,
 
             TermOpacity,
+
+            WindowFullScreen,
+            WindowModeWindowed,
 
             Radar,
 

@@ -19,6 +19,7 @@ mod term;
 mod time;
 mod tutorial;
 mod ui;
+mod window;
 
 pub(crate) use audio::*;
 pub(crate) use clear::*;
@@ -41,6 +42,7 @@ pub(crate) use term::*;
 pub(crate) use time::*;
 pub(crate) use tutorial::*;
 pub(crate) use ui::*;
+pub(crate) use window::*;
 
 use nu_engine::CallExt;
 

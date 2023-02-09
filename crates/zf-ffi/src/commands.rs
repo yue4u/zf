@@ -21,6 +21,7 @@ pub enum CommandArgs {
     Audio(AudioCommand),
     Time(TimeCommand),
     Term(TermCommand),
+    Window(WindowCommand),
     Repair,
     Credits,
     /// up to host impl and currently used for test
@@ -186,4 +187,11 @@ pub struct TimeCommand {
 #[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
 pub enum TermCommand {
     Opacity(f32),
+}
+
+#[derive(Decode, Encode, Debug, PartialEq)]
+#[cfg_attr(feature = "godot", derive(Clone, FromVariant, ToVariant))]
+pub enum WindowCommand {
+    FullScreen,
+    Windowed,
 }

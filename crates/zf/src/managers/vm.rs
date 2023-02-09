@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, fmt::Display};
 use zf_ffi::{
     memory::Tag, CommandArgs, CommandResults, GameCommand, LevelCommand, ShieldCommand,
-    TaskCommand, TaskListenableEvent,
+    TaskCommand, TaskListenableEvent, WindowCommand,
 };
 
 use crate::{
@@ -469,6 +469,14 @@ impl RuntimeFunc {
                     0
                 }
             },
+            CommandArgs::Window(window)=>{
+                let enabled = match window {
+                    WindowCommand::FullScreen => true,
+                    WindowCommand::Windowed => false,
+                };
+                _ = OS::godot_singleton().set_window_fullscreen(enabled);
+                0
+            }
             CommandArgs::Credits => {
                 const REPO_URL: &'static str = "https://github.com/yue4u/zf";
                 _ = OS::godot_singleton().shell_open(REPO_URL);
